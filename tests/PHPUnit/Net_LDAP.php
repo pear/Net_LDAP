@@ -95,6 +95,25 @@ class Net_LDAP_Test extends PHPUnit_TestCase
             $this->assertTrue(is_string($value) && $value != '', 'Attribute value was not a string or empty');
         }
     }
+    
+    function testRename()
+    {
+        if ($this->assertTrue(isset($GLOBALS['existing_dn']), 'exisiting dn not set in config')) {
+            return false;
+        }
+        if ($this->assertTrue(isset($GLOBALS['rename_dn']), 'rename dn not set in config')) {
+            return false;
+        }
+        
+        $entry = $this->ldap->getEntry($GLOBALS['existing_dn']);        
+        $this->assertEquals('net_ldap_entry', get_class($entry));
+
+        foreach (array($GLOBALS['rename_dn'], $GLOBALS['existing_dn']) as $dn) {
+            $entry->dn($dn);
+            $msg = $entry->update();        
+            $this->assertFalse(Net_LDAP::isError($msg), 'Could not rename entry');
+        }
+    }
 }
 
 ?>
