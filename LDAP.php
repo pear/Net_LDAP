@@ -31,10 +31,9 @@ require_once('LDAP/Search.php');
 
 
 /**
- * Errorconstants.
- * 
- **/
-/* errors that are not ldaperrorcodes.  */
+ *  Error constants for errors that are not LDAP errors 
+ */
+
 define ('LDAP_INT_ERROR', 1000);
 
 
@@ -86,8 +85,8 @@ define ('LDAP_INT_ERROR', 1000);
      * Net_LDAP Release Version
      *
      * @access private
-     * $var string
-     **/
+     * @var string
+     */
     var $_version = "0.6.6";
     
     /**
