@@ -207,7 +207,7 @@ class Net_LDAP_Entry extends PEAR
      * The first parameter is the name of the attribute
      * The second parameter influences the way the value is returned:
      * 'single': only the first value is returned as string
-     * 'alloptions': all values including the value count are returned in an
+     * 'all': all values including the value count are returned in an
      *               array
      * 'default': in all other cases an attribute value with a single value is
      *            returned a string, if it has multiple values it is returned
@@ -228,7 +228,7 @@ class Net_LDAP_Entry extends PEAR
                        
         $value = $this->_attributes[$attr];
         
-        if ($option == "single" || (count($value) == 1 && $option != "alloptions")) {
+        if ($option == "single" || (count($value) == 1 && $option != 'all')) {
             $value = array_shift($value);
         }
         
@@ -386,7 +386,7 @@ class Net_LDAP_Entry extends PEAR
      * @access public
      * @param $attr
      */
-    function replace($attr)
+    function replace($attr = array())
     {
         if (false == is_array($attr)) {
             return PEAR::raiseError("Parameter must be an array");
@@ -422,16 +422,15 @@ class Net_LDAP_Entry extends PEAR
      */
     function update(&$ldap)
     {
-        if (false == is_object($ldap) ||
-            strtolower(get_class($ldap)) != 'net_ldap') {
+        if (!is_a($ldap, 'Net_LDAP')) {
             return PEAR::raiseError("Need a Net_LDAP object as parameter");
         }
-
+        
         $link = $ldap->getLink();
         
         // Delete the entry
         if ($this->_delete === true) {
-            return $ldap->delete(&$this);
+            return $ldap->delete($this);
         }
         // New entry
         if ($this->_new === true) {
