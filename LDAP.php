@@ -142,7 +142,7 @@ define ('NET_LDAP_ERROR', 1000);
         if (!function_exists('ldap_connect')){
             return $this->raiseError("It seems that you do not have the ldap-extension installed. Please install it before using this package.");
         }
-        @$obj = & new Net_LDAP($config);
+        @$obj =& new Net_LDAP($config);
         $err  = $obj->bind();
 
         if (Net_LDAP::isError($err)) {
@@ -261,7 +261,7 @@ define ('NET_LDAP_ERROR', 1000);
     function start_tls() 
     {
         $args = func_get_args();
-        return call_user_func_array(array( &$this, 'startTLS' ), $args);
+        return call_user_func_array(array($this, 'startTLS' ), $args);
     }
 
     /**
@@ -593,7 +593,7 @@ define ('NET_LDAP_ERROR', 1000);
 
             if ($err == 32) {
                 // Errorcode 32 = no such object, i.e. a nullresult.
-                return $obj = & new Net_LDAP_Search (& $search, $this->_link); 
+                return $obj =& new Net_LDAP_Search ($search, $this->_link); 
                 
             // Errorcode 4 = sizelimit exeeded. this will be handled better in time...
             //} elseif ($err == 4) {
@@ -607,7 +607,7 @@ define ('NET_LDAP_ERROR', 1000);
                 return $this->raiseError($this->errorMessage($err) . $msg, $err);                 
             }
         } else {
-            @$obj = & new Net_LDAP_Search($search, $this->_link);
+            @$obj =& new Net_LDAP_Search($search, $this->_link);
            return $obj;
         }
 
@@ -902,7 +902,7 @@ define ('NET_LDAP_ERROR', 1000);
     function &root_dse() 
     {
         $args = func_get_args();
-        return call_user_func_array(array(&$this, 'rootDse'), $args);
+        return call_user_func_array(array($this, 'rootDse'), $args);
     }
     
     /**
@@ -917,7 +917,7 @@ define ('NET_LDAP_ERROR', 1000);
      {
         require_once('Net/LDAP/Schema.php');
         
-        $schema = & new Net_LDAP_Schema();
+        $schema =& new Net_LDAP_Schema();
 
         if (is_null($dn)) {
             // get the subschema entry via root dse

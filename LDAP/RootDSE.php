@@ -73,7 +73,7 @@ class Net_LDAP_RootDSE extends PEAR
      function get_value() 
      {
         $args = func_get_args();
-        return call_user_func_array(array( &$this, 'getValue' ), $args);
+        return call_user_func_array(array($this, 'getValue' ), $args);
      }
     
     /**
@@ -96,7 +96,7 @@ class Net_LDAP_RootDSE extends PEAR
      function supported_extension() 
      {
         $args = func_get_args();
-        return call_user_func_array(array( &$this, 'supportedExtension'), $args);
+        return call_user_func_array(array($this, 'supportedExtension'), $args);
      }
     
     /**
@@ -119,7 +119,7 @@ class Net_LDAP_RootDSE extends PEAR
      function supported_version() 
      {
         $args = func_get_args();
-        return call_user_func_array(array(&$this, 'supportedVersion'), $args);
+        return call_user_func_array(array($this, 'supportedVersion'), $args);
      }    
 
      /**
@@ -142,7 +142,7 @@ class Net_LDAP_RootDSE extends PEAR
      function supported_control() 
      {
         $args = func_get_args();
-        return call_user_func_array(array(&$this, 'supportedControl' ), $args);
+        return call_user_func_array(array($this, 'supportedControl' ), $args);
      }        
     
     /**
@@ -165,7 +165,7 @@ class Net_LDAP_RootDSE extends PEAR
      function supported_sasl_mechanism() 
      {
         $args = func_get_args();
-        return call_user_func_array(array(&$this, 'supportedSASLMechanism'), $args);
+        return call_user_func_array(array($this, 'supportedSASLMechanism'), $args);
      }    
     
      /**

@@ -233,13 +233,13 @@
                     $schema_entry['type'] = $type;
                     
                     // save a ref in $_oids
-                    $this->_oids[$schema_entry['oid']] = &$schema_entry;                    
+                    $this->_oids[$schema_entry['oid']] =& $schema_entry;                    
                     
                     // save refs for all names in type map
                     $names = $schema_entry['aliases'];
                     array_push($names, $schema_entry['name']);
                     foreach ($names as $name) {
-                        $this->{$type_var}[strtolower($name)] = &$schema_entry;
+                        $this->{$type_var}[strtolower($name)] =& $schema_entry;
                     }
                 }
             }
