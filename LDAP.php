@@ -791,10 +791,10 @@ class Net_LDAP extends PEAR
 
                   (false !== strpos($attr['syntax'], '1.3.6.1.4.1.1466.115.121.1.15')) ? $encode = true : $encode = false;
                   $this->_schemaAttrs[$k] = $encode;
-                  }
+                  
 
                 } else {
-                  $encode = $this->_schemaAttrs[$k]
+                  $encode = $this->_schemaAttrs[$k];
                 }
 
                 if ($encode)

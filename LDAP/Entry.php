@@ -451,7 +451,7 @@ class Net_LDAP_Entry extends PEAR
         if ($this->updateCheck['newEntry']) {
            //print "<br>"; print_r($this->_clean_entry());
 
-            if (!@ldap_add($this->_link, $this->dn(), $this->_clean_entry() ) {
+            if (!@ldap_add($this->_link, $this->dn(), $this->_clean_entry()) ) {
                   return $this->raiseError("Entry" . $this->dn() . " not added!" . ldap_error($this->_link), ldap_errno($this->_link));
             } else {
                 return true;

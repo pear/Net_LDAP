@@ -43,7 +43,7 @@ Net-Ldap layers itself on top of PHP's existing ldap extensions.
     getEntry($dn) gets a single entry based on the dn.
     dnExists($dn) checks if the dn exists.
     
-    Also, as usual some bugfixes has been made, amongst them some from Piero Calucci <calucci@sissa.it>.
+    Also, as usual some bugfixes has been made, amongst them some from Piero Calucci.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="Net">
