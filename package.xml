@@ -3,16 +3,16 @@
 <package version="1.0">
   <name>Net_LDAP</name>
   <summary>OO interface for searching and manipulating LDAP-entries</summary>
-  <description>Net Ldap is a clone of Perls Net::LDAP object interface to 
-  ldapservers. It does not contain all of Net::LDAPs features (ldif handling, schemas etc), 
-  but has:
-  * A simple OO-interface to connections, searches and entries.
-  * Support for tls and ldap v3.
-  * Simple modification, deletion and creation of ldapentries.
-  * Support for schema handling.
-
-
-Net-Ldap layers itself on top of PHP's existing ldap extensions.  
+  <description>
+    Net Ldap is a clone of Perls Net::LDAP object interface to 
+    ldapservers. It does not contain all of Net::LDAPs features, 
+    but has:
+    * A simple OO-interface to connections, searches and entries.
+    * Support for tls and ldap v3.
+    * Simple modification, deletion and creation of ldapentries.
+    * Support for schema handling.
+    
+    Net_LDAP layers itself on top of PHP's existing ldap extensions.
   </description>
   <license>GPL License</license>
   <maintainers>
@@ -29,97 +29,124 @@ Net-Ldap layers itself on top of PHP's existing ldap extensions.
       <role>lead</role>
     </maintainer>
   </maintainers>
-<release>
-    <version>0.6.2</version>
+  <release>
+    <version>0.6.3</version>
     <state>beta</state>
-    <date>2003-10-17</date>
+    <date>2003-11-12</date>
     <notes>
-    Major change: utf8encoding now checks that the attribute should be encoded. Correct usage:
-    $util = new Net_LDAP_Util($ldap);
-    $attrs = $util->utf8Encode( $attrs );
-    I.e utf8encoding has been moved out of the entryobject.
-    Thanks to Jan for the code.
-    New functions:
-    getEntry($dn) gets a single entry based on the dn.
-    dnExists($dn) checks if the dn exists.
-    
-    Also, as usual some bugfixes has been made, amongst them some from Piero Calucci.
+      It seems that 0.6.2 was out too fast. So this is mainly a bugfix release:   
+   
+      - Removed remaining Net_LDAP::UTF8Encode and Net_LDAP::UTF8Decode calls in Net_LDAP_Entry,
+        which stopped attributes() and get_entry() from working
+      - The UTF8 functions somehow got outside the Net_LDAP class ... FIXED.
+      - The usuage example of the last release was wrong. We decided to move UTF8 handling into Net_LDAP.
+        Handling should be done this way:
+      
+      $attr = $ldap->utf8Encode($attr);
+      $entry->modify($attr);
+      $attr = $ldap->utf8Decode( $entry->attributes() );
+
+      - This means Net_LDAP_Util is useless right now, but will be extended in the future.
+      - Jan did a complete overhaul of the phpdoc stuff. Everything seems to be fine now with phpDocumentor.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="Net">
         <file role="php" name="LDAP.php"/>
         <dir name="LDAP" role="php">
-            <file name="Entry.php"/>
-            <file name="Search.php"/>
-            <file name="RootDSE.php"/>
-            <file name="Schema.php"/>
-            <file name="Util.php" />
+	  <file name="Entry.php"/>
+	  <file name="Search.php"/>
+	  <file name="RootDSE.php"/>
+	  <file name="Schema.php"/>
+	  <file name="Util.php" />
         </dir>
         <dir name="tests" role="test">
-            <file name="tests.php"/>
+	  <file name="tests.php"/>
         </dir>
       </dir>
       <dir name="doc" role="doc">
-          <file name="README.txt"/>
-          <file name="STATUS"/>
-          <file name="Schema.txt"/>
-          <file name="RootDSE.txt"/>
-          <file name="Utf8.txt" />
+	<file name="README.txt"/>
+	<file name="STATUS"/>
+	<file name="Schema.txt"/>
+	<file name="RootDSE.txt"/>
+	<file name="Utf8.txt" />
       </dir>
     </filelist>
   </release>
-<changelog>
+  <changelog>
     <release>
-        <version>0.1</version>
-        <state>beta</state>
-        <date>2003-06-23</date>
-        <notes>Initial release</notes>
+      <version>0.1</version>
+      <state>beta</state>
+      <date>2003-06-23</date>
+      <notes>Initial release</notes>
     </release>
     <release>
-        <version>0.2</version>
-        <state>beta</state>
-        <date>2003-08-23</date>
-        <notes>Fixed a lot of bugs that jumped in during the pearification process</notes>
+      <version>0.2</version>
+      <state>beta</state>
+      <date>2003-08-23</date>
+      <notes>Fixed a lot of bugs that jumped in during the pearification process</notes>
     </release>
     <release>
-        <version>0.3</version>
-        <state>beta</state>
-        <date>2003-09-21</date>
-        <notes>More bug squashing! Much better errorhandling in the ->search() function. Also, all errors that create a Pear_error now includes the errornumber if appropriate (i.e. it was an ldap generated error).</notes>
+      <version>0.3</version>
+      <state>beta</state>
+      <date>2003-09-21</date>
+      <notes>
+	More bug squashing! Much better errorhandling in the ->search() function.
+	Also, all errors that create a Pear_error now includes the errornumber if
+	appropriate (i.e. it was an ldap generated error).
+      </notes>
     </release>
-       <release>
-        <version>0.4</version>
-         <state>beta</state>
-          <date>2003-10-01</date>
-           <notes>Many more bugfixes. Jan Wagner fixed the shift_entry function.
-           Also a new Net_LDAP_Entry::modify function has been added that goes far making a simple way to modify entries.
-           </notes>
-        </release>
-     <release>
-        <version>0.5</version>
-        <state>beta</state>
-        <date>2003-10-11</date>
-         <notes>Jan Wagner Contributed a new RootDSE object and a Schema object and some fixes to the Net_LDAP::search() method
-         The new Net_ldap_entry::modify() method seems to work very nice now.
-         </notes>
-         </release>
-         <release>
-         <version>0.6</version>
-         <state>beta</state>
-         <date>2003-10-17</date>
-         <notes>
-             New Net_LDAP::ArrayUTF8Decode and Net_LDAP::ArrayUTF8Encode functions. These are used by the Net_LDAP::Entry objects to ensure that things work ok.
-
-         </notes>
-         </release>
-        <release>
-        <version>0.6.1</version>
-        <state>beta</state>
-        <date>2003-10-01</date>
-        <notes>
-        Renamed  the Net_LDAP::ArrayUTF8Decode and Net_LDAP::ArrayUTF8Encode functions to UTFDecode and UTFEncode. These are used by the Net_LDAP::Entry objects to ensure that things work ok.
-        </notes>
-        
-        </release>                 
-</changelog>
+    <release>
+      <version>0.4</version>
+      <state>beta</state>
+      <date>2003-10-01</date>
+      <notes>
+	Many more bugfixes. Jan Wagner fixed the shift_entry function.
+	Also a new Net_LDAP_Entry::modify function has been added that goes far making a simple way to modify entries.
+      </notes>
+    </release>
+    <release>
+      <version>0.5</version>
+      <state>beta</state>
+      <date>2003-10-11</date>
+      <notes>
+	Jan Wagner Contributed a new RootDSE object and a Schema object and some fixes to the Net_LDAP::search() method
+	The new Net_ldap_entry::modify() method seems to work very nice now.
+      </notes>
+    </release>
+    <release>
+      <version>0.6</version>
+      <state>beta</state>
+      <date>2003-10-17</date>
+      <notes>
+	New Net_LDAP::ArrayUTF8Decode and Net_LDAP::ArrayUTF8Encode functions.
+	These are used by the Net_LDAP::Entry objects to ensure that things work ok.	
+      </notes>
+    </release>
+    <release>
+      <version>0.6.1</version>
+      <state>beta</state>
+      <date>2003-10-01</date>
+      <notes>
+        Renamed  the Net_LDAP::ArrayUTF8Decode and Net_LDAP::ArrayUTF8Encode functions to UTFDecode and UTFEncode.
+	These are used by the Net_LDAP::Entry objects to ensure that things work ok.
+      </notes>        
+    </release>                 
+    <release>
+      <version>0.6.2</version>
+      <state>beta</state>
+      <date>2003-11-11</date>
+      <notes>
+	Major change: utf8encoding now checks that the attribute should be encoded. Correct usage:
+	$util = new Net_LDAP_Util($ldap);
+	$attrs = $util->utf8Encode( $attrs );
+	I.e utf8encoding has been moved out of the entryobject.
+	Thanks to Jan for the code.
+	New functions:
+	getEntry($dn) gets a single entry based on the dn.
+	dnExists($dn) checks if the dn exists.
+	
+	Also, as usual some bugfixes has been made, amongst them some from Piero Calucci.
+      </notes>
+    </release>
+  </changelog>
 </package>
