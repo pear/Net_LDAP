@@ -1,21 +1,27 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +----------------------------------------------------------------------+
-// | PHP version 4                                                        |
-// +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                |
-// +----------------------------------------------------------------------+
-// | This source file is subject to version 2.0 of the PHP license,       |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available through the world-wide-web at                              |
-// | http://www.php.net/license/2_02.txt.                                 |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
-// | license@php.net so we can mail you a copy immediately.               |
-// +----------------------------------------------------------------------+
-// | Authors: Tarjej Huse                                                 |
-// |          Jan Wagner <wagner@netsols.de>                              |
-// +----------------------------------------------------------------------+
+// +--------------------------------------------------------------------------+
+// | Net_LDAP                                                                 |
+// +--------------------------------------------------------------------------+
+// | Copyright (c) 1997-2003 The PHP Group                                    |
+// +--------------------------------------------------------------------------+
+// | This library is free software; you can redistribute it and/or            |
+// | modify it under the terms of the GNU Lesser General Public               |
+// | License as published by the Free Software Foundation; either             |
+// | version 2.1 of the License, or (at your option) any later version.       |
+// |                                                                          |
+// | This library is distributed in the hope that it will be useful,          |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of           |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU        |
+// | Lesser General Public License for more details.                          |
+// |                                                                          |
+// | You should have received a copy of the GNU Lesser General Public         |
+// | License along with this library; if not, write to the Free Software      |
+// | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA |
+// +--------------------------------------------------------------------------+
+// | Authors: Tarjej Huse                                                     |
+// |          Jan Wagner                                                      |
+// +--------------------------------------------------------------------------+
 //
 // $Id$
 
@@ -34,14 +40,22 @@ require_once('LDAP/Search.php');
  class Net_LDAP extends PEAR
 {
     /**
+     * Net_LDAP Release Version
+     *
+     * @access private
+     * @var string
+     */
+    var $_version = "0.7.0pre";
+    
+    /**
      * Class configuration array
      *
-     * dn       = the DN to bind as.
+     * binddn   = the DN to bind as.
      * host     = the ldap host to connect to
-     * password = no explanation needed
-     * base     = ldap base
+     * bindpw   = no explanation needed
+     * basedn   = ldap base
      * port     = the server port
-     * tls      = when set, ldap_start_tls() is run after connecting.
+     * starttls = when set, ldap_start_tls() is run after connecting.
      * version  = ldap version (defaults to v 3)
      * filter   = default search filter
      * scope    = default search scope
@@ -49,15 +63,15 @@ require_once('LDAP/Search.php');
      * @access private
      * @var array
      */
-     var $_config = array('dn' => '',
-                          'host' => 'localhost',
-                          'password' => '',
-                          'tls' => false,
-                          'base' => '',
-                          'port' => 389,
-                          'version' => 3,
-                          'filter' => '(objectClass=*)',
-                          'scope' => 'sub');
+     var $_config = array('host'     => 'localhost',
+                          'port'     => 389,
+                          'version'  => 3,
+                          'starttls' => false,                          
+                          'binddn'   => '',                          
+                          'bindpw'   => '',                          
+                          'basedn'   => '',
+                          'filter'   => '(objectClass=*)',
+                          'scope'    => 'sub');
 
     /**
      * LDAP resource link.
@@ -65,7 +79,7 @@ require_once('LDAP/Search.php');
      * @access private
      * @var resource
      */
-    var $_link;
+    var $_link = false;
 
     /**
      * Net_LDAP_Schema object
@@ -94,10 +108,31 @@ require_once('LDAP/Search.php');
      * @return void
      * @see $_config
      */
-    function Net_LDAP($_config = array())
+    function Net_LDAP($config = array())
     {
-        foreach ($_config as $k => $v) {
-            $this->_config[$k] = $v;
+        $this->PEAR('Net_LDAP_Error');
+        if (is_array($config)) {
+            foreach ($config as $k => $v) {
+                if (isset($this->_config[$k])) {
+                    $this->_config[$k] = $v;
+                } else {
+                    // map old (Net_LDAP) parms to new ones
+                    switch($k) {
+                        case "dn":
+                            $this->_config["binddn"] = $v;
+                            break;
+                        case "password":
+                            $this->_config["bindpw"] = $v;
+                            break;
+                        case "tls":
+                            $this->_config["starttls"] = $v;
+                            break;
+                        case "base":
+                            $this->_config["basedn"] = $v;
+                            break;
+                    }
+                }
+            }
         }
     }
 
@@ -126,78 +161,69 @@ require_once('LDAP/Search.php');
     /**
      * Bind to the ldap-server
      *
-     * The function may be used if you do not create the object using Net_LDAP::connect.
+     * This function binds with the given dn and password to the server. In case
+     * no connections has been made yet, it will be startet and startTLS issued
+     * if appropiate.
      *
      * @access public
-     * @param array Configuration array
+     * @param string Distinguished name for binding
+     * @param string Password for binding
      * @return mixed Net_LDAP_Error or true
-     * @see $_config
      */
-    function bind($config = array())
+    function bind($dn = null, $password = null)
     {
-        foreach ($config as $k => $v) {
-            $this->_config[$k] = $v;
-        }
-
-        if ($this->_config['host']) {
-             $this->_link = @ldap_connect($this->_config['host'], $this->_config['port']);
-        } else {
-             return $this->raiseError("Host not defined in config. {$this->_config['host']}");
-        }
-
-        if (!$this->_link) {            
-            // there is no good errorcode for this one! I chose 52.
-            return $this->raiseError("Could not connect to server. ldap_connect failed.",52 );
-        }
-        // You must set the version and start tls BEFORE binding!
-        
-        if ($this->_config['version'] != 2 && Net_LDAP::isError($msg = $this->setLDAPVersion())) {
+        if (Net_LDAP::isError($msg = $this->_connect())) {
             return $msg;
+        } 
+        if (is_null($dn)) {
+            $dn = $this->_config["binddn"];
         }
-        
-        if ($this->_config['tls'] && Net_LDAP::isError($msg = $this->startTLS())) {
-            return $msg;
+        if (is_null($password)) {
+            $password = $this->_config["bindpw"];
         }
-        
-        if (isset($this->_config['dn']) && isset($this->_config['password'])) {
-             $bind = @ldap_bind($this->_link, $this->_config['dn'], $this->_config['password']);
+        if (is_null($dn)) {
+            $msg = @ldap_bind($this->_link);
         } else {
-             $bind = @ldap_bind($this->_link);
+            $msg = @ldap_bind($this->_link, $dn, $password);
         }
-
-        if (!$bind) {
-             return $this->raiseError("Bind failed " . @ldap_error($this->_link), @ldap_errno($this->_link));
+        if (false === $msg) {
+            return PEAR::raiseError("Bind failed: " .
+                                         @ldap_error($this->_link),
+                                         @ldap_errno($this->_link));
         }
-
         return true;
     }
 
     /**
-     * ReBind to the ldap-server using another dn and password
+     * Connect to the ldap-server
      *
-     * The function may be used if you do not create the object using Net_LDAP::connect.
+     * This function connects to the given LDAP server. If no host is given the
+     * ones in _config are used.
      *
-     * @access public
-     * @param string $dn - the DN to bind as.
-     *        string $password - the bassword to use.
+     * @access private
+     * @param string Hostname to connect to
+     * @param string Port number to connect to
      * @return mixed Net_LDAP_Error or true
-     * @see $_config
      */
-   
-    function reBind ($dn = null, $password = null) 
+    function _connect()
     {
-       
-        if ($dn && $password ) {
-            $bind = @ldap_bind($this->_link, $dn, $password);
-        } else {
-            $bind = @ldap_bind($this->_link);
+        if ($this->_link === false) {            
+            $this->_link = @ldap_connect($this->_config['host'],
+                                         $this->_config['port']);
+            if (false === $this->_link) {
+                return PEAR::raiseError("Could not connect to $host:$port");
+            }            
+            if (Net_LDAP::isError($msg = $this->setLDAPVersion())) {
+                return $msg;
+            }            
+            if ($this->_config["starttls"] === true) {
+                if (Net_LDAP::isError($msg = $this->startTLS())) {
+                    return $msg;
+                }
+            }
         }
-
-        if (!$bind) {
-            return $this->raiseError("Bind failed " . @ldap_error($this->_link), @ldap_errno($this->_link));
-        }
-        return true;
-    }
+        return true; 
+    }    
     
     /**
      * Starts an encrypted session
@@ -207,8 +233,10 @@ require_once('LDAP/Search.php');
      */
     function startTLS()
     {
-        if (!@ldap_start_tls($this->_link)) {
-            return $this->raiseError("TLS not started. Error:" . @ldap_error($this->_link), @ldap_errno($this->_link));
+        if (false === @ldap_start_tls($this->_link)) {
+            return $this->raiseError("TLS not started: " .
+                                     @ldap_error($this->_link),
+                                     @ldap_errno($this->_link));
         }
         return true;
     }
@@ -256,11 +284,12 @@ require_once('LDAP/Search.php');
      */
     function add($entry)
     {
-        if (@ldap_add($this->_link, $entry->dn(), $entry->attributes())) {
+        if (@ldap_add($this->_link, $entry->dn(), $entry->getValues())) {
              return true;
         } else {
-             return $this->raiseError("Could not add entry " . $entry->dn() . " " . ldap_error(),
-                                       ldap_errno($this->_link));
+             return $this->raiseError("Could not add entry " . $entry->dn() . " " .
+                                       @ldap_error($this->_link),
+                                       @ldap_errno($this->_link));
         }
     }
 
@@ -278,7 +307,7 @@ require_once('LDAP/Search.php');
      */
     function delete($dn, $param = array())
     {
-        if (is_object($dn) && get_class($dn) == 'net_ldap_entry') {
+        if (is_object($dn) && strtolower(get_class($dn)) == 'net_ldap_entry') {
              $dn = $dn->dn();
         } else {
             if (!is_string($dn)) {
@@ -299,7 +328,7 @@ require_once('LDAP/Search.php');
                         $errno = @ldap_errno($this->_link);
                         return $this->raiseMessage ("Net_LDAP::delete: " . $this->errorMessage($errno), $errno);
                     }                
-                    if(PEAR::isError($result)){
+                    if(Net_LDAP::isError($result)){
                         return $result;
                     }                
                 }
@@ -470,7 +499,7 @@ require_once('LDAP/Search.php');
     function search($base = null, $filter = null, $params = array())
     {		
     	if (is_null($base)) {
-            $base = $this->_config['base'];
+            $base = $this->_config['basedn'];
         }
         if (is_null($filter)) {
             $filter = $this->_config['filter'];
@@ -508,8 +537,8 @@ require_once('LDAP/Search.php');
                                   $attrsonly,
                                   $sizelimit,
                                   $timelimit);
-
-        if ($err = ldap_errno($this->_link)) { 
+        
+        if ($err = @ldap_errno($this->_link)) { 
 
             if ($err == 32) {
                 // Errorcode 32 = no such object, i.e. a nullresult.
@@ -523,6 +552,7 @@ require_once('LDAP/Search.php');
                 // bad search filter
                 return $this->raiseError($this->errorMessage($err) . "($filter)", $err);
             } else {
+                
                 $msg = "\nParameters:\nBase: $base\nFilter: $filter\nScope: $scope";
                 return $this->raiseError($this->errorMessage($err) . $msg, $err);                 
             }
@@ -563,11 +593,17 @@ require_once('LDAP/Search.php');
             $version = $this->_config['version'];
         }
         if (!$this->_link) {
-            return $this->raiseError('No valid LDAP link');
+            return PEAR::raiseError('No valid LDAP link');
         }
-        if (!@ldap_set_option($this->_link, LDAP_OPT_PROTOCOL_VERSION, $version)) {
-            return $this->raiseError("Could not set LDAP version to $version " .
-                                      ldap_error($this->_link), ldap_errno($this->_link));
+        if (false === @ldap_set_option($this->_link,
+                                       LDAP_OPT_PROTOCOL_VERSION,
+                                       $version)) {
+            return $this->raiseError("Could not set LDAP version to $version: " .
+                                      ldap_error($this->_link),
+                                      ldap_errno($this->_link));
+        }
+        if ($this->_config['version'] != $version) {
+            $this->_config['version'] = $version;
         }
         return true;
     }
@@ -575,13 +611,11 @@ require_once('LDAP/Search.php');
     /**
      * Get the Net_LDAP version. 
      *
-     * Not yet supported. For now, raises an error.
-     *
-     * @return object Net_LDAP_Error
+     * @return string Net_LDAP version
      */
     function getVersion ()
     {
-        return $this->raiseError("This function is not yet supported by Net_LDAP. If you want to find the LDAP Protocolversion use getLDAPVersion()");
+        return $this->_version;
     }
 
     /**
@@ -603,7 +637,7 @@ require_once('LDAP/Search.php');
             return false;
         }
         if (ldap_errno($this->_link) != 0) {
-            $this->raiseError(ldap_error($this->_link), ldap_errno($this->_link));
+            PEAR::raiseError(ldap_error($this->_link), ldap_errno($this->_link));
         }
         if (@ldap_count_entries($this->_link, $result)) {
             return true;
@@ -619,7 +653,7 @@ require_once('LDAP/Search.php');
     * @param array Array of Attributes to select
     * @return mixed Net_LDAP_Entry or false
     */
-   function &getEntry($dn, $attr = array(''))
+   function &getEntry($dn, $attr = array())
    {
         $result = $this->search($dn, '(objectClass=*)', array('scope' => 'base', 'attributes' => $attr));
         if (Net_LDAP::isError($result)) {
@@ -627,7 +661,7 @@ require_once('LDAP/Search.php');
         }
         $entry = $result->shift_entry();
         if (false == $entry) {
-            return $this->raiseError('Could not fetch entry');
+            return PEAR::raiseError('Could not fetch entry');
         }
         return $entry;
    }
@@ -638,7 +672,8 @@ require_once('LDAP/Search.php');
      *
      * Made to be able to make better errorhandling
      * Function based on DB::errorMessage()
-     * Tip: The best description of the errorcodes is found here: http://www.directory-info.com/LDAP/LDAPErrorCodes.html
+     * Tip: The best description of the errorcodes is found here:
+     * http://www.directory-info.com/LDAP/LDAPErrorCodes.html
      *
      * @param int Error code
      * @return string The errorstring for the error.
@@ -712,7 +747,19 @@ require_once('LDAP/Search.php');
 
          return isset($errorMessages[$errorcode]) ? $errorMessages[$errorcode] : $errorMessages[LDAP_ERROR];
     }
-       
+    
+    /**
+     * Tell whether value is a Net_LDAP_Error or not
+     *
+     * @access public
+     * @param mixed 
+     * @return boolean
+     */
+    function isError($value)
+    {
+        return is_a($value, "Net_LDAP_Error");
+    }
+        
     /**
      * gets a root dse object
      *
@@ -737,11 +784,13 @@ require_once('LDAP/Search.php');
                                 'subschemaSubentry' );
         }
         $result = $this->search('', '(objectClass=*)', array('attributes' => $attributes, 'scope' => 'base'));
-        if (Net_LDAP::isError($result)) return $result;
-
-        $entry = $result->shift_entry();
-        if (false === $entry) return $this->raiseError('Could not fetch RootDSE entry');
-
+        if (Net_LDAP::isError($result)) {
+            return $result;
+        }
+        $entry = $result->shiftEntry();
+        if (false === $entry) {
+            return PEAR::raiseError('Could not fetch RootDSE entry');
+        }
         return new Net_LDAP_RootDSE($entry);
     }
     
@@ -787,14 +836,14 @@ require_once('LDAP/Search.php');
         
         // fetch the subschema entry
         $result = $this->search($dn, '(objectClass=*)',
-                                 array('attributes' => array_values($schema->types), 'scope' => 'base'));
+                                array('attributes' => array_values($schema->types), 'scope' => 'base'));
         if (Net_LDAP::isError($result)) {
             return $result;
         }
 
-        $entry = $result->shift_entry();
+        $entry = $result->shiftEntry();
         if (false === $entry) {
-            return $this->raiseError('Could not fetch Subschema entry');
+            return PEAR::raiseError('Could not fetch Subschema entry');
         }
         
         $schema->parse($entry);
@@ -883,6 +932,17 @@ require_once('LDAP/Search.php');
             }
         }
         return $attributes;
+    }
+    
+    /**
+     * Get the LDAP link
+     *
+     * @access public
+     * @return resource LDAP link
+     */
+    function &getLink()
+    {
+        return $this->_link;
     }
 }
 
