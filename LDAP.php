@@ -507,19 +507,19 @@ class Net_LDAP extends PEAR
         return $this->_config['version'];
     }
 
-    /* ArrayUTF8Encode ($array) - utfencode an array
+    /* UTF8Encode ($array) - utfencode an array
      * Utf8 encodes the values in the supplied array.
      * @params array
      * @return array the encoded array
     */
 
-    function arrayUTF8Encode($array)
+    function UTF8Encode($array)
     {
 
       if (is_array($array) ) {
           $return = array();
           foreach ($array as $k => $v){
-            $return[$k] = Net_LDAP::ArrayUTF8Encode($array[$k]);
+            $return[$k] = Net_LDAP::UTF8Encode($array[$k]);
           }
           return $return;
 
@@ -531,18 +531,18 @@ class Net_LDAP extends PEAR
 
 
     }
-    /* ArrauUTF8Decode - decode an array of utf8encoded values.
+    /* UTF8Decode - decode an array of utf8encoded values.
      * @returns array utf8decoded values
      * @params array the array to be decoded.
     */
 
-    function ArrayUTF8Decode($array)
+    function UTF8Decode($array)
     {
 
         if (is_array($array) ) {
             $return = array();
             foreach ($array as $k => $v){
-                $return[$k] = Net_LDAP::ArrayUTF8Decode($array[$k]);
+                $return[$k] = Net_LDAP::UTF8Decode($array[$k]);
             }
             return $return;
         } else {

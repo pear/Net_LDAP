@@ -30,11 +30,11 @@ Net-Ldap layers itself on top of PHP's existing ldap extensions.
     </maintainer>
   </maintainers>
 <release>
-    <version>0.6</version>
+    <version>0.6.1</version>
     <state>beta</state>
-    <date>2003-10-01</date>
+    <date>2003-10-17</date>
     <notes>
-    New Net_LDAP::ArrayUTF8Decode and Net_LDAP::ArrayUTF8Encode functions. These are used by the Net_LDAP::Entry objects to ensure that things work ok.
+    Fixed some minour typos, fixed Entry.php so entries may be added nicely + renaming the UFT8 functions. 
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="Net">
@@ -101,6 +101,13 @@ Net-Ldap layers itself on top of PHP's existing ldap extensions.
 
          </notes>
          </release>
-                          
+        <release>
+        <version>0.6.1</version>
+        <state>beta</state>
+        <date>2003-10-01</date>
+        <notes>
+        Renamed  the Net_LDAP::ArrayUTF8Decode and Net_LDAP::ArrayUTF8Encode functions to UTFDecode and UTFEncode. These are used by the Net_LDAP::Entry objects to ensure that things work ok.
+        </notes>
+        </release>                 
 </changelog>
 </package>

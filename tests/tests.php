@@ -5,7 +5,7 @@
  *
  *
  * */
-require 'ldap.php';
+require 'LDAP.php';
 
 $param['base'] = 'o=nu,c=no';
 $param['dn'] = 'cn=manager,o=nu,c=no';
