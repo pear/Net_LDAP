@@ -3,11 +3,15 @@
 /**
  * Net_LDAP_Entry
  *
- * This class resembles an LDAP Entry ...
- *
  * @package Net_LDAP
  * @author Tarjei Huse
  * @version $Id$
+ */
+ 
+/**
+ * This class represents an LDAP entry
+ *
+ * @package Net_LDAP
  */
 class Net_LDAP_Entry extends PEAR
 {
@@ -78,7 +82,7 @@ class Net_LDAP_Entry extends PEAR
      * Net_LDAP_Schema object TO BE REMOVED
      */                             
     var $_schema;
-    
+    /**#@-*/
     
     /** Constructor
      *
@@ -175,7 +179,7 @@ class Net_LDAP_Entry extends PEAR
     */
     function attributes ()
     {
-        return Net_LDAP::UTF8Decode($this->_clean_entry());
+        return $this->_clean_entry();
     }
 
    /**
@@ -265,15 +269,15 @@ class Net_LDAP_Entry extends PEAR
     * @param $attr string attribute name
     * @param $options array 
     */
-    function get_value($attr = '',$options = '')
+    function get_value($attr = '', $options = '')
     {
         if (array_key_exists($attr,$this->_attrs)) {
 
             if ($options == 'single') {
                 if (is_array($this->_attrs[$attr])) {
-                    return Net_LDAP::UTF8Decode($this->_attrs[$attr][0]);
+                    return $this->_attrs[$attr][0];
                 } else {
-                    return Net_LDAP::UTF8Decode($this->_attrs[$attr]);
+                    return $this->_attrs[$attr];
                 }
             }
 
@@ -283,7 +287,7 @@ class Net_LDAP_Entry extends PEAR
                 unset ( $value['count'] );
             }
 
-            return  Net_LDAP::UTF8Decode($value);
+            return $value;
             
         } else {
             return '';

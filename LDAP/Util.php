@@ -1,11 +1,17 @@
 <?php
  
 /**
- * Utility Class for Net_LDAP
+ * Net_LDAP_Util
  *
  * @package Net_LDAP
  * @author Jan Wagner <wagner@netsols.de>
  * @version $Id$
+ */
+ 
+/**
+ * Utility Class for Net_LDAP
+ *
+ * @package Net_LDAP
  */
 class Net_LDAP_Util extends PEAR 
 {

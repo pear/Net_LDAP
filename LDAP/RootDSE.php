@@ -1,14 +1,17 @@
 <?PHP
 
-require_once( 'PEAR.php' );
-require_once( 'Net/LDAP.php' );
-
 /**
- * Net_LDAP_RootDSE: getting the rootDSE entry of a LDAP server
+ * Net_LDAP_RootDSE
  *
  * @package Net_LDAP
  * @author Jan Wagner <wagner@netsols.de>
  * @version $Id$
+ */
+
+/**
+ * Getting the rootDSE entry of a LDAP server
+ *
+ * @package Net_LDAP
  */
 class Net_LDAP_RootDSE extends PEAR
 {

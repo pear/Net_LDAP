@@ -1,21 +1,22 @@
 <?PHP
 
-/*****************************************************************
- * This class takes a Subschema entry, parses this information   *
- * and makes it available in an array. Most of the code has been *
- * inspired by perl-ldap( http://perl-ldap.sourceforge.net).     *
- * You will find portions of their implementation in here.       *
- *****************************************************************/
-
-require_once( 'PEAR.php' );
-require_once( 'Net/LDAP.php' );
-
 /**
- * Load an LDAP Schema and provide information
+ * Net_LDAP_Schema
  *
  * @package Net_LDAP
  * @author Jan Wagner <wagner@netsols.de>
  * @version $Id$
+ */
+
+/**
+ * Load an LDAP Schema and provide information
+ *
+ * This class takes a Subschema entry, parses this information
+ * and makes it available in an array. Most of the code has been
+ * inspired by perl-ldap( http://perl-ldap.sourceforge.net).
+ * You will find portions of their implementation in here.
+ *
+ * @package Net_LDAP
  */
  class Net_LDAP_Schema extends PEAR
  {    

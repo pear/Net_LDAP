@@ -1,6 +1,6 @@
 <?php
 /**
- * Net::LDAP - manipulate LDAP servers the right way!
+ * Net_LDAP - manipulate LDAP servers the right way!
  *
  * (the perl Net::LDAP way)
  *
@@ -25,19 +25,21 @@ class Net_LDAP extends PEAR
 {
     /**
      * Class configuration array
-     * dn = the DN to bind as.
-     * host = the ldap host to connect to
+     *
+     * dn       = the DN to bind as.
+     * host     = the ldap host to connect to
      * password = no explanation needed
-     * base = ldap base
-     * port = the server port
-     * tls - is set - the ldap_start_tls() is run after connecting.
-     * version = ldap version (defaults to v 3)
-     * filter = default search filter
-     * scope = default search scope
-     * encode - automaticly utfencode attributes that are added/modified? Only attributes that should be encoded will be encoded. 
+     * base     = ldap base
+     * port     = the server port
+     * tls      = when set, ldap_start_tls() is run after connecting.
+     * version  = ldap version (defaults to v 3)
+     * filter   = default search filter
+     * scope    = default search scope
+     *
+     * @access private
      * @var array
      */
-     var $_config = array (
+     var $_config = array(
          'dn',
          'host' => 'localhost',
          'password',
@@ -46,17 +48,15 @@ class Net_LDAP extends PEAR
          'port' => 389,
          'version' => 3,
          'filter' => '(objectClass=*)',
-         'scope' => 'sub'
-
-        );
+         'scope' => 'sub');
 
     /**
-     * The ldap resourcelink.
-     * You should not need to touch this.
+     * LDAP resource link.
      *
-     * @var object
+     * @access private
+     * @var resource
      */
-     var $_link;
+    var $_link;
 
     /**
      * Net_LDAP_Schema object
@@ -65,22 +65,27 @@ class Net_LDAP extends PEAR
      * @var object Net_LDAP_Schema
      */
     var $_schema = null;
+    
     /**
      * Cache for attribute encoding checks
      *
      * @access private
-     * @var array over attributes who should /should not be encoded.
+     * @var array Hash with attribute names as key and boolean value
+     *            to determine whether they should be utf8 encoded or not.
      */
     var $_schemaAttrs = array();
 
     /**
-     * Net ldap, Sets the configarray and binds if the config array contains the server prameter
+     * Net_LDAP constructor
+     *
+     * Sets the config array
      *
      * @access protected
-     * @param array $config - se description in class vars
+     * @param array Configuration array
      * @return void
+     * @see $_config
      */
-    function Net_Ldap($_config = array(), $bind = false)
+    function Net_LDAP($_config = array())
     {
         foreach ($_config as $k => $v) {
             $_{$k} = $v;
@@ -88,25 +93,15 @@ class Net_LDAP extends PEAR
     }
 
     /**
-     * connect - create the initial ldap-object
+     * Creates the initial ldap-object
      *
-     *
-     * function &connect($_config = array())
-     *
-     * Static function that returns either an error object or the new Net_ldap object.
+     * Static function that returns either an error object or the new Net_LDAP object.
+     * Something like a factory. Takes a config array with the needed parameters. 
      *
      * @access public
-     * @param  $_config array containgin the needed ldap configuration parameters. Defaults:
-     *                  'dn',
-     *                  'host' => 'localhost',
-     *                  'password',
-     *                  'tls' => false,
-     *                  'base' => '',
-     *                  'port'=>389,
-     *                  'version'=> 3,
-     *                  'filter' => '(uid=*)',
-     *                  'scope' => 'sub'
-     * @return reference object , either a PEAR error or a Net_ldap object.
+     * @param array Configuration array
+     * @return mixed object Net_LDAP_Error or Net_LDAP
+     * @see $_config
      */
     function &connect($_config = array())
     {
@@ -123,11 +118,12 @@ class Net_LDAP extends PEAR
     /**
      * Bind to the ldap-server
      *
-     * The function may be used if you do not create the object using Net_ldap::connect.
+     * The function may be used if you do not create the object using Net_LDAP::connect.
      *
      * @access public
-     * @param  array $ config see connect for the structure and defaults.
-     * @return mixed true if the bind went ok, Net_ldap_error if not.
+     * @param array Configuration array
+     * @return mixed Net_LDAP_Error or true
+     * @see $_config
      */
     function bind($config = array())
     {
@@ -142,7 +138,8 @@ class Net_LDAP extends PEAR
         }
 
         if (!$conn) {
-             return $this -> raiseError("Could not connect to server. ldap_connect failed.",52 );// there isn't a good errcode for thisone! I chose 52.
+            // there isn't a good errcode for thisone! I chose 52.
+            return $this -> raiseError("Could not connect to server. ldap_connect failed.",52 );
         }
         // You must set the version and start tls BEFORE binding!
         // (quite logical when you think of it...
@@ -172,12 +169,10 @@ class Net_LDAP extends PEAR
     }
 
     /**
-     * start_tls() - start an encrypted session
-     *
      * Starts an encrypted session
      *
      * @access public
-     * @return - ldap_error if error else true
+     * @return mixed True or Net_LDAP_Error
      */
     function start_tls()
     {
@@ -188,11 +183,10 @@ class Net_LDAP extends PEAR
     }
 
     /**
-     * done - close ldap-connection.
+     * Close LDAP connection.
      *
-     * Close the ldapconnection. Use this when the session is over.
+     * Closes the connection. Use this when the session is over.
      *
-     * @access private
      * @return void
      */
     function done()
@@ -211,12 +205,12 @@ class Net_LDAP extends PEAR
     }
 
     /**
-     * add - add a new entryobject to a directory.
+     * Add a new entryobject to a directory.
      *
-     * Use add to add a new Net_ldap_entry object to a directory.
+     * Use add to add a new Net_LDAP_Entry object to the directory.
      *
-     * @param  $ - $entry a Net_ldap_entry object.
-     * @return mixed Net_ldap_error if feilure true if sucess.
+     * @param object Net_LDAP_Entry
+     * @return mixed Net_LDAP_Error or true
      */
     function add($entry)
     {
@@ -228,23 +222,25 @@ class Net_LDAP extends PEAR
     }
 
     /**
-     * delete - Delete an object,
+     * Delete an entry from the directory
      *
-     * Delete an object, the object may either be a string representing the dn or a ldap_entry object.
+     * The object may either be a string representing the dn or a Net_LDAP_Entry object.
+     * The param array may contain a boolean value named recursive. When set, all subentries
+     * of the Entry will be deleted as well
      *
      * @access public
-     * @param mixed $dn - string representing the dn or a Net_ldap_entry object
-     *         array $params - an array possible values:
-     *                      bool 'recursive' (default false) - delete all subentries of an entry as well as the entry itself
-     *                      
+     * @param mixed string or Net_LDAP_Entry
+     * @param array
+     * @return mixed Net_LDAP_Error or true  
      */
-    function delete($dn,$param = array())
+    function delete($dn, $param = array())
     {
         if (is_object($dn) && get_class($dn) == 'net_ldap_entry') {
              $dn = $dn -> dn();
         } else {
             if (!is_string($dn)) {
-                 return $this -> raiseError("$dn not a string nor an entryobject!",34); // this is what the server would say: invalid_dn_syntax.
+                // this is what the server would say: invalid_dn_syntax.
+                return $this -> raiseError("$dn not a string nor an entryobject!",34); 
             }
         }
         
@@ -295,8 +291,7 @@ class Net_LDAP extends PEAR
     }
 
     /**
-     * modify - modify an ldapentry
-     *
+     * Modify an ldapentry
      *
      * This is taken from the perlpod of net::ldap, and explains things quite nicely.
      * modify ( DN, OPTIONS )
@@ -340,18 +335,16 @@ class Net_LDAP extends PEAR
      * The first value in each pair is the attribute name
      * and the second is a reference to a list of values.
      *
-     * Example
-     * $ldap->modify ( $dn, array (changes=>array(
-     * 'delete' => array('faxNumber'=>''),
-     * 'add'=>array('sn'=>'Barr'),
-     * 'replace' => array(email=>'tarjei@nu.noæ)
-     * )
-     * )
-     * );
+     * Example:
+     * $ldap->modify ( $dn, array (changes => array(
+     * 'delete' => array('faxNumber' => ''),
+     * 'add' => array('sn' => 'Barr'),
+     * 'replace' => array(email => 'tarjei@nu.no'))));
      *
      * @access public
-     * @param string $dn representing a DN, array $params containing the changes.
-     * @return mixed : Net_ldap_error if failure and true if success.
+     * @param string
+     * @param array
+     * @return mixed Net_LDAP_Error or true
      */
     function modify($dn , $params = array())
     {
@@ -408,41 +401,38 @@ class Net_LDAP extends PEAR
     }
 
     /**
-     * search() - run a ldap query
+     * Run a ldap query
      *
-     *   Search is used to query the ldap-database. Seardh will either return an Net_ldap_search object
-     *   or an Net_ldap_error object.
+     * Search is used to query the ldap-database.
+     * $base and $filter may be ommitted. BaseDN and default filter will then be used.
+     * Params may contain:
+     *
+     * scope: The scope which will be used for searching 
+     *        base - Just one entry
+     *        sub  - The whole tree
+     *        one  - Immediately below $base
+     * sizelimit: Limit the number of entries returned (default: 0),
+     * timelimit: Limit the time spent for searching (default: 0),
+     * attrsonly: If true, the search will only return the attribute names, NO values
+     * attributes: Array of attribute names, which the entry should contain. It is good practice
+     *            to limit this to just the ones you need, so by default this function does not
+     *            return any attributes at all.
+     * [NOT IMPLEMENTED]
+     * deref: By default aliases are dereferenced to locate the base object for the search, but not when
+     *        searching subordinates of the base object. This may be changed by specifying one of the
+     *        following values:
+     *       
+     *        never  - Do not dereference aliases in searching or in locating the base object of the search.
+     *        search - Dereference aliases in subordinates of the base object in searching, but not in 
+     *                locating the base object of the search. 
+     *        find
+     *        always
      *
      * @access public
-     * @param  $base - ldap searchbase, $filter - ldap filter, both may be omitted returning a search after uid=* for the whole server.o
-     *          $params - array of options: 
-     *                  scope - By default the search is performed on the whole tree below the specified base object. 
-     *                          This may be chaned by specifying a "scope" parameter with one of the following values.
-     *                          possible values:
-     *                          
-     *                          one  -  Search the entries immediately below $base. This is a more efficient search in many situations.
-     *                          base -  Read just one entry ($base)
-     *                          sub  -  Search the whole tree below $base. This is the default.
-     *                  
-     *                  sizelimit - (default: 0 = no limit) limit the nr. of entries returned by the search. This i also limmited by the ldapserver.
-     *
-     *                  timelimit - (default: 0 = no limit) limit in nr. of seconds the time the search takes. 
-     *                  
-     *                  attrsonly - (default: 0 = attributes and values). If set to 1 this will only return the attribtues of an entry - NOT the values. 
-     *                  attributes - (default: none). an array of the attributes that an returned entry should contain.
-     *                  
-     *                  
-     *
-     * [NOT IMPLEMENTED]deref - By default aliases are dereferenced to locate the base object for the search, but not when
-     *                          searching subordinates of the base object.
-     *                          This may be changed by specifying a "deref" parameter with one of the following values:
-     *                          
-     *                          never  - Do not dereference aliases in searching or in locating the base object of the search.
-     *                          search - Dereference aliases in subordinates of the base object in searching, but not in 
-     *                                   locating the base object of the search. 
-     *                          find - 
-     *                          always - 
-     * @return object Net_ldap_search or Net_ldap_error
+     * @param string LDAP searchbase 
+     * @param string LDAP search filter
+     * @param array Array of options
+     * @return object mixed Net_LDAP_Search or Net_LDAP_Error
      */
     function search($base = null, $filter = null, $params = array())
     {		
@@ -512,75 +502,87 @@ class Net_LDAP extends PEAR
 
     }
 
-    /* getLDAPVersion () - get the LDAP_VERSION that is used on the connection.
-     * A lot of ldap functionality is defined by what version the ldap-server is, either v2 or v3.
-     * @params none
-     * @return int version - the version used.
+    /**
+     * Get the LDAP_PROTOCOL_VERSION that is used on the connection.
      *
-     * */
-
-    function getLDAPVersion ()
+     * A lot of ldap functionality is defined by what protocol version the ldap server speaks.
+     * This might be 2 or 3.
+     *
+     * @return int
+     */
+    function getLDAPVersion()
     {
-        return $this->_config['version'];
+        if($this->_link) {
+            @ldap_get_option( $this->_link, LDAP_OPT_PROTOCOL_VERSION, $version);
+        } else {
+            $version = $this->_config['version'];
+        }
+        return $version;
     }
                             
-    /* getVersion() - get the Net_LDAP version. 
-     * for now, raises an error.
+    /**
+     * Get the Net_LDAP version. 
      *
-     * */
+     * Not yet supported. For now, raises an error.
+     *
+     * @return object Net_LDAP_Error
+     */
     function getVersion ()
     {
         return $this->raiseError("This function is not yet supported by Net_LDAP. If you want to find the LDAP Protocolversion use getLDAPVersion()");
     }
 
-    /* dnExists() - tells if a dn exists allready.
-     * @params string - dn.
-     * @return boolean true if entry is found. False if not.
-     **/
-   function dnExists($dn)
+    /**
+     * Tell if a dn already exists 
+     *
+     * @param string
+     * @return boolean
+     */
+    function dnExists($dn)
+    {
+        $base = $dn;
+        $filter = '(objectclass=*)';
+        $result = ldap_list( $this -> _link, $base,$filter, array(),1,1);
+        if (ldap_count_entries($result)>0) {
+            return true;
+        }
+        return false;
+    }
+
+   /**
+    * Get a specific entry based on the dn
+    *
+    * @param string dn
+    * @return mixed Net_LDAP_Entry or false
+    */
+   function &getEntry($dn)
    {
-      $base = $dn;
-      $filter = '(objectclass=*)';
-      $result = ldap_list( $this -> _link, $base,$filter, array(),1,1);
-      if (ldap_count_entries($result)>0) {
-         return true;
-      }
-      return false;
-   }
-
-   /* getEntry() this function gets a spesific entry based on the dn
-   * @params string dn
-   * @return mixed Net_LDAP_Entry object if entry is found, false if else.
-   * */
-   function getEntry($dn)
-   {
-      $base = $dn;
-      $filter = '(objectclass=*)';
-      $result = ldap_list( $this -> _link, $base,$filter, array(),1,1);
-      if (ldap_count_entries($result)>0) {
-         $elink = ldap_first_entry($this -> _link, $this -> result);
-         return  new Net_ldap_entry(&$this -> _link,
-                                       ldap_get_dn($this->_link, $elink),
-                                       ldap_get_attributes($this -> _link, $elink));
-
-      }
-      return false;
-
-   }
+        $base = $dn;
+        $filter = '(objectclass=*)';
+        $result = ldap_list( $this -> _link, $base,$filter, array(),1,1);
+        if (ldap_count_entries($result)>0) {
+            $elink = ldap_first_entry($this -> _link, $this -> result);
+            return new Net_LDAP_Entry(&$this -> _link,
+                                      ldap_get_dn($this->_link, $elink),
+                                      ldap_get_attributes($this -> _link, $elink));            
+        }
+        return false;
+    }
    
 
-    /* errorMessage - returns the string for an ldap errorcode.
+    /**
+     * Returns the string for an ldap errorcode.
+     *
      * Made to be able to make better errorhandling
      * Function based on DB::errorMessage()
      * Tip: The best description of the errorcodes is found here: http://www.directory-info.com/LDAP/LDAPErrorCodes.html
-     * @params errorcode - the ldap errorcode
-     * @return string - the errorstring for the error.
-    */
+     *
+     * @param int Error code
+     * @return string The errorstring for the error.
+     */
     function errorMessage ($errorcode)
     {
-
-
-      $errorMessages = array (
+        $errorMessages = array (
                               0x00 => "LDAP_SUCCESS",
                               0x01 => "LDAP_OPERATIONS_ERROR",
                               0x02 => "LDAP_PROTOCOL_ERROR",
@@ -653,8 +655,8 @@ class Net_LDAP extends PEAR
      *
      * @access public
      * @author Jan Wagner <wagner@netsols.de>
-     * @param array $attrs Array of attributes to search for
-     * @return object LDAP_Error or Net_Ldap_RootDSE
+     * @param array Array of attributes to search for
+     * @return object mixed Net_LDAP_Error or Net_LDAP_RootDSE
      */
     function &rootDse( $attrs = null ) 
     {
@@ -698,7 +700,8 @@ class Net_LDAP extends PEAR
      *
      * @access public
      * @author Jan Wagner <wagner@netsols.de>
-     * @return object Net_LDAP_Schema or Net_LDAP_Error
+     * @param string Subschema entry dn
+     * @return object mixed Net_LDAP_Schema or Net_LDAP_Error
      */
      function &schema( $dn = null )
      {
@@ -729,10 +732,9 @@ class Net_LDAP extends PEAR
         $schema->parse( $entry );
 
         return $schema;
-     }
-}
+    }
 
- /**
+    /**
      * Encodes given attributes to UTF8 if needed
      *
      * This function takes attributes in an array and then checks against the schema if they need
@@ -740,7 +742,7 @@ class Net_LDAP extends PEAR
      * can be used for adding or modifying.
      *
      * @access public
-     * @param array $attributes Array of attributes
+     * @param array Array of attributes
      * @return array Array of UTF8 encoded attributes
      */
     function utf8Encode( $attributes )
@@ -752,8 +754,8 @@ class Net_LDAP extends PEAR
      * Decodes the given attribute values
      *
      * @access public
-     * @param array attributes Array of attributes
-     * @return array array Array with decoded attribute values
+     * @param array Array of attributes
+     * @return array Array with decoded attribute values
      */
     function utf8Decode( $attributes )
     {
@@ -764,17 +766,17 @@ class Net_LDAP extends PEAR
      * Encodes or decodes attribute values if needed
      *
      * @access private
-     * @param array $attributes Array of attributes
-     * @param array $function Function to apply to attribute values
+     * @param array Array of attributes
+     * @param array Function to apply to attribute values
      * @return array Array of attributes with function applied to values
      */
-    function _utf8( $attributes, $function )
+    function _utf8($attributes, $function)
     {
         if (!$this->_schema) {
             $this->_schema = $this->schema();
         }
 
-        if (!$this->_ldap || !$this->_schema || !function_exists($function)) {
+        if (!$this->_link || Net_LDAP::isError($this->_schema) || !function_exists($function)) {
            return $attributes;
         }
 
@@ -792,7 +794,6 @@ class Net_LDAP extends PEAR
                   (false !== strpos($attr['syntax'], '1.3.6.1.4.1.1466.115.121.1.15')) ? $encode = true : $encode = false;
                   $this->_schemaAttrs[$k] = $encode;
                   
-
                 } else {
                   $encode = $this->_schemaAttrs[$k];
                 }
@@ -810,37 +811,32 @@ class Net_LDAP extends PEAR
         }
         return $attributes;
     }
-
-
-
-// Class ldap_search implements my own search_class
+}
 
 /**
- * LDAP_Error implements a class for reporting portable ldap error
- * messages.
+ * Net_LDAP_Error implements a class for reporting portable LDAP error messages.
  *
  * @package Net_LDAP
- * @author  Stig Bakken <ssb@fast.no>
  */
-class Net_Ldap_Error extends PEAR_Error
+class Net_LDAP_Error extends PEAR_Error
 {
     /**
-     * LDAP_Error constructor.
+     * Net_LDAP_Error constructor.
      *
-     * @param mixed $code DB error code, or string with error message.
-     * @param integer $mode what "error mode" to operate in
-     * @param integer $level what error level to use for $mode & PEAR_ERROR_TRIGGER
-     * @param mixed $debuginfo additional debug info, such as the last query
+     * @param mixed Net_LDAP error code, or string with error message.
+     * @param integer what "error mode" to operate in
+     * @param integer what error level to use for $mode & PEAR_ERROR_TRIGGER
+     * @param mixed additional debug info, such as the last query
      * @access public
      * @see PEAR_Error
      */
-    function LDAP_Error($code = DB_ERROR, $mode = PEAR_ERROR_RETURN,
+    function Net_LDAP_Error($code = DB_ERROR, $mode = PEAR_ERROR_RETURN,
          $level = E_USER_NOTICE, $debuginfo = null)
     {
         if (is_int($code)) {
-            $this -> PEAR_Error('LDAP Error: ' . LDAP :: errorMessage($code), $code, $mode, $level, $debuginfo);
+            $this -> PEAR_Error('Net_LDAP_Error: ' . LDAP :: errorMessage($code), $code, $mode, $level, $debuginfo);
         } else {
-            $this -> PEAR_Error("LDAP Error: $code", LDAP_ERROR, $mode, $level, $debuginfo);
+            $this -> PEAR_Error("Net_LDAP_Error: $code", LDAP_ERROR, $mode, $level, $debuginfo);
         }
     }
 }
