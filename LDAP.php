@@ -30,6 +30,11 @@ require_once('LDAP/Entry.php');
 require_once('LDAP/Search.php');
 
 /**
+ *  Error constants for errors that are not LDAP errors 
+ */
+define ('NET_LDAP_ERROR', 1000);
+
+/**
  * Net_LDAP - manipulate LDAP servers the right way!
  *
  * @author Tarjei Huse
@@ -45,7 +50,7 @@ require_once('LDAP/Search.php');
      * @access private
      * @var string
      */
-    var $_version = "0.7.0pre";
+    var $_version = "0.6.99";
     
     /**
      * Class configuration array
@@ -57,6 +62,7 @@ require_once('LDAP/Search.php');
      * bindpw   = no explanation needed
      * binddn   = the DN to bind as.
      * basedn   = ldap base 
+     * options  = hash of ldap options to set (opt => val) 
      * filter   = default search filter
      * scope    = default search scope
      *
@@ -70,6 +76,7 @@ require_once('LDAP/Search.php');
                           'binddn'   => '',                          
                           'bindpw'   => '',                          
                           'basedn'   => '',
+                          'options'  => array(),
                           'filter'   => '(objectClass=*)',
                           'scope'    => 'sub');
 
@@ -99,6 +106,29 @@ require_once('LDAP/Search.php');
     var $_schemaAttrs = array();
 
     /**
+     * Creates the initial ldap-object
+     *
+     * Static function that returns either an error object or the new Net_LDAP
+     * object. Something like a factory. Takes a config array with the needed
+     * parameters. 
+     *
+     * @access public
+     * @param array Configuration array
+     * @return mixed object Net_LDAP_Error or Net_LDAP
+     */
+    function &connect($config = array())
+    {
+        @$obj = & new Net_LDAP($config);
+        
+        $err  = $obj->bind();
+        if (Net_LDAP::isError($err)) {
+            return $err;
+        }
+        
+        return $obj;
+    }
+    
+    /**
      * Net_LDAP constructor
      *
      * Sets the config array
@@ -111,9 +141,23 @@ require_once('LDAP/Search.php');
     function Net_LDAP($config = array())
     {
         $this->PEAR('Net_LDAP_Error');
-        if (!function_exists('ldap_connect')){
-            return $this->raiseError("It seems that you do not have the ldap-extension installed. Please install it before using this package.");
+        
+        if (!extension_loaded('ldap') && !dl('ldap')){
+            return PEAR::raiseError("It seems that you do not have the ldap-extension installed. Please install it before using this package.");
         }
+
+        $this->_setConfig($config);
+    }
+
+    /**
+     * Sets the internal configuration array
+     *
+     * @access private
+     * @param array Configuration array
+     * @return void
+     */
+    function _setConfig($config)
+    {
         if (is_array($config)) {
             foreach ($config as $k => $v) {
                 if (isset($this->_config[$k])) {
@@ -136,30 +180,7 @@ require_once('LDAP/Search.php');
                     }
                 }
             }
-        }
-    }
-
-    /**
-     * Creates the initial ldap-object
-     *
-     * Static function that returns either an error object or the new Net_LDAP
-     * object. Something like a factory. Takes a config array with the needed
-     * parameters. 
-     *
-     * @access public
-     * @param array Configuration array
-     * @return mixed object Net_LDAP_Error or Net_LDAP
-     * @see $_config
-     */
-    function &connect($config = array())
-    {
-        @$obj = & new Net_LDAP($config);
-        $err  = $obj->bind();
-
-        if (Net_LDAP::isError($err)) {
-            return $err;
-        }
-        return $obj;
+        }    
     }
 
     /**
@@ -222,6 +243,17 @@ require_once('LDAP/Search.php');
                     return $msg;
                 }
             }
+            if (isset($this->_config['options']) &&
+                is_array($this->_config['options']) &&
+                count($this->_config['options']))
+            {
+                foreach ($this->_config['options'] as $opt => $val) {
+                    $err = $this->setOption($opt, $val);
+                    if (Net_LDAP::isError($err)) {
+                        return $err;
+                    }
+                }
+            }            
         }
         return true; 
     }    
@@ -285,7 +317,7 @@ require_once('LDAP/Search.php');
      */
     function add($entry)
     {
-        if (false == is_a($entry, 'Net_LDAP_Entry')) {
+        if (false === is_a($entry, 'Net_LDAP_Entry')) {
             return PEAR::raiseError('Parameter to Net_LDAP::add() must be a Net_LDAP_Entry object.');
         }
         if (@ldap_add($this->_link, $entry->dn(), $entry->getValues())) {
@@ -314,7 +346,7 @@ require_once('LDAP/Search.php');
         if (is_a($dn, 'Net_LDAP_Entry')) {
              $dn = $dn->dn();
         }
-        if (false == is_string($dn)) {
+        if (false === is_string($dn)) {
             return PEAR::raiseError("Parameter is not a string nor an entry object!"); 
         }
         // Recursive delete searches for children and calls delete for them
@@ -498,6 +530,69 @@ require_once('LDAP/Search.php');
     }
 
     /**
+     * Set an LDAP option
+     *
+     * @access public
+     * @param string Option to set
+     * @param mixed Value to set Option to
+     * @return mixed Net_LDAP_Error or true
+     */
+    function setOption($option, $value)
+    {
+        if ($this->_link) {
+            if (defined($option)) {
+                if (@ldap_set_option($this->_link, constant($option), $value)) {
+                    return true;
+                } else {
+                    $err = @ldap_errno($this->_link);
+                    if ($err) {
+                        $msg = @ldap_err2str($err);                        
+                    } else {
+                        $err = NET_LDAP_ERROR;
+                        $msg = $this->errorMessage($err);
+                    } 
+                    return $this->raiseError($msg, $err);
+                }
+            } else {
+                return $this->raiseError("Unkown Option requested");
+            }    
+        } else {
+            return $this->raiseError("No LDAP connection");
+        }
+    }
+
+    /**
+     * Get an LDAP option value
+     *
+     * @access public
+     * @param string Option to get
+     * @return mixed Net_LDAP_Error or option value
+     */
+    function getOption($option)
+    {
+        if ($this->_link) {
+            if (defined($option)) {
+                if (@ldap_get_option($this->_link, constant($option), $value)) {
+                    return $value;
+                } else {
+                    $err = @ldap_errno($this->_link);
+                    if ($err) {
+                        $msg = @ldap_err2str($err);                        
+                    } else {
+                        $err = NET_LDAP_ERROR;
+                        $msg = $this->errorMessage($err);
+                    } 
+                    return $this->raiseError($msg, $err);
+                }
+            } else {
+                $this->raiseError("Unkown Option requested");
+            }    
+        } else {
+            $this->raiseError("No LDAP connection");
+        }
+    }
+
+    /**
      * Get the LDAP_PROTOCOL_VERSION that is used on the connection.
      *
      * A lot of ldap functionality is defined by what protocol version the ldap server speaks.
@@ -507,8 +602,8 @@ require_once('LDAP/Search.php');
      */
     function getLDAPVersion()
     {
-        if(is_resource($this->_link)) {
-            @ldap_get_option( $this->_link, LDAP_OPT_PROTOCOL_VERSION, $version);
+        if($this->_link) {
+            $version = $this->getOption("LDAP_OPT_PROTOCOL_VERSION");
         } else {
             $version = $this->_config['version'];
         }
@@ -526,20 +621,7 @@ require_once('LDAP/Search.php');
         if (!$version) {
             $version = $this->_config['version'];
         }
-        if (!$this->_link) {
-            return PEAR::raiseError('No valid LDAP link');
-        }
-        if (false === @ldap_set_option($this->_link,
-                                       LDAP_OPT_PROTOCOL_VERSION,
-                                       $version)) {
-            return $this->raiseError("Could not set LDAP version to $version: " .
-                                      ldap_error($this->_link),
-                                      ldap_errno($this->_link));
-        }
-        if ($this->_config['version'] != $version) {
-            $this->_config['version'] = $version;
-        }
-        return true;
+        return $this->setOption("LDAP_OPT_PROTOCOL_VERSION", $version);
     }
 
     /**
@@ -676,9 +758,9 @@ require_once('LDAP/Search.php');
                               0x5e => "LDAP_NO_RESULTS_RETURNED",
                               0x5f => "LDAP_MORE_RESULTS_TO_RETURN",
                               0x60 => "LDAP_CLIENT_LOOP",
-                              0x61 => "LDAP_REFERRAL_LIMIT_EXCEEDED"
+                              0x61 => "LDAP_REFERRAL_LIMIT_EXCEEDED",
+                              1000 => "Unknown Net_LDAP Error"
                               );
-
 
          return isset($errorMessages[$errorcode]) ? $errorMessages[$errorcode] : $errorMessages[LDAP_ERROR];
     }
@@ -692,7 +774,7 @@ require_once('LDAP/Search.php');
      */
     function isError($value)
     {
-        return is_a($value, "Net_LDAP_Error");
+        return (is_a($value, "Net_LDAP_Error") || parent::isError($value));
     }
         
     /**
@@ -898,7 +980,7 @@ class Net_LDAP_Error extends PEAR_Error
      * @access public
      * @see PEAR_Error
      */
-    function Net_LDAP_Error($code = DB_ERROR, $mode = PEAR_ERROR_RETURN,
+    function Net_LDAP_Error($code = NET_LDAP_ERROR, $mode = PEAR_ERROR_RETURN,
                             $level = E_USER_NOTICE, $debuginfo = null)
     {
         if (is_int($code)) {
@@ -908,4 +990,5 @@ class Net_LDAP_Error extends PEAR_Error
         }
     }
 }
+
 ?>
