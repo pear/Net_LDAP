@@ -115,6 +115,7 @@ class Net_LDAP_Entry extends PEAR
             $this->updateCheck['newEntry'] = true;
         }
     }
+    
     /** 
      * Set the reasourcelink to the ldapserver.
      *
@@ -243,9 +244,9 @@ class Net_LDAP_Entry extends PEAR
     *
     * @param string DN
     */
-    function dn($newdn="")
+    function dn($newdn = '')
     {
-        if ($newdn == "") {
+        if ($newdn == '') {
             return $this->_dn;
         }
       
@@ -443,12 +444,14 @@ class Net_LDAP_Entry extends PEAR
             if (@ldap_get_option( $this->_link, LDAP_OPT_PROTOCOL_VERSION, $version) && $version != 3) {
                 return $this->raiseError("Moving or renaming an dn is only supported in LDAP V3!", 80);
             }
-            // ldap_rename ( resource link_identifier, string dn, string newrdn, string newparent, bool deleteoldrdn)
-            $newparent = ldap_explode_dn($this->_dn,0);
-            // remove the first part
-            array_pop($newparent);
-            if (!@ldap_rename( $this->_link,$this->_olddn,$this->_dn,$newparent,true) ){
-                 return $this->raiseError("DN not renamed: " . ldap_error($this->_link),ldap_errno($this->_link));
+
+            $newparent = ldap_explode_dn($this->_dn, 0);
+            unset($newparent['count']);
+            $relativeDn = array_shift($newparent);            
+            $newparent = join(',', $newparent);
+            
+            if (!@ldap_rename($this->_link, $this->_olddn, $relativeDn, $newparent, true)) {
+                 return $this->raiseError("DN not renamed: " . ldap_error($this->_link), ldap_errno($this->_link));
             }
         }
 
