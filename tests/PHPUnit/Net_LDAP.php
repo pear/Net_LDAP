@@ -14,6 +14,9 @@ class Net_LDAP_Test extends PHPUnit_TestCase
     {                            
         $this->config = $GLOBALS['ldap_config'];
         $this->ldap = Net_LDAP::connect($this->config);
+        if (Net_LDAP::isError($this->ldap)) {
+            $this->fail($this->ldap->getMessage());
+        }
     }
     
     function testConnection()
@@ -66,13 +69,16 @@ class Net_LDAP_Test extends PHPUnit_TestCase
         $parms = array('scope' => 'base', 'attributes' => array('objectClass'));
 
         $result = $this->ldap->search($base, null, $parms);
-        $this->assertFalse(Net_Ldap::isError($result), 'Error searching for a specific entry');
+        if (Net_LDAP::isError($result)) {
+            $this->fail($result->getMessage());
+            return false;
+        }
 
-        $this->assertFalse( $result->count() == 0, 'Specified exisiting dn could not be found');
-        
         $entry = $result->shiftEntry();
-        $this->assertEquals('net_ldap_entry', get_class($entry), 'Could not fetch specified entry');
-        
+        if (false === $entry) {
+            $this->fail("Could not fetch entry $base");
+            return false;
+        }       
         $oc = $entry->get_value('objectClass');
         $this->assertTrue(is_array($oc), 'objectClass attribute value was no array');
     }
@@ -82,31 +88,38 @@ class Net_LDAP_Test extends PHPUnit_TestCase
         $test = $GLOBALS['search2'];
         
         $result = $this->ldap->search($test['base'], $test['filter'], $test['parms']);        
-        $this->assertFalse(Net_Ldap::isError($result), 'Search failed');
-        
-        if(!Net_LDAP::isError($result)) {
-            $this->assertTrue($result->count() >= 1, 'Empty Result set');
-            
-            $entry = $result->shiftEntry();
-            $this->assertTrue($entry, 'No entry could be fetched');
-            
-            $attrs = array_keys($test['parms']['attributes']);
-            $value  = $entry->get_value($attrs[0], 'single');
-            $this->assertTrue(is_string($value) && $value != '', 'Attribute value was not a string or empty');
+        if (Net_LDAP::isError($result)) {
+            $this->fail($result->getMessage());
+            return false;
         }
+        
+        $entry = $result->shiftEntry();
+        if (false === $entry) {
+            $this->fail('No entry could be fetched');
+            return false;
+        }
+        
+        $attrs = array_keys($test['parms']['attributes']);
+        $value  = $entry->get_value($attrs[0], 'single');
+        $this->assertTrue(is_string($value) && $value != '', 'Attribute value was not a string or empty');
     }
     
     function testRename()
     {
-        if ($this->assertTrue(isset($GLOBALS['existing_dn']), 'exisiting dn not set in config')) {
+        if (empty($GLOBALS['existing_dn'])) {
+            $this->fail('Exisiting dn not set in config');
             return false;
         }
-        if ($this->assertTrue(isset($GLOBALS['rename_dn']), 'rename dn not set in config')) {
+        if (empty($GLOBALS['rename_dn'])) {
+            $this->fail('Rename dn not set in config');
             return false;
         }
-        
+
         $entry = $this->ldap->getEntry($GLOBALS['existing_dn']);        
-        $this->assertEquals('net_ldap_entry', get_class($entry));
+        if (Net_LDAP::isError($entry) || $entry === false) {
+            $this->fail("Could not fetch entry {$GLOBALS['existing_dn']}");
+            return false;
+        }
 
         foreach (array($GLOBALS['rename_dn'], $GLOBALS['existing_dn']) as $dn) {
             $entry->dn($dn);
