@@ -989,7 +989,7 @@ class Net_LDAP_Error extends PEAR_Error
         if (is_int($code)) {
             $this->PEAR_Error('Net_LDAP_Error: ' . Net_LDAP::errorMessage($code), $code, $mode, $level, $debuginfo);
         } else {
-            $this->PEAR_Error("Net_LDAP_Error: $code", LDAP_ERROR, $mode, $level, $debuginfo);
+            $this->PEAR_Error("Net_LDAP_Error: $code", NET_LDAP_ERROR, $mode, $level, $debuginfo);
         }
     }
 }
