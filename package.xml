@@ -27,9 +27,9 @@ Net_LDAP layers itself on top of PHP's existing ldap extensions.</description>
     </maintainer>
   </maintainers>
   <release>
-    <version>0.6.5</version>
-    <date>2004-03-09</date>
-    <license>PHP License</license>
+    <version>0.6.6</version>
+    <date>2005-03-01</date>
+    <license>LGPL</license>
     <state>beta</state>
     <notes>Bugfix release</notes>
     <filelist>
@@ -48,6 +48,9 @@ Net_LDAP layers itself on top of PHP's existing ldap extensions.</description>
         <file role="php" name="Search.php"/>
         <file role="php" name="Util.php"/>
        </dir> <!-- LDAP -->
+       <dir name="tests">
+        <file role="doc" name="tests.php"/>
+       </dir> <!-- tests -->
        <file role="php" name="LDAP.php"/>
        <file role="doc" name="LICENSE"/>
       </dir> <!-- / -->
@@ -55,15 +58,27 @@ Net_LDAP layers itself on top of PHP's existing ldap extensions.</description>
   </release>
   <changelog>
     <release>
+      <version>0.6.6</version>
+      <date>2005-03-01</date>
+      <license>LGPL</license>
+      <state>beta</state>
+      <notes>
+Fixed bug #1060 (Wrong array_push_call in Net_LDAP_Search)
+Fixed bug #1136,#2985 (Recursive delete not working)
+Fixed bug #2391 (Implemented getOption()/SetOption() for LDAP_OPT_REFERRALS)
+Fixed bug #2860 (Call-time pass-by-reference)
+Fixed bug #2986 (Missing parameter to ldap_error in LDAP.php)
+Fixed bug #3560 (Missing test.php in docs)
+</notes>
+    </release>
+    <release>
       <version>0.6.5</version>
       <date>2004-03-09</date>
       <license>PHP License</license>
       <state>beta</state>
-      <notes>
-fixed Bug #890 (proper usuage of get_class)
+      <notes>fixed Bug #890 (proper usuage of get_class)
 fixed Bug #952 (Broken Net_LDAP_Entry::add() method)
-changed license to LGPL for now (ongoing discussion on pear-dev)
-</notes>
+changed license to LGPL for now (ongoing discussion on pear-dev)</notes>
     </release>
     <release>
       <version>0.6.4</version>
