@@ -592,17 +592,16 @@ require_once('LDAP/Search.php');
     */
    function &getEntry($dn)
    {
-        $base = $dn;
-        $filter = '(objectclass=*)';
-        $result = @ldap_list($this->_link, $base, $filter, array(), 1, 1);
-        if (ldap_count_entries($result) > 0) {
-            $elink = @ldap_first_entry($this->_link, $this->result);
-            return new Net_LDAP_Entry($this->_link,
-                                      @ldap_get_dn($this->_link, $elink),
-                                      @ldap_get_attributes($this->_link, $elink));            
+        $result = $this->search($dn, '(objectClass=*)', array('scope' => 'base', 'attributes' => null));
+        if (Net_LDAP::isError($result)) {
+            return $result;
         }
-        return false;
-    }
+        $entry = $result->shift_entry();
+        if (false == $entry) {
+            return $this->raiseError('Could not fetch entry');
+        }
+        return $entry;
+   }
    
 
     /**
