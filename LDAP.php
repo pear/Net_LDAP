@@ -102,6 +102,9 @@ require_once('LDAP/Search.php');
      */
     function Net_LDAP($_config = array())
     {
+        if (!function_exists('ldap_connect')){
+           return $this->raiseError("It seems that you do not have the ldap-extension installed. Please install it before using this package.");
+        }
         foreach ($_config as $k => $v) {
             $this->_config[$k] = $v;
         }
@@ -622,7 +625,7 @@ require_once('LDAP/Search.php');
     *
     * @param string dn
     * @param array Array of Attributes to select
-    * @return mixed Net_LDAP_Entry or false
+    * @return object Net_LDAP_Entry or Net_LDAP_Error 
     */
    function &getEntry($dn, $attr = array(''))
    {
@@ -630,7 +633,7 @@ require_once('LDAP/Search.php');
         if (Net_LDAP::isError($result)) {
             return $result;
         }
-        $entry = $result->shift_entry();
+        $entry = $result->shiftEntry();
         if (false == $entry) {
             return $this->raiseError('Could not fetch entry');
         }
