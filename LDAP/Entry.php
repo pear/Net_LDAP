@@ -1,17 +1,29 @@
 <?php
+/* vim: set expandtab tabstop=4 shiftwidth=4: */
+// +----------------------------------------------------------------------+
+// | PHP version 4                                                        |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 1997-2003 The PHP Group                                |
+// +----------------------------------------------------------------------+
+// | This source file is subject to version 2.0 of the PHP license,       |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available through the world-wide-web at                              |
+// | http://www.php.net/license/2_02.txt.                                 |
+// | If you did not receive a copy of the PHP license and are unable to   |
+// | obtain it through the world-wide-web, please send a note to          |
+// | license@php.net so we can mail you a copy immediately.               |
+// +----------------------------------------------------------------------+
+// | Authors: Tarjej Huse                                                 |
+// +----------------------------------------------------------------------+
+//
+// $Id$
 
-/**
- * Net_LDAP_Entry
- *
- * @package Net_LDAP
- * @author Tarjei Huse
- * @version $Id$
- */
- 
 /**
  * This class represents an LDAP entry
  *
  * @package Net_LDAP
+ * @author Tarjei Huse
+ * @version $Revision$
  */
 class Net_LDAP_Entry extends PEAR
 {
@@ -89,16 +101,15 @@ class Net_LDAP_Entry extends PEAR
      * @param - link - ldap_resource_link, dn = string entry dn, attributes - array entry attributes array.
      * @return - none
      **/
-    function Net_Ldap_Entry ($link = null, $dn = null, $attributes = array())
+    function Net_LDAP_Entry($link = null, $dn = null, $attributes = null)
     {
-
         if (!is_null($link)) {
             $this->_link = $link;
         }
         if (!is_null($dn)) {
             $this->_set_dn($dn);
         }
-        if (count ($attributes)>0 ) {
+        if (is_array($attributes) && count($attributes) > 0) {
             $this->_set_attributes($attributes);
         } else {
             $this->updateCheck['newEntry'] = true;
@@ -121,7 +132,7 @@ class Net_LDAP_Entry extends PEAR
      * @access private
      * @param string
      */
-    function _set_dn ($dn)
+    function _set_dn($dn)
     {
         $this->_dn = $dn;
     }
@@ -132,7 +143,7 @@ class Net_LDAP_Entry extends PEAR
      * @access private
      * @param array
      */
-    function _set_attributes ($attributes= array())
+    function _set_attributes($attributes= array())
     {
         $this->_attrs = $attributes;
         // this is the sign that the entry exists in the first place: 
@@ -177,7 +188,7 @@ class Net_LDAP_Entry extends PEAR
     * @param none
     * @return array Array of attributes and values.
     */
-    function attributes ()
+    function attributes()
     {
         return $this->_clean_entry();
     }
@@ -192,9 +203,9 @@ class Net_LDAP_Entry extends PEAR
     * @param array Array of attributes
     * @return mixed Net_Ldap_Error if error, else true.
     */
-    function add ($attr = array())
+    function add($attr = array())
     {
-        if (!isset($this->_attrs['count']) ) {
+        if (!isset($this->_attrs['count'])) {
             $this->_attrs['count'] = 0;
         }
         if (!is_array($attr)) {
@@ -202,19 +213,19 @@ class Net_LDAP_Entry extends PEAR
         }
         /* if you passed an empty array, that is your problem! */
         if (count ($attr)==0) {
-            return true;
-        
+            return true;        
         }
         foreach ($attr as $k => $v ) {
             // empty entrys should not be added to the entry.
-            if ($v == '') continue;
+            if ($v == '') {
+                continue;
+            }
             if ($this->exists($k)) {
                 if (!is_array($this->_attrs[$k])) {
                     return $this->raiseError("Possible malformed array as parameter to Net_LDAP::add().");
                 }
                 array_push($this->_attrs[$k],$v);
                 $this->_attrs[$k]['count']++;
-
             } else {
                 $this->_attrs[$k][0] = $v;
                 $this->_attrs[$k]['count'] = 1;
@@ -232,7 +243,7 @@ class Net_LDAP_Entry extends PEAR
     *
     * @param string DN
     */
-    function dn ($newdn="")
+    function dn($newdn="")
     {
         if ($newdn == "") {
             return $this->_dn;
@@ -249,9 +260,9 @@ class Net_LDAP_Entry extends PEAR
     * @param string attribute name.
     * @return boolean
     */
-    function exists ($attr)
+    function exists($attr)
     {
-        if (array_key_exists($attr,$this->_attrs)) {
+        if (array_key_exists($attr, $this->_attrs)) {
             return true;
         }   
         return false;
@@ -271,7 +282,7 @@ class Net_LDAP_Entry extends PEAR
     */
     function get_value($attr = '', $options = '')
     {
-        if (array_key_exists($attr,$this->_attrs)) {
+        if (array_key_exists($attr, $this->_attrs)) {
 
             if ($options == 'single') {
                 if (is_array($this->_attrs[$attr])) {
@@ -283,12 +294,10 @@ class Net_LDAP_Entry extends PEAR
 
             $value = $this->_attrs[$attr];
             
-            if (!$options == 'alloptions' ) {
-                unset ( $value['count'] );
+            if (!$options == 'alloptions') {
+                unset ($value['count']);
             }
-
-            return $value;
-            
+            return $value;            
         } else {
             return '';
         }
@@ -306,10 +315,10 @@ class Net_LDAP_Entry extends PEAR
      * @param array attributes to be modified
      * @return mixed errorObject if failure, true if success.
      */
-    function modify ( $attrs = array()) {
+    function modify($attrs = array()) {
     
         if (!is_array($attrs) || count ($attrs) < 1 ) {
-            return $this -> raiseError( "You did not supply an array as expected",1000); // 
+            return $this->raiseError("You did not supply an array as expected",1000);
         }
 
         foreach ($attrs as $k => $v) {
@@ -321,9 +330,9 @@ class Net_LDAP_Entry extends PEAR
             /* existing attributes are modified*/
             if ($this->exists($k) ) {
                 if (is_array($v)) {
-                     $this -> _modAttrs[$k] = $v;
+                     $this->_modAttrs[$k] = $v;
                 } else {
-                    $this -> _modAttrs[$k][0] = $v;
+                    $this->_modAttrs[$k][0] = $v;
                 } 
             } else {
                 /* new ones are created  */
@@ -332,11 +341,11 @@ class Net_LDAP_Entry extends PEAR
                     if (count($v) == 0 ) {
                         $this->_delAttrs[$k] = '';
                     } else {
-                        $this -> _addAttrs[$k] = $v;
+                        $this->_addAttrs[$k] = $v;
                     }
                 } else {
                     // dont't add empty attributes
-                    if ($v != null) $this -> _addAttrs[$k][0] = $v;
+                    if ($v != null) $this->_addAttrs[$k][0] = $v;
                 }
             }        
         }
@@ -354,21 +363,20 @@ class Net_LDAP_Entry extends PEAR
     * @param array attributes to be replaced
     * @return mixed error if failure, true if sucess.
     */
-    function replace ($attrs = array() )
+    function replace($attrs = array() )
     {
-
         foreach ($attrs as $k => $v) {
            
             if ($this->exists($k)) {
                 
                 if (is_array($v)) {
-                    $this -> _attrs[$k] = $v;
-                    $this -> _attrs[$k]['count'] = count($v);
-                    $this -> _modAttrs[$k] = $v;
+                    $this->_attrs[$k] = $v;
+                    $this->_attrs[$k]['count'] = count($v);
+                    $this->_modAttrs[$k] = $v;
                 } else {
-                    $this -> _attrs[$k]['count'] = 1;
-                    $this -> _attrs[$k][0] = $v;
-                    $this -> _modAttrs[$k][0] = $v;
+                    $this->_attrs[$k]['count'] = 1;
+                    $this->_attrs[$k][0] = $v;
+                    $this->_modAttrs[$k][0] = $v;
                 }
             } else {
                 return $this->raiseError("Attribute $k does not exist",16); // 16 = no such attribute exists.
@@ -387,35 +395,27 @@ class Net_LDAP_Entry extends PEAR
     */
     function delete($attrs = array())
     {
-
         foreach ($attrs as $k => $v) {
             
             if ($this->exists ($k)) {
                 // if v is a null, then remove the whole attribute, else only the value.
                 if ($v = '') {
                     unset($this->_attrs[$k]);
-                    $this -> _delAttrs[$k] = "";
-                    
+                    $this->_delAttrs[$k] = "";                    
                 // else we remove only the correct value.
-                } else {
-                
+                } else {                
                     for ($i = 0;$i< $this->_attrs[$k]['count'];$i++) {
                         if ($this->_attrs[$k][$i] == $v ) {
                             unset ($this->_attrs[$k][$i]);
-                            $this -> _delAttrs[$k] = $v;
+                            $this->_delAttrs[$k] = $v;
                             continue;
                         }
-                    }
-                    
-                }
-                
+                    }                    
+                }                
             } else {
                 $this->raiseError("You tried to delete a nonexisting attribute!",16);
             }
-
-
-        }
-        
+        }        
         return true;
     }
 
@@ -456,14 +456,15 @@ class Net_LDAP_Entry extends PEAR
            //print "<br>"; print_r($this->_clean_entry());
 
             if (!@ldap_add($this->_link, $this->dn(), $this->_clean_entry()) ) {
-                  return $this->raiseError("Entry" . $this->dn() . " not added!" . ldap_error($this->_link), ldap_errno($this->_link));
+                  return $this->raiseError("Entry" . $this->dn() . " not added!" . 
+                         ldap_error($this->_link), ldap_errno($this->_link));
             } else {
                 return true;
             }
         // update existing entry
         } else {
             $this->_error['first'] = $this->_modAttrs;
-            $this->_error['count'] = count($this -> _modAttrs); 
+            $this->_error['count'] = count($this->_modAttrs); 
             
             // modified attributes
             if (( count($this->_modAttrs)>0) &&
@@ -491,10 +492,10 @@ class Net_LDAP_Entry extends PEAR
             }
             
             // new attributes
-            if (( count($this -> _addAttrs)) > 0 && !ldap_modify($this -> _link, $this -> dn(), $this -> _addAttrs) ) {
-                return $this -> raiseError( "Entry " . $this->dn() . " not modified (attributes not added): " . ldap_error($this->_link),ldap_errno($this->_link));
-            }
-                        
+            if ((count($this->_addAttrs)) > 0 && !ldap_modify($this->_link, $this->dn(), $this->_addAttrs)) {
+                return $this->raiseError( "Entry " . $this->dn() . " not modified (attributes not added): " .
+                                          ldap_error($this->_link),ldap_errno($this->_link));
+            }                        
             return true;
         }
     }
