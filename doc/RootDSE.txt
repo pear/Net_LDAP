@@ -1,7 +1,7 @@
 First of all connect as usual. (Some servers require authentication to get the 
 RootDSE entry)
 
-$config = array( 'host' => 'localhost', 'dn' => YOURDN, 'password' => YOURPASSWD );
+$config = array( 'host' => 'localhost' );
 $ldap = Net_LDAP::connect( $config );
 if( Net_LDAP::isError( $ldap ) ) die( $ldap->getMessage() );
 
@@ -10,8 +10,8 @@ Now we can get the entry:
 $dse = $ldap->rootDSE();
 if( Net_LDAP::isError( $dse ) die( $dse->getMessage() );
 
-You can give an array of attributes to fetch  as an parameter ro rootDSE(). If none
-are given these ones are fetched:
+You can give an array of attributes to fetch  as an parameter ro rootDSE().
+If none are given these ones are fetched:
 
 namingContexts
 altServer

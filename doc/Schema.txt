@@ -1,7 +1,7 @@
 Examples:
 
-First of all connect to your server as usual. (Some servers require authentication
-to get the Subschema entry)
+First of all connect to your server as usual. (Some servers require
+authentication to get the Subschema entry)
 
 $config = array( 'host' => 'localhost' );
 $ldap = Net_LDAP::connect( $config );
@@ -12,9 +12,9 @@ Then we can get the schema.
 $schema = $ldap->schema();
 if( Net_LDAP::isError( $schema ) ) die ( $schema->getMessage() );
 
-You can give a parameter to $ldap->schema() which sets the Subschema Entry dn. If
-it is omitted, the entry dn will be fetched internally via rootDSE(). If that fails
-it will be set to "cn=Subschema".
+You can give a parameter to $ldap->schema() which sets the Subschema Entry dn.
+If it is omitted, the entry dn will be fetched internally via rootDSE().
+If that fails it will be set to "cn=Subschema".
 
 $schema = $ldap->schema( 'cn=Subschema' );
 
@@ -43,7 +43,8 @@ information directly.
 $attr = $schema->get('attribute', 'userPassword');
 $oc   = $schema->get('objectclass', 'posixAccount');
 
-The first parameter determines the type of entry to be fetched and can be one of:
+The first parameter determines the type of entry to be fetched and can be one
+of:
 
 attribute
 ditcontentrule
@@ -56,9 +57,8 @@ syntax
 
 The second parameter can be the name or the oid of the entry.
 
-You can retrieve a list of required and optional attributes of an object class via
-must( $oc ) or may( $oc ). Both return a list of attributes in an array.
+You can retrieve a list of required and optional attributes of an object class
+via must( $oc ) or may( $oc ). Both return a list of attributes in an array.
 
 $required = $schema->must( 'posixAccount' );
 $optional = $schema->may( 'posixAccount' );
-
