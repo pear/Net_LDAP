@@ -1,0 +1,10 @@
+This is the first release of Net_Ldap. It is a clone of Perls Net::LDAP interface 
+to ldapservers. Enjoy!
+
+Changelog:
+* 0.1 initial release
+* 0.2 bughunt galore!
+* 0.3 lots of fixing of the searchfunction. It now supports most of the options the normal ldap_(search|list) does.
+      Also a lot of fixes on errorreporting.
+* 0.5 Now we got schemaparsing as well. The package is beginning to be featurecomplete.
+*
