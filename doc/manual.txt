@@ -1,0 +1,93 @@
+
+
+Net_LDAP Manual.
+
+
+<h2>First: Connect.</h2>
+
+to do this, use the Net_LDAP::connect function like this:
+
+<code>
+require_once('Net_LDAP/LDAP.php');
+
+$config = array ( 'dn' => 'uid=tarjei,dc=php,dc=net', 
+         	  'password' => 'secret',
+		  'base' => dc=php,dc=net		
+ 		 );
+
+$ldap = Net_LDAP::connect($config);
+
+</code>
+
+What are valid values in the config array?
+Here's a quick table: (defaults)
+     * dn       = the DN to bind as. (none)
+     * host     = the ldap host to connect to (localhost)
+     * password = no explanation needed (none)
+     * base     = ldap base ()
+     * port     = the server port (389)
+     * tls      = when set, ldap_start_tls() is run after connecting. (false)
+     * version  = ldap version (defaults to v 3) 
+     * filter   = default search filter (objectclass=*)
+     * scope    = default search scope (sub)
+
+We'll get back to these later.
+
+<h2>Errorhandling<h2>
+Now you should have the base ldapobject. But, what if it is an error? Net_LDAP returns a Net_LDAP_error object (basicly a pear_error object) when an error occurs. So wherever you need to check an error, do like this:
+<code>
+$ldap = Net_LDAP::connect($config); // copied from above! 
+
+if (Net_LDAP::isError($ldap)) {
+   print $ldap->getMessage(); // this will tell you what went wrong!
+}
+
+</code>
+
+Two things to note:
+
+1) The function is_a() might be faster:
+<code>
+if (is_a($ldap,'net_ldap_error')) {
+// do the same as above
+}
+</code>
+In PHP5 you must use the instanceof operator instead of is_a().
+
+2. Net_LDAP_Error can also return an errornumber. These numbers are standardized. A good description of what they mean is found there:
+http://www.directory-info.com/LDAP/LDAPErrorCodes.html
+
+
+<h2>Searching</h2>
+Most of the work you do on an ldapserver is in searching, f.x. you search for you boss's password or his wife's phonenumber.
+
+Searching an ldapserver is a bit like doing SQL and a lot not like it at all.
+
+First some consepts:
+*base*: Where in the ldap-tree to start your search. 
+For example: ou=People,dc=php,dc=net
+
+*filers*: Filters define what youre looking for. 
+Filters start with a ( and end with a ). There is a lot to be said about filters, most is better said by examples.
+
+Here are some examples:
+(&(objectclass=posixAccount)(uid=boss)) : 
+The object has to satisfy both filters. I.e. an object that is both boss and an posixAccount. If you had another object with uid=boss but that wasn't an postixaccount it would be excluded.
+
+(|(uid=boss)(uid=secretary)) : Either the boss or the secretary. 
+
+Note that both logical operators are placed before the filters not between.
+
+(&(objectclass=posixAccount)(|(uid=boss)(uid=secretary))) :
+Here they bust have accounts as well.
+
+(objectclass=*) : All objects must have an objectclass, so this is the simplest way of saying everything.
+
+(uid=t*) : With the right indexes on the server, you may search the substring of an attriute.F.x. all users with the first name beginning with a "T".
+
+*searchscope*: The scope of an search may be three things:
+'base' => just the entry in question. 
+'sub'  => All subentries.
+'one'  => All entries just below the searchbase.
+
+Searching with scope 'base' may be handy for getting just one entry. But then again, that's what you got the getEntry function for.
