@@ -1,16 +1,28 @@
 <?php
-
-/**
- * Net_LDAP_Search
- *
- * @author  Tarjei Huse
- * @version $Id$
- * @package Net_LDAP
- */
+/* vim: set expandtab tabstop=4 shiftwidth=4: */
+// +----------------------------------------------------------------------+
+// | PHP version 4                                                        |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 1997-2003 The PHP Group                                |
+// +----------------------------------------------------------------------+
+// | This source file is subject to version 2.0 of the PHP license,       |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available through the world-wide-web at                              |
+// | http://www.php.net/license/2_02.txt.                                 |
+// | If you did not receive a copy of the PHP license and are unable to   |
+// | obtain it through the world-wide-web, please send a note to          |
+// | license@php.net so we can mail you a copy immediately.               |
+// +----------------------------------------------------------------------+
+// | Authors: Jan Wagner <wagner@netsols.de>                              |
+// +----------------------------------------------------------------------+
+//
+// $Id$
 
 /**
  * Result set of an LDAP search
  *
+ * @author  Tarjei Huse
+ * @version $Revision$
  * @package Net_LDAP
  */
 class Net_LDAP_Search extends PEAR
@@ -70,7 +82,7 @@ class Net_LDAP_Search extends PEAR
     */
     function Net_LDAP_Search (&$search, &$link)
     {    
-        $this->_set_search($search, $link);
+        $this->_setSearch($search, $link);
         $this->_errorCode = ldap_errno($link);
     }
 
@@ -81,16 +93,20 @@ class Net_LDAP_Search extends PEAR
      */
     function entries()
     {
-        if ($this->count() == 0) return array();
-
-        $this->_elink = ldap_first_entry( $this->_link,$this->_search);
-        $entry = new Net_Ldap_Entry(&$this->_link,ldap_get_dn($this->_link,$this->_elink),ldap_get_attributes($this->_link,$this->_elink));
+        if ($this->count() == 0) {
+            return array();
+        }
+        
+        $this->_elink = @ldap_first_entry( $this->_link,$this->_search);
+        $entry = new Net_LDAP_Entry(&$this->_link,    
+                                  @ldap_get_dn($this->_link, $this->_elink),
+                                  @ldap_get_attributes($this->_link, $this->_elink));
         array_push ( $entry);
 
-        while ($this->_elink = ldap_next_entry($this->_link,$this->_elink)) {
+        while ($this->_elink = @ldap_next_entry($this->_link,$this->_elink)) {
             $entry = new Net_ldap_entry(&$this->_link,
-                                    ldap_get_dn($this->_link,$this->_elink),
-                                    ldap_get_attributes($this->_link,$this->_elink));
+                                        ldap_get_dn($this->_link, $this->_elink),
+                                        ldap_get_attributes($this->_link, $this->_elink));
             array_push ($entry);
         }
     }
@@ -100,17 +116,19 @@ class Net_LDAP_Search extends PEAR
      *
      * @return mixed Net_LDAP_Entry object or false
      */
-    function shift_entry ()
+    function shiftEntry()
     {
-        if ($this->count() == 0 ) return false;
+        if ($this->count() == 0 ) {
+            return false;
+        }
 
         if (is_null($this->_elink)) {
-            $this->_elink = ldap_first_entry($this -> _link, $this -> _search);
-            $entry = new Net_ldap_entry(&$this -> _link,
-        	                            ldap_get_dn($this->_link, $this -> _elink),
-                	                    ldap_get_attributes($this -> _link, $this -> _elink));
+            $this->_elink = @ldap_first_entry($this->_link, $this->_search);
+            $entry = new Net_ldap_entry(&$this->_link,
+        	                            ldap_get_dn($this->_link, $this->_elink),
+                	                    ldap_get_attributes($this->_link, $this->_elink));
         } else {
-            if (!$this->_elink = ldap_next_entry($this -> _link, $this -> _elink)) {
+            if (!$this->_elink = ldap_next_entry($this->_link, $this->_elink)) {
                 return false;
             }
     	    $entry = new Net_ldap_entry(&$this->_link,
@@ -118,6 +136,17 @@ class Net_LDAP_Search extends PEAR
             	                        ldap_get_attributes($this->_link,$this->_elink));
         }
         return $entry;
+    }
+    
+    /**
+     * alias function of shiftEntry() for perl-ldap interface
+     * 
+     * @see shiftEntry()
+     */
+    function shift_entry() 
+    {
+        $args = func_get_args();
+        return call_user_func_array(array( &$this, 'shiftEntry' ), $args);
     }
    
     /**
@@ -158,10 +187,10 @@ class Net_LDAP_Search extends PEAR
     * @param resource Search result identifier
     * @param resource Resource link identifier
     */
-    function _set_search (&$search,&$link)
+    function _setSearch(&$search,&$link)
     {      
         $this->_search = $search;
-        $this->_link = $link;
+        $this->_link   = $link;
     }
    
    /**
@@ -169,13 +198,13 @@ class Net_LDAP_Search extends PEAR
     *
     * @return int Number of entries in search.
     */
-    function count ()
+    function count()
     {
         /* this catches the situation where OL returned errno 32 = no such object! */
         if (!$this->_search) {
             return 0;
         }
-        return ldap_count_entries ($this->_link,$this->_search);
+        return @ldap_count_entries($this->_link, $this->_search);
     }
 
     /**
@@ -183,10 +212,10 @@ class Net_LDAP_Search extends PEAR
      *
      * @return int The ldap error number.
      */
-    function getErrorCode ()
+    function getErrorCode()
     {
         return $this->_errorCode;
-    } 
+    }
     
    /** Destructor 
     *
@@ -194,7 +223,7 @@ class Net_LDAP_Search extends PEAR
     */
     function _Net_LDAP_Search() 
     {
-        ldap_free_result($this->_search);
+        @ldap_free_result($this->_search);
     }
     
    /** 
@@ -202,9 +231,8 @@ class Net_LDAP_Search extends PEAR
     */
     function done()
     {
-        $this->_Net_Ldap_Search();
+        $this->_Net_LDAP_Search();
     }
-
-
 }
+
 ?>
