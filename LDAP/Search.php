@@ -105,16 +105,17 @@ class Net_LDAP_Search extends PEAR
         
         $this->_elink = @ldap_first_entry( $this->_link,$this->_search);
         $entry = new Net_LDAP_Entry(&$this->_link,    
-                                  @ldap_get_dn($this->_link, $this->_elink),
-                                  @ldap_get_attributes($this->_link, $this->_elink));
-        array_push ( $entry);
+                                    @ldap_get_dn($this->_link, $this->_elink),
+                                    @ldap_get_attributes($this->_link, $this->_elink));
+        array_push($this->_entries, $entry);
 
         while ($this->_elink = @ldap_next_entry($this->_link,$this->_elink)) {
-            $entry = new Net_ldap_entry(&$this->_link,
-                                        ldap_get_dn($this->_link, $this->_elink),
-                                        ldap_get_attributes($this->_link, $this->_elink));
-            array_push ($entry);
+            $entry = new Net_LDAP_Entry(&$this->_link,
+                                        @ldap_get_dn($this->_link, $this->_elink),
+                                        @ldap_get_attributes($this->_link, $this->_elink));
+            array_push($this->_entries, $entry);
         }
+        return $this->_entries;
     }
    
     /**
@@ -130,14 +131,14 @@ class Net_LDAP_Search extends PEAR
 
         if (is_null($this->_elink)) {
             $this->_elink = @ldap_first_entry($this->_link, $this->_search);
-            $entry = new Net_ldap_entry(&$this->_link,
+            $entry = new Net_LDAP_Entry(&$this->_link,
         	                            ldap_get_dn($this->_link, $this->_elink),
                 	                    ldap_get_attributes($this->_link, $this->_elink));
         } else {
             if (!$this->_elink = ldap_next_entry($this->_link, $this->_elink)) {
                 return false;
             }
-    	    $entry = new Net_ldap_entry(&$this->_link,
+    	    $entry = new Net_LDAP_Entry(&$this->_link,
     		                            ldap_get_dn($this->_link,$this->_elink),
             	                        ldap_get_attributes($this->_link,$this->_elink));
         }
