@@ -63,7 +63,7 @@ Most of the work you do on an ldapserver is in searching, f.x. you search for yo
 
 Searching an ldapserver is a bit like doing SQL and a lot not like it at all.
 
-First some consepts:
+First some concepts:
 *base*: Where in the ldap-tree to start your search. 
 For example: ou=People,dc=php,dc=net
 
@@ -76,21 +76,21 @@ The object has to satisfy both filters. I.e. an object that is both boss and an 
 
 (|(uid=boss)(uid=secretary)) : Either the boss or the secretary. 
 
-Note that both logical operators are placed before the filters not between.
+Note that both logical operators are placed before the filters not between the two conditions as you might used to from sql.
 
 (&(objectclass=posixAccount)(|(uid=boss)(uid=secretary))) :
-Here they bust have accounts as well.
+Here they must have the posixAccount objectclass as well.
 
 (objectclass=*) : All objects must have an objectclass, so this is the simplest way of saying everything.
 
-(uid=t*) : With the right indexes on the server, you may search the substring of an attriute.F.x. all users with the first name beginning with a "T".
+(uid=t*) : With the right indexes on the server, you may search the substring of an attriute. Here; all users with the first name beginning with a "T".
 
 *searchscope*: The scope of an search may be three things:
 'base' => just the entry in question. 
 'sub'  => All subentries.
 'one'  => All entries just below the searchbase.
 
-Searching with scope 'base' may be handy for getting just one entry. But then again, that's what you got the getEntry function for.
+Searching with scope 'base' may be handy for getting just one entry. But then again, that's what the getEntry function does.
 
 <h2>Entrys</h2>
 
@@ -110,7 +110,7 @@ For example, to find out which attributes are required for inetOrgPerson, you do
 
 $required = $schema->must( 'inetOrgUser' );
 
-print_r($required) yeelds:
+print_r($required);
 Array
 (
      [0] => sn
