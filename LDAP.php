@@ -310,17 +310,16 @@ require_once('LDAP/Search.php');
                     }                
                 }
             }
-        } else {
-            if (!@ldap_delete($this->_link, $dn)) {
-                $error = ldap_errno($this->_link );                
-                if ($error == 66) {
-                    /* entry has subentries */
-                    return $this->raiseError('Net_LDAP::delete: Cound not delete entry ' . $dn .
-                                             ' because of subentries. Use the recursive param to delete them.'); 
-                } else {
-                    return $this->raiseError("Net_LDAP::delete: Could not delete entry " . $dn ." because: ".
-                                             $this->errorMessage($error),  $error);
-                }
+        }
+        if (!@ldap_delete($this->_link, $dn)) {
+            $error = ldap_errno($this->_link );                
+            if ($error == 66) {
+                /* entry has subentries */
+                return $this->raiseError('Net_LDAP::delete: Cound not delete entry ' . $dn .
+                                         ' because of subentries. Use the recursive param to delete them.'); 
+            } else {
+                return $this->raiseError("Net_LDAP::delete: Could not delete entry " . $dn ." because: ".
+                                         $this->errorMessage($error),  $error);
             }
         }
         return true;
