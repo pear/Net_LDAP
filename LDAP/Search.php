@@ -1,20 +1,26 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +----------------------------------------------------------------------+
-// | PHP version 4                                                        |
-// +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                |
-// +----------------------------------------------------------------------+
-// | This source file is subject to version 2.0 of the PHP license,       |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available through the world-wide-web at                              |
-// | http://www.php.net/license/2_02.txt.                                 |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
-// | license@php.net so we can mail you a copy immediately.               |
-// +----------------------------------------------------------------------+
-// | Authors: Tarjej Huse                                                 |
-// +----------------------------------------------------------------------+
+// +--------------------------------------------------------------------------+
+// | Net_LDAP                                                                 |
+// +--------------------------------------------------------------------------+
+// | Copyright (c) 1997-2003 The PHP Group                                    |
+// +--------------------------------------------------------------------------+
+// | This library is free software; you can redistribute it and/or            |
+// | modify it under the terms of the GNU Lesser General Public               |
+// | License as published by the Free Software Foundation; either             |
+// | version 2.1 of the License, or (at your option) any later version.       |
+// |                                                                          |
+// | This library is distributed in the hope that it will be useful,          |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of           |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU        |
+// | Lesser General Public License for more details.                          |
+// |                                                                          |
+// | You should have received a copy of the GNU Lesser General Public         |
+// | License along with this library; if not, write to the Free Software      |
+// | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA |
+// +--------------------------------------------------------------------------+
+// | Authors: Tarjej Huse                                                     |
+// +--------------------------------------------------------------------------+
 //
 // $Id$
 
@@ -81,7 +87,8 @@ class Net_LDAP_Search extends PEAR
     * @param resource Link identifier
     */
     function Net_LDAP_Search (&$search, &$link)
-    {    
+    {
+        $this->PEAR('Net_LDAP_Error');    
         $this->_setSearch($search, $link);
         $this->_errorCode = ldap_errno($link);
     }
@@ -104,7 +111,7 @@ class Net_LDAP_Search extends PEAR
         array_push ( $entry);
 
         while ($this->_elink = @ldap_next_entry($this->_link,$this->_elink)) {
-            $entry = new Net_ldap_entry(&$this->_link,
+            $entry = new Net_LDAP_Entry(&$this->_link,
                                         ldap_get_dn($this->_link, $this->_elink),
                                         ldap_get_attributes($this->_link, $this->_elink));
             array_push ($entry);
@@ -124,15 +131,13 @@ class Net_LDAP_Search extends PEAR
 
         if (is_null($this->_elink)) {
             $this->_elink = @ldap_first_entry($this->_link, $this->_search);
-            $entry = new Net_ldap_entry(&$this->_link,
-        	                            ldap_get_dn($this->_link, $this->_elink),
+            $entry = new Net_LDAP_Entry(ldap_get_dn($this->_link, $this->_elink),
                 	                    ldap_get_attributes($this->_link, $this->_elink));
         } else {
             if (!$this->_elink = ldap_next_entry($this->_link, $this->_elink)) {
                 return false;
             }
-    	    $entry = new Net_ldap_entry(&$this->_link,
-    		                            ldap_get_dn($this->_link,$this->_elink),
+    	    $entry = new Net_LDAP_Entry(ldap_get_dn($this->_link,$this->_elink),
             	                        ldap_get_attributes($this->_link,$this->_elink));
         }
         return $entry;
@@ -156,7 +161,7 @@ class Net_LDAP_Search extends PEAR
      */
     function pop_entry () 
     {
-        $this->raiseError("Not implemented");
+        PEAR::raiseError("Not implemented");
     }
     
     /**
@@ -167,7 +172,7 @@ class Net_LDAP_Search extends PEAR
      */
     function sorted ($attrs = array()) 
     {
-        $this->raiseError("Not impelented");
+        PEAR::raiseError("Not impelented");
     }
     
    /** 
@@ -177,7 +182,7 @@ class Net_LDAP_Search extends PEAR
     */
     function as_struct ()
     {
-        $this->raiseError("Not implemented");
+        PEAR::raiseError("Not implemented");
     }
 
    /**
