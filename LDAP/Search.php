@@ -63,7 +63,7 @@ class Net_LDAP_Search extends PEAR
      * @access private
      * @var resource
      */
-    var $_elink = null;
+    var $_entry = null;
 
     /**
      * The errorcode the search got
@@ -88,9 +88,10 @@ class Net_LDAP_Search extends PEAR
     */
     function Net_LDAP_Search (&$search, &$link)
     {
-        $this->PEAR('Net_LDAP_Error');    
+        $this->PEAR('Net_LDAP_Error');
+        
         $this->_setSearch($search, $link);
-        $this->_errorCode = ldap_errno($link);
+        $this->_errorCode = @ldap_errno($link);
     }
 
     /**
@@ -104,16 +105,16 @@ class Net_LDAP_Search extends PEAR
             return array();
         }
         
-        $this->_elink = @ldap_first_entry( $this->_link,$this->_search);
+        $this->_entry = @ldap_first_entry( $this->_link,$this->_search);
         $entry = new Net_LDAP_Entry(&$this->_link,    
-                                    @ldap_get_dn($this->_link, $this->_elink),
-                                    @ldap_get_attributes($this->_link, $this->_elink));
+                                    @ldap_get_dn($this->_link, $this->_entry),
+                                    @ldap_get_attributes($this->_link, $this->_entry));
         array_push($this->_entries, $entry);
 
-        while ($this->_elink = @ldap_next_entry($this->_link,$this->_elink)) {
+        while ($this->_entry = @ldap_next_entry($this->_link,$this->_entry)) {
             $entry = new Net_LDAP_Entry(&$this->_link,
-                                        @ldap_get_dn($this->_link, $this->_elink),
-                                        @ldap_get_attributes($this->_link, $this->_elink));
+                                        @ldap_get_dn($this->_link, $this->_entry),
+                                        @ldap_get_attributes($this->_link, $this->_entry));
             array_push($this->_entries, $entry);
         }
         return $this->_entries;
@@ -130,16 +131,16 @@ class Net_LDAP_Search extends PEAR
             return false;
         }
 
-        if (is_null($this->_elink)) {
-            $this->_elink = @ldap_first_entry($this->_link, $this->_search);
-            $entry = new Net_LDAP_Entry(ldap_get_dn($this->_link, $this->_elink),
-                	                    ldap_get_attributes($this->_link, $this->_elink));
+        if (is_null($this->_entry)) {
+            $this->_entry = @ldap_first_entry($this->_link, $this->_search);
+            $entry = new Net_LDAP_Entry(ldap_get_dn($this->_link, $this->_entry),
+                	                    ldap_get_attributes($this->_link, $this->_entry));
         } else {
-            if (!$this->_elink = ldap_next_entry($this->_link, $this->_elink)) {
+            if (!$this->_entry = ldap_next_entry($this->_link, $this->_entry)) {
                 return false;
             }
-    	    $entry = new Net_LDAP_Entry(ldap_get_dn($this->_link,$this->_elink),
-            	                        ldap_get_attributes($this->_link,$this->_elink));
+    	    $entry = new Net_LDAP_Entry(ldap_get_dn($this->_link,$this->_entry),
+            	                        ldap_get_attributes($this->_link,$this->_entry));
         }
         return $entry;
     }
@@ -173,7 +174,7 @@ class Net_LDAP_Search extends PEAR
      */
     function sorted ($attrs = array()) 
     {
-        PEAR::raiseError("Not impelented");
+        PEAR::raiseError("Not implemented");
     }
     
    /** 
