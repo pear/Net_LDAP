@@ -26,9 +26,8 @@ require_once('LDAP/Search.php');
 /**
  * Net_LDAP - manipulate LDAP servers the right way!
  *
- * (the perl Net::LDAP way)
- *
- * @author  Tarjei Huse
+ * @author Tarjei Huse
+ * @author Jan Wagner
  * @version $Revision$
  * @package Net_LDAP
  */
@@ -141,36 +140,34 @@ require_once('LDAP/Search.php');
         }
 
         if ($this->_config['host']) {
-             $conn = @ldap_connect($this->_config['host'], $this->_config['port']);
+             $this->_link = @ldap_connect($this->_config['host'], $this->_config['port']);
         } else {
              return $this->raiseError("Host not defined in config. {$this->_config['host']}");
         }
 
-        if (!$conn) {
+        if (!$this->_link) {            
             // there is no good errorcode for this one! I chose 52.
             return $this->raiseError("Could not connect to server. ldap_connect failed.",52 );
         }
         // You must set the version and start tls BEFORE binding!
-        // (quite logical when you think of it...
-        if ($this->_config['version'] == 3 && !@ldap_set_option($conn, LDAP_OPT_PROTOCOL_VERSION, 3)) {
-            return $this->raiseError("Could not set ldap v3: " . ldap_error($conn),ldap_errno($conn));
+        
+        if ($this->_config['version'] != 2 && Net_LDAP::isError($msg = $this->setLDAPVersion())) {
+            return $msg;
         }
-
-        if ($this->_config['tls'] && !@ldap_start_tls($conn)) {
-                return $this->raiseError("TLS not started. Error:" . ldap_error($conn),ldap_errno($conn));
+        
+        if ($this->_config['tls'] && Net_LDAP::isError($msg = $this->startTLS())) {
+            return $msg;
         }
         
         if (isset($this->_config['dn']) && isset($this->_config['password'])) {
-             $bind = @ldap_bind($conn, $this->_config['dn'], $this->_config['password']);
+             $bind = @ldap_bind($this->_link, $this->_config['dn'], $this->_config['password']);
         } else {
-             $bind = @ldap_bind($conn);
+             $bind = @ldap_bind($this->_link);
         }
 
         if (!$bind) {
-             return $this->raiseError("Bind failed " . @ldap_error($conn), ldap_errno($conn));
+             return $this->raiseError("Bind failed " . @ldap_error($this->_link), @ldap_errno($this->_link));
         }
-
-        $this->_link = $conn;
 
         return true;
     }
@@ -181,12 +178,23 @@ require_once('LDAP/Search.php');
      * @access public
      * @return mixed True or Net_LDAP_Error
      */
-    function start_tls()
+    function startTLS()
     {
-        if (!@ldap_set_option($this->_link, LDAP_OPT_PROTOCOL_VERSION, 3)) {
-             return $this->raiseError("Could not set ldap v3" . ldap_error($this->_link), ldap_errno($this->_link));
+        if (!@ldap_start_tls($this->_link)) {
+            return $this->raiseError("TLS not started. Error:" . @ldap_error($this->_link), @ldap_errno($this->_link));
         }
         return true;
+    }
+    
+    /**
+     * alias function of startTLS() for perl-ldap interface
+     * 
+     * @see startTLS()
+     */
+    function start_tls() 
+    {
+        $args = func_get_args();
+        return call_user_func_array(array( &$this, 'startTLS' ), $args);
     }
 
     /**
@@ -473,7 +481,7 @@ require_once('LDAP/Search.php');
                                   $attrsonly,
                                   $sizelimit,
                                   $timelimit);
-        
+
         if ($err = ldap_errno($this->_link)) { 
 
             if ($err == 32) {
@@ -515,7 +523,28 @@ require_once('LDAP/Search.php');
         }
         return $version;
     }
-                            
+
+    /**
+     * Set the LDAP_PROTOCOL_VERSION that is used on the connection.
+     *
+     * @param int Version to set
+     * @return mixed Net_LDAP_Error or TRUE
+     */
+    function setLDAPVersion($version = 0)
+    {
+        if (!$version) {
+            $version = $this->_config['version'];
+        }
+        if (!$this->_link) {
+            return $this->raiseError('No valid LDAP link');
+        }
+        if (!@ldap_set_option($this->_link, LDAP_OPT_PROTOCOL_VERSION, $version)) {
+            return $this->raiseError("Could not set LDAP version to $version " .
+                                      ldap_error($this->_link), ldap_errno($this->_link));
+        }
+        return true;
+    }
+
     /**
      * Get the Net_LDAP version. 
      *
