@@ -299,8 +299,8 @@ define ('NET_LDAP_ERROR', 1000);
         if (@ldap_add($this->_link, $entry->dn(), $entry->attributes())) {
              return true;
         } else {
-             return $this->raiseError("Could not add entry " . $entry->dn() . " " . ldap_error(),
-                                       ldap_errno($this->_link));
+             return $this->raiseError("Could not add entry " . $entry->dn() . " " . @ldap_error($this->_link),
+                                       @ldap_errno($this->_link));
         }
     }
 
@@ -420,12 +420,51 @@ define ('NET_LDAP_ERROR', 1000);
         if (is_object($dn)) {
              $dn = $dn->dn();
         }
-
          // since $params['dn'] is not used in net::ldap now:
         if (isset($params['dn'])) {
              return $this->raiseError("This feature will not be implemented!");
         }
+        // new code from rafael at krysciak dot de
+        if(array_key_exists('changes', $params)) {
+            $_params = $params;
+        } else {
+            $_params['changes'] = $params;
+        }
+        if (is_array($_params['changes'])) {
+            foreach($_params['changes'] AS $option => $atrr) {
+                switch($option) {
+                    case 'add':
+                        $command = $dn_exists ? 'ldap_mod_add':'ldap_add';
+                    break;
+                    case 'replace':
+                        $command = 'ldap_mod_replace';
+                    break;
+                    case 'delete':
+                        $command = 'ldap_mod_del';
+                                                // to delete an attribute with a specific value you
+                                                // need a hash array('attr_name' => array('attr_value_1', ... ,'attr_value_n'))
+                                                // the hash array('attr_name' => 'attr_value') will be converted
+                                                // automatically to array('attr_name' => array('attr_value'))
+                        foreach($atrr AS $atrr_field => $atrr_value) {
+                            if(!is_array($atrr_value)) {
+                                $atrr[$atrr_field] = array($atrr_value);
+                            }
+                        }
+                    break;
+                    default:
+                        return $this->raiseError("Net_LDAP::modify: not supported option " . $option);
+                    break;
+                } // end switch($option) {
 
+                if(!@call_user_func($command, $this->_link, $dn, $atrr)) {
+                   return $this->raiseError("Net_LDAP::modify: $dn not modified because:" . ldap_error($this->_link), ldap_errno($this->_link));
+                }
+            } // end foreach($_params['changes'] AS $option => $atrr) {
+        } // end if (is_array($_params['changes'])) {
+        // everything went fine :)
+        return true;        
+
+        /* old broken code see bug#2987
         if (isset($params['changes'])) {
 
              if (isset($params['changes']['add']) &&
@@ -470,6 +509,8 @@ define ('NET_LDAP_ERROR', 1000);
         }
         // everything went fine :)
         return true;
+        */
+        
     }
 
     /**
