@@ -210,7 +210,7 @@ class Net_LDAP_Entry extends PEAR
             if ($v == '') continue;
             if ($this->exists($k)) {
                 if (!is_array($this->_attrs[$k])) {
-                    $this->raiseError("Possible malformed array as parameter to Net_LDAP::add().");
+                    return $this->raiseError("Possible malformed array as parameter to Net_LDAP::add().");
                 }
                 array_push($this->_attrs[$k],$v);
                 $this->_attrs[$k]['count']++;

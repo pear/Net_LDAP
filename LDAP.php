@@ -540,10 +540,20 @@ class Net_LDAP extends PEAR
      */
     function dnExists($dn)
     {
-        $base = $dn;
-        $filter = '(objectclass=*)';
-        $result = ldap_list( $this -> _link, $base,$filter, array(),1,1);
-        if (ldap_count_entries($result)>0) {
+        $dns = explode(",",$dn);
+        $filter = array_shift($dns);
+        $base= implode($dns,',');
+        //$base = $dn;        
+        //$filter = '(objectclass=*)';
+        
+        $result = @ldap_list( $this -> _link, $base,$filter, array(),1,1);
+        if (ldap_errno($this -> _link) == 32) {
+            return false;
+        }
+        if (ldap_errno($this -> _link) != 0) {
+            $this -> raiseError( ldap_error($this->_link),ldap_errno($this -> _link));
+        }
+        if (@ldap_count_entries($this->_link, $result)) {
             return true;
         }
         return false;
