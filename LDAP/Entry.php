@@ -1,5 +1,5 @@
 <?php
-class Net_Ldap_Entry extends PEAR
+class Net_LDAP_Entry extends PEAR
 {
 
     /**
@@ -238,7 +238,7 @@ class Net_Ldap_Entry extends PEAR
         }
 
         foreach ($attrs as $k => $v) {
-            /* old ldap v1 style: empty attributes are deleted!  */ 
+            // empty values are deleted (ldap v3 handling is in update() )            
             if ($v == '' && $this->exists($k)) {
                 $this->_delAttrs[$k] = '';
                 continue;
@@ -260,11 +260,12 @@ class Net_Ldap_Entry extends PEAR
                         $this -> _addAttrs[$k] = $v;
                     }
                 } else {
-                    $this -> _addAttrs[$k][0] = $v;
+                    // dont't add empty attributes
+                    if ($v != null) $this -> _addAttrs[$k][0] = $v;
                 }
-            }
-        
+            }        
         }
+        return true;
     }
 
     
@@ -340,32 +341,31 @@ class Net_Ldap_Entry extends PEAR
         return true;
     }
 
-   /** update -  update the ldapobject
+   /** update -  update the Entry in LDAP
     *
     * After modifying an object, you must run update() to
     * make the updates on the ldap server. Before that, they only exists in the object.
     *
-    * @param - none
-    * @return Net_Ldap_Error if failure to update the object.
+    * @param object Net_LDAP
+    * @return mixed Net_LDAP_Error object on failure or true on success
     *
     * */
     function update ($ldapObject = null)
     {
-
         if ($ldapObject == null && $this->_link == null ) {
             $this->raiseError("No link to database");
         }
 
         if ($ldapObject != null) {
-            $this->_link = $ldapObject->_link;
+            $this->_link =& $ldapObject->_link;
         }
 
         //if it's a new 
         if ($this->updateCheck['newdn'] && !$this->updateCheck['newEntry']) {
-            if ( $ldapObject->getVersion() != 3) {
-                return $this->raiseError("Moving or renaming an dn is not supported using ldap V2!",80);
+            if (@ldap_get_option( $this->_link, LDAP_OPT_PROTOCOL_VERSION, $version) && $version != 3) {
+                return $this->raiseError("Moving or renaming an dn is only supported in LDAP V3!", 80);
             }
-          //    ldap_rename ( resource link_identifier, string dn, string newrdn, string newparent, bool deleteoldrdn)
+            // ldap_rename ( resource link_identifier, string dn, string newrdn, string newparent, bool deleteoldrdn)
             $newparent = ldap_explode_dn($this->_dn,0);
             // remove the first part
             array_pop($newparent);
@@ -382,23 +382,43 @@ class Net_Ldap_Entry extends PEAR
             } else {
                 return true;
             }
-            
+        // update existing entry
         } else {
             $this->_error['first'] = $this->_modAttrs;
             $this->_error['count'] = count($this -> _modAttrs); 
-            if (( count($this -> _modAttrs)>0) &&  !ldap_modify($this -> _link, $this -> dn(), Net_LDAP::UTF8Encode($this -> _modAttrs))) {
-                return $this->raiseError("Entry " . $this->dn() . " not modified(attribs not modified): " . ldap_error($this->_link),ldap_errno($this->_link));
+            
+            // modified attributes
+            if (( count($this->_modAttrs)>0) &&
+                  !ldap_modify($this->_link, $this->dn(), Net_LDAP::UTF8Encode($this->_modAttrs)))
+            {
+                return $this->raiseError("Entry " . $this->dn() . " not modified(attribs not modified): " .
+                                         ldap_error($this->_link),ldap_errno($this->_link));
             }
-            if (( count($this -> _delAttrs) > 0 ) && !ldap_mod_del($this -> _link, $this -> dn(), Net_LDAP::UTF8Encode($this -> _delAttrs))) {
-                return $this->raiseError("Entry " . $this->dn() . " not modified (attributes not deleted): " . ldap_error($this->_link),ldap_errno($this->_link));
+            
+            // attributes to be deleted
+            if (( count($this->_delAttrs) > 0 ))
+            {
+                // in ldap v3 we need to supply the old attribute values for deleting
+                if (@ldap_get_option( $this->_link, LDAP_OPT_PROTOCOL_VERSION, $version) && $version == 3) {
+                    foreach ( $this->_delAttrs as $k => $v ) {
+                        if ( $v == '' && $this->exists($k) ) {
+                            $this->_delAttrs[$k] = $this->get_value( $k );
+                        }
+                    }
+                }
+                if ( !ldap_mod_del($this->_link, $this->dn(), Net_LDAP::UTF8Encode($this->_delAttrs))) {
+                    return $this->raiseError("Entry " . $this->dn() . " not modified (attributes not deleted): " .
+                                             ldap_error($this->_link),ldap_errno($this->_link));
+                }
             }
+            
+            // new attributes
             if (( count($this -> _addAttrs)) > 0 && !ldap_modify($this -> _link, $this -> dn(),Net_LDAP::UTF8Encode( $this -> _addAttrs))) {
                 return $this -> raiseError( "Entry " . $this->dn() . " not modified (attributes not added): " . ldap_error($this->_link),ldap_errno($this->_link));
             }
-            
+                        
             return true;
         }
-
     }
 }
 
