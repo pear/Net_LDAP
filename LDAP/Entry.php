@@ -22,7 +22,19 @@ class Net_LDAP_Entry extends PEAR
                              'modify'   => false,
                              'newEntry' => true
                              ); // since the entry is not changed before the update();
+    /* _schema: Net::LDAP::Schema object. May be removed.  */
+    var $_schema;
+    /* _utfAttr
+     * array to save ldapsearches. Will contain the most normal utized attributes.
+     *
+     * */
+    var $_utfAttr = array (); 
 
+    /* _nonUtfAttr
+     * array to save ldapsearches. Will contain the most normal attributes that should not be utf8.
+     * */
+    var $_nonUtfAttr = array ('homedirectory');
+    
     /** Constructor
      * @param - link - ldap_resource_link, dn = string entry dn, attributes - array entry attributes array.
      * @return - none

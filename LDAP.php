@@ -502,10 +502,46 @@ class Net_LDAP extends PEAR
      *
      * */
 
-    function getVersion () 
+    function getVersion ()
     {
         return $this->_config['version'];
     }
+
+    /* dnExists() - tells if a dn exists allready.
+     * @params string - dn.
+     * @return boolean true if entry is found. False if not.
+     **/
+   function dnExists($dn)
+   {
+      $base = $dn;
+      $filter = '(objectclass=*)';
+      $result = ldap_list( $this -> _link, $base,$filter, array(),1,1);
+      if (ldap_count_entries($result)>0) {
+         return true;
+      }
+      return false;
+   }
+
+   /* getEntry() this function gets a spesific entry based on the dn
+   * @params string dn
+   * @return mixed Net_LDAP_Entry object if entry is found, false if else.
+   * */
+   function getEntry($dn)
+   {
+      $base = $dn;
+      $filter = '(objectclass=*)';
+      $result = ldap_list( $this -> _link, $base,$filter, array(),1,1);
+      if (ldap_count_entries($result)>0) {
+         $elink = ldap_first_entry($this -> _link, $this -> result);
+         return  new Net_ldap_entry(&$this -> _link,
+                                       ldap_get_dn($this->_link, $elink),
+                                       ldap_get_attributes($this -> _link, $elink));
+
+      }
+      return false;
+
+   }
+
 
     /* UTF8Encode ($array) - utfencode an array
      * Utf8 encodes the values in the supplied array.
