@@ -21,7 +21,7 @@ class Net_LDAP_Test extends PHPUnit_TestCase
     
     function testConnection()
     {
-        return $this->assertEquals('net_ldap', get_class($this->ldap));
+        return $this->assertEquals('net_ldap', strtolower(get_class($this->ldap)));
     }
     
     function testgetLDAPVersion()
@@ -32,13 +32,13 @@ class Net_LDAP_Test extends PHPUnit_TestCase
     function testRootDSE()
     {
         $root_dse = $this->ldap->rootDSE();
-        $this->assertEquals('net_ldap_rootdse', get_class($root_dse));
+        $this->assertEquals('net_ldap_rootdse', strtolower(get_class($root_dse)));
     }
     
     function testSchema() 
     {
         $schema = $this->ldap->schema();
-        $this->assertEquals('net_ldap_schema', get_class($schema));
+        $this->assertEquals('net_ldap_schema', strtolower(get_class($schema)));
     }
     
     function testUTF8()
