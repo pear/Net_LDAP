@@ -49,6 +49,8 @@ Net-Ldap layers itself on top of PHP's existing ldap extensions.
       <dir name="doc" role="doc">
           <file name="README.txt"/>
           <file name="STATUS"/>
+          <file name="Schema.txt"/>
+          <file name="RootDSE.txt"/>
       </dir>
     </filelist>
   </release>

@@ -508,6 +508,49 @@ class Net_Ldap extends PEAR
         return $this->_config['version'];
     }
 
+    /* ArrayUTF8Encode ($array) - utfencode an array
+     * Utf8 encodes the values in the supplied array.
+     * @params array
+     * @return array the encoded array
+    */
+
+    function _ArrayUTF8Encode($array)
+    {
+
+      if (is_array($array) ) {
+          $return = array();
+          foreach ($array as $k => $v){
+            $return[$k] = Net_LDAP::ArrayUTF8Encode($array[$k]);
+          }
+          return $return;
+
+
+      } else {
+        return utf8_encode($array);
+      }
+
+
+
+    }
+    /* ArrauUTF8Decode - decode an array of utf8encoded values.
+     * @returns array utf8decoded values
+     * @params array the array to be decoded.
+    */
+
+    function ArrayUTF8Decode($array)
+    {
+
+        if (is_array($array) ) {
+            $return = array();
+            foreach ($array as $k => $v){
+                $return[$k] = Net_LDAP::ArrayUTF8Decode($array[$k]);
+            }
+            return $return;
+        } else {
+            return utf8_decode($array);
+        }
+    }
+
     /* errorMessage - returns the string for an ldap errorcode.
      * Made to be able to make better errorhandling
      * Function based on DB::errorMessage()
@@ -515,7 +558,7 @@ class Net_Ldap extends PEAR
      * @params errorcode - the ldap errorcode
      * @return string - the errorstring for the error.
     */
-    function errorMessage ($errorcode) 
+    function errorMessage ($errorcode)
     {
 
 
