@@ -1,9 +1,8 @@
 <?php
 /**
- * Net::LDAP - manipulate LDAP server
-s the right way!
+ * Net::LDAP - manipulate LDAP servers the right way!
  *
- * (the perl Net::NET way)
+ * (the perl Net::LDAP way)
  *
  * @author  Tarjei Huse
  * @version $Id$
@@ -22,7 +21,7 @@ require_once 'LDAP/Search.php';
  *
  * @package Net_LDAP
  */
-class Net_Ldap extends PEAR
+class Net_LDAP extends PEAR
 {
     /**
      * Class configuration array
@@ -686,7 +685,7 @@ class Net_Ldap extends PEAR
      {
         require_once( 'Net/LDAP/Schema.php' );
         
-        $schema = new Net_LDAP_Schema();
+        $schema = & new Net_LDAP_Schema();
 
         if( is_null( $dn ) ) {
             // get the subschema entry via root dse
@@ -709,7 +708,8 @@ class Net_Ldap extends PEAR
         if( false === $entry ) return $this->raiseError( 'Could not fetch Subschema entry' );
 
         $schema->parse( $entry );
-        return ( ( ( $schema->hasError() ) ? $schema->getError() : $schema ) );
+
+        return $schema;
      }
 }
 
