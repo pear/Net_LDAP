@@ -52,13 +52,13 @@ class Net_LDAP_Test extends PHPUnit_TestCase
     function testRootDSE()
     {
         $root_dse = $this->ldap->rootDSE();
-        $this->assertEquals('net_ldap_rootdse', strtolower(get_class($root_dse)));
+        $this->assertTrue(is_a($root_dse, 'net_ldap_rootdse'));
     }
     
     function testSchema() 
     {
         $schema = $this->ldap->schema();
-        $this->assertEquals('net_ldap_schema', strtolower(get_class($schema)));
+        $this->assertTrue(is_a($schema, 'net_ldap_schema'));
     }
     
     function testUTF8()
@@ -184,7 +184,7 @@ class Net_LDAP_Test extends PHPUnit_TestCase
             return false;
         }
         // test deleting newentry with its subentry
-        $msg = $this->ldap->delete($newentry->dn(), array('recursive' => true));
+        $msg = $this->ldap->delete($newentry->dn(), true);
         if (Net_LDAP::isError($msg)) {
             $this->fail($msg->getMessage());
             return false;
@@ -192,7 +192,122 @@ class Net_LDAP_Test extends PHPUnit_TestCase
         return true;
     }
     
+    function testModifyAdd()
+    {
+        global $existing_dn, $existing_dn_changes;
+        
+        $msg = $this->ldap->modify($existing_dn,
+                                   array('add' => $existing_dn_changes['add']));
+        if (Net_LDAP::isError($msg)) {
+            $this->fail($msg->getMessage());
+            return false;
+        }
+        
+        $entry = &$this->ldap->getEntry($existing_dn);
+        foreach($existing_dn_changes['add'] as $attr => $vals) {
+            $values = $entry->getValue($attr, 'all');
+            foreach ($vals as $val) {
+                $this->assertTrue(in_array($val, $values),
+                                  "$attr value: $val not in attribute values");
+            }
+        }
+        return true;
+    }
     
+    function testModifyDelete()
+    {
+        global $existing_dn, $existing_dn_changes;
+        
+        $msg = $this->ldap->modify($existing_dn,
+                                   array('delete' => $existing_dn_changes['add']));
+        if (Net_LDAP::isError($msg)) {
+            $this->fail($msg->getMessage());
+            return false;
+        }
+        
+        $entry = &$this->ldap->getEntry($existing_dn);
+        foreach($existing_dn_changes['add'] as $attr => $vals) {
+            $values = $entry->getValue($attr, 'all');
+            foreach ($vals as $val) {
+                $this->assertFalse(in_array($val, $values),
+                                  "$attr value: $val in attribute values");
+            }
+        }
+        return true;
+    }
+    
+    function testModifyReplace()
+    {
+        global $existing_dn, $existing_dn_changes;
+        
+        $original = &$this->ldap->getEntry($existing_dn);
+        
+        $msg = $this->ldap->modify($existing_dn,
+                                   array('replace' => $existing_dn_changes['replace']));
+        if (Net_LDAP::isError($msg)) {
+            $this->fail($msg->getMessage());
+            return false;
+        }
+                
+        $entry = &$this->ldap->getEntry($existing_dn);
+        
+        foreach ($existing_dn_changes['replace'] as $attr => $vals) {
+            $values = $entry->getValue($attr, 'all');
+            $this->assertTrue(count($vals) == count($values));
+            foreach ($vals as $val) {
+                $this->assertTrue(in_array($val, $values));
+            }
+            $entry->replace(array($attr => $original->getValue($attr, 'all')));
+        }
+        
+        $msg = $entry->update($this->ldap);
+        if (Net_LDAP::isError($msg)) {
+            $this->fail($msg->getMessage());
+            return false;
+        }
+        return true;
+    }
+    
+    function testModifyChanges()
+    {
+        global $existing_dn, $existing_dn_changes;
+        
+        $original = &$this->ldap->getEntry($existing_dn);
+        
+        $msg = $this->ldap->modify($existing_dn, array('changes' =>
+                            array('add' => $existing_dn_changes['add'],
+                                  'replace' => $existing_dn_changes['replace'])));
+        if (Net_LDAP::isError($msg)) {
+            $this->fail($msg->getMessage());
+            return false;
+        }
+        $entry = &$this->ldap->getEntry($existing_dn);
+
+        foreach($existing_dn_changes['add'] as $attr => $vals) {
+            $values = $entry->getValue($attr, 'all');
+            foreach ($vals as $val) {
+                $this->assertTrue(in_array($val, $values),
+                                  "$attr value: $val not in attribute values");
+            }
+            $entry->replace(array($attr => $original->getValue($attr, 'all')));
+        }
+        
+        foreach ($existing_dn_changes['replace'] as $attr => $vals) {
+            $values = $entry->getValue($attr, 'all');
+            $this->assertTrue(count($vals) == count($values));
+            foreach ($vals as $val) {
+                $this->assertTrue(in_array($val, $values));
+            }
+            $entry->replace(array($attr => $original->getValue($attr, 'all')));
+        }
+        
+        $msg = $entry->update($this->ldap);
+        if (Net_LDAP::isError($msg)) {
+            $this->fail($msg->getMessage());
+            return false;
+        }
+        return true;
+    }
 }
 
 ?>

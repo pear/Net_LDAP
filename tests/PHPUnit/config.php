@@ -1,7 +1,7 @@
 <?php
 
 // these should be valid connection parameters for your ldap server
-$ldap_config= array('host' => 'server1.netgine.de',
+$ldap_config= array('host' => 'localhost',
                     'version' => 3,
                     'starttls' => false,
                     'basedn' => 'o=netsols,c=de',
@@ -11,6 +11,10 @@ $ldap_config= array('host' => 'server1.netgine.de',
 
 // this should be an existing dn which can be fetched with the above connection parameters
 $existing_dn = 'cn=Jan Wagner,ou=testing,o=netsols,c=de';
+$existing_dn_changes = array('add' => array('cn' => array('Testing')),
+                             'replace' => array('mobile' => array('01709442191'))
+                             );
+
 $rename_dn = 'cn=Kai Naumann,ou=testing,o=netsols,c=de';
 
 // these should be parameters for an ldap query that returns at least one entry with one attribute
