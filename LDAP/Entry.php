@@ -399,7 +399,7 @@ class Net_LDAP_Entry extends PEAR
             
             if ($this->exists ($k)) {
                 // if v is a null, then remove the whole attribute, else only the value.
-                if ($v = '') {
+                if ($v == '') {
                     unset($this->_attrs[$k]);
                     $this->_delAttrs[$k] = "";                    
                 // else we remove only the correct value.
