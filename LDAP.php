@@ -616,11 +616,12 @@ require_once('LDAP/Search.php');
     * Get a specific entry based on the dn
     *
     * @param string dn
+    * @param array Array of Attributes to select
     * @return mixed Net_LDAP_Entry or false
     */
-   function &getEntry($dn)
+   function &getEntry($dn, $attr = array(''))
    {
-        $result = $this->search($dn, '(objectClass=*)', array('scope' => 'base', 'attributes' => null));
+        $result = $this->search($dn, '(objectClass=*)', array('scope' => 'base', 'attributes' => $attr));
         if (Net_LDAP::isError($result)) {
             return $result;
         }
