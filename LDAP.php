@@ -203,8 +203,8 @@ class Net_LDAP extends PEAR
      */
     function add($entry)
     {
-        if (@ldap_add($this -> _link, $entry -> dn(), $entry -> get_attrs())) {
-             return 'true';
+        if (@ldap_add($this -> _link, $entry -> dn(), $entry -> attributes())) {
+             return true;
         } else {
              return $this -> raiseError("Could not add entry " . $entry -> dn() . " " . ldap_error(), ldap_errno($this -> _link));
         }
