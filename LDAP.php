@@ -50,13 +50,13 @@ require_once('LDAP/Search.php');
     /**
      * Class configuration array
      *
-     * binddn   = the DN to bind as.
      * host     = the ldap host to connect to
-     * bindpw   = no explanation needed
-     * basedn   = ldap base
      * port     = the server port
-     * starttls = when set, ldap_start_tls() is run after connecting.
      * version  = ldap version (defaults to v 3)
+     * starttls = when set, ldap_start_tls() is run after connecting.
+     * bindpw   = no explanation needed
+     * binddn   = the DN to bind as.
+     * basedn   = ldap base 
      * filter   = default search filter
      * scope    = default search scope
      *
@@ -284,12 +284,15 @@ require_once('LDAP/Search.php');
      */
     function add($entry)
     {
+        if (false == is_a($entry, 'Net_LDAP_Entry')) {
+            return PEAR::raiseError('Parameter to Net_LDAP::add() must be a Net_LDAP_Entry object.');
+        }
         if (@ldap_add($this->_link, $entry->dn(), $entry->getValues())) {
              return true;
         } else {
-             return $this->raiseError("Could not add entry " . $entry->dn() . " " .
-                                       @ldap_error($this->_link),
-                                       @ldap_errno($this->_link));
+             return PEAR::raiseError("Could not add entry " . $entry->dn() . " " .
+                                     @ldap_error($this->_link),
+                                     @ldap_errno($this->_link));
         }
     }
 
@@ -307,48 +310,38 @@ require_once('LDAP/Search.php');
      */
     function delete($dn, $param = array())
     {
-        if (is_object($dn) && strtolower(get_class($dn)) == 'net_ldap_entry') {
+        if (is_object($dn) && is_a($dn, 'Net_LDAP_Entry')) {
              $dn = $dn->dn();
-        } else {
-            if (!is_string($dn)) {
-                // this is what the server would say: invalid_dn_syntax.
-                return $this->raiseError("$dn not a string nor an entryobject!",34); 
-            }
+        } elseif (false == is_string($dn)) {
+            return PEAR::raiseError("$dn is not a string nor an entry object!",34); 
         }
-        
-        if ($param['recursive'] ) {
-            $searchresult = @ldap_list($this->_link, $dn, '(objectClass=*)', array());
-            
-            if ($searchresult) {
-                $entries = @ldap_get_entries($this->_link, $searchresult);
-
-                for ($i=0; $i<$entries['count']; $i++) {
-                    $result = $this->delete($entries[$i]['dn'], array('recursive' => true));
-                    if (!$result) {
-                        $errno = @ldap_errno($this->_link);
-                        return $this->raiseMessage ("Net_LDAP::delete: " . $this->errorMessage($errno), $errno);
-                    }                
-                    if(Net_LDAP::isError($result)){
-                        return $result;
-                    }                
+        // Recursive delete searches for children and calls delete for them
+        if (isset($param['recursive']) && $param['recursive'] == true ) {
+            $parms = array('scope' => 'one', 'attributes' => array(''));
+            $result = $this->search($dn, '(objectClass=*)', $parms);
+            if (Net_LDAP::isError($result)) {
+                return $result;
+            }
+            while ($entry = $result->shiftEntry()) {
+                $msg = $this->delete($entry->dn(), array('recursive' => true));
+                if (Net_LDAP::isError($msg)) {
+                    return $msg;
                 }
             }
-        } else {
-            if (!@ldap_delete($this->_link, $dn)) {
-                $error = ldap_errno($this->_link );                
-                if ($error == 66) {
-                    /* entry has subentries */
-                    return $this->raiseError('Net_LDAP::delete: Cound not delete entry ' . $dn .
-                                             ' because of subentries. Use the recursive param to delete them.'); 
-                } else {
-                    return $this->raiseError("Net_LDAP::delete: Could not delete entry " . $dn ." because: ".
-                                             $this->errorMessage($error),  $error);
-                }
+        } 
+        // Delete the DN
+        if (false == @ldap_delete($this->_link, $dn)) {
+            $error = @ldap_errno($this->_link);                
+            if ($error == 66) {
+                return PEAR::raiseError("Could not delete entry $dn because of subentries. Use the recursive param to delete them."); 
+            } else {
+                return PEAR::raiseError("Could not delete entry $dn: " .
+                                         $this->errorMessage($error), $error);
             }
         }
         return true;
     }
-
+    
     /**
      * Modify an ldapentry
      *
@@ -512,7 +505,7 @@ require_once('LDAP/Search.php');
         (isset($params['attributes'])) ? $attributes = $params['attributes'] : $attributes = array('');        
        
         if (!is_array($attributes)) {
-            $this->raiseError("The param attributes must be an array!");
+            PEAR::raiseError("The param attributes must be an array!");
         }
        
         /* scoping makes searches faster!  */                 		
