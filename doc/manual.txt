@@ -91,3 +91,74 @@ Here they bust have accounts as well.
 'one'  => All entries just below the searchbase.
 
 Searching with scope 'base' may be handy for getting just one entry. But then again, that's what you got the getEntry function for.
+
+<h2>Entrys</h2>
+
+Getting an entry. Modifying it. 
+
+
+<h2>Schemas</h2>
+You may also use Net_LDAP to find out what schemas your ldap-server supports. Here's an example of how:
+
+$schema = $ldap->schema(); 
+
+Now you got a schemaobject.
+
+To read from this schemaobject, you have several methods.
+
+For example, to find out which attributes are required for inetOrgPerson, you do this:
+
+$required = $schema->must( 'inetOrgUser' );
+
+print_r($required) yeelds:
+Array
+(
+     [0] => sn
+     [1] => cn
+)
+
+Ok, but what kind of attribute is sn? Let's check:
+
+$att = $schema->get('attribute','sn');
+
+Array
+(
+     [aliases] => Array
+             (
+              [0] => surname
+             )
+
+     [oid] => 2.5.4.4
+     [name] => sn
+     [desc] => RFC2256: last (family) name(s) for which the entity is known by
+     [sup] => Array
+     (
+        [0] => name
+     )
+     [type] => attribute
+)
+
+Hmm, ok, the sup part is important. It means that surname derives it's syntax from another attribute,
+the name attribute. So , we need to check that as well.
+We do:
+$att_dep = $schema->get('attribute',$att['sup'][0]);
+
+Array
+(
+    [aliases] => Array
+        (
+        )
+
+    [oid] => 2.5.4.41
+    [name] => name
+    [desc] => RFC2256: common supertype of name attributes
+    [equality] => caseIgnoreMatch
+    [substr] => caseIgnoreSubstringsMatch
+    [syntax] => 1.3.6.1.4.1.1466.115.121.1.15{32768}
+    [max_length] => 32768
+    [type] => attribute
+)
+From this we find out that the attribute has a maxlength of 32768 characters and has the syntax 1.3.6.1.4.1.1466.115.121.1.15{32768}.
+
+
+
