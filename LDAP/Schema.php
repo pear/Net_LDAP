@@ -20,14 +20,6 @@ require_once( 'Net/LDAP.php' );
  class Net_LDAP_Schema extends PEAR
  {    
     /**
-     * Array which holds errors
-     *
-     * @access private
-     * @var array $_errors Array of errors
-    */
-    var $_errors = array();
-     
-    /**
      * Map of entry types to ldap attributes of subschema entry
      *
      * @access public
@@ -73,7 +65,6 @@ require_once( 'Net/LDAP.php' );
     function Net_LDAP_Schema()
     {
         $this->PEAR( 'Net_LDAP_Error' ); // default error class
-        $this->setErrorHandling( PEAR_ERROR_CALLBACK, array( &$this, '_pushError' ) );
     }
 
     /**
@@ -85,7 +76,7 @@ require_once( 'Net/LDAP.php' );
      *
      * @access public
      * @var string $type
-     * @return array
+     * @return mixed Array or Net_LDAP_Error
      */
     function &getAll( $type )
     {
@@ -99,7 +90,7 @@ require_once( 'Net/LDAP.php' );
                       'syntaxes'          => &$this->_ldapSyntaxes );
 
         $key = strtolower( $type );
-        return ( ( key_exists( $key, $map ) ) ? $map[ $key ] : false );
+        return ( ( key_exists( $key, $map ) ) ? $map[ $key ] : $this->raiseError( "Unknown type $type" ) );
     }
     
     /**
@@ -108,12 +99,12 @@ require_once( 'Net/LDAP.php' );
      * @access public
      * @param string $type Type of name
      * @param string $name Name or OID to fetch
-     * @return mixed Entry or false
+     * @return mixed Entry or Net_LDAP_Error
      */
      function &get( $type, $name )
      {
         $type = strtolower( $type );
-        if( false == key_exists( $type, $this->types ) ) return false;
+        if( false == key_exists( $type, $this->types ) ) return $this->raiseError( "No such type $type" );
 
         $name = strtolower( $name );
         $type_var = &$this->{ '_' . $this->types[ $type ] };
@@ -123,32 +114,34 @@ require_once( 'Net/LDAP.php' );
         } elseif( key_exists( $name, $this->_oids ) && $this->_oids[ $name ][ 'type' ] == $type ) {
             return $this->_oids[ $name ];
         } else {
-            $this->raiseError( "Could not find $type $name" );
-            return false;
+            return $this->raiseError( "Could not find $type $name" );
         }
      }
 
      
-    /**#@+
+    /**
      * Fetches attributes that MAY be present in the given objectclass
      *
      * @access public
      * @param string $oc Name or OID of objectclass
-     * @return mixed Array with attributes or false
+     * @return mixed Array with attributes or Net_LDAP_Error
      */
     function may( $oc )
     {
-        return $this->_must_may( $oc, 'may' );
+        return $this->_getAttr( $oc, 'may' );
     }
     
     /**
      * Fetches attributes that MUST be present in the given objectclass
+     *
+     * @access public
+     * @param string $oc Name or OID of objectclass
+     * @return mixed Array with attributes or Net_LDAP_Error
      */
     function must( $oc )
     {
-        return $this->_must_may( $oc, 'must' );
+        return $this->_getAttr( $oc, 'must' );
     }
-    /**#@-*/
      
     /**
      * Fetches the given attribute from the given objectclass
@@ -156,9 +149,9 @@ require_once( 'Net/LDAP.php' );
      * @access private
      * @param string $oc Name or OID of objectclass
      * @param string attr Name of attribute to fetch
-     * @return mixed The attribute or false on error
+     * @return mixed The attribute or Net_LDAP_Error
      */
-    function _must_may( $oc, $attr )
+    function _getAttr( $oc, $attr )
     {
         $oc = strtolower( $oc );
         if( key_exists( $oc, $this->_objectClasses ) &&
@@ -172,9 +165,22 @@ require_once( 'Net/LDAP.php' );
         {
             return $this->_oids[ $oc ][ $attr ];
         } else {
-            $this->raiseError( "Could not find $attr attributes for $oc " );
-            return false;
+            return $this->raiseError( "Could not find $attr attributes for $oc " );
         }
+    }
+    
+    /**
+     * Returns the name(s) of the immediate superclass(es)
+     *
+     * @param string $oc
+     * @return mixed Array of names or Net_LDAP_Error
+     */
+    function superclass( $oc )
+    {        
+        $o = $this->get( 'objectclass', $oc );
+        if( Net_LDAP::isError( $o ) ) return $o;
+
+        return ( key_exists( 'sup', $o ) ? $o['sup'] : array() );
     }
 
     /**
@@ -245,7 +251,7 @@ require_once( 'Net/LDAP.php' );
        
         // remove surrounding brackets
         if( $tokens[0] == '(' ) array_shift( $tokens );
-        if( $tokens[ count( $tokens ) -1 ] == ')' ) array_pop( $tokens ); // -1 doesnt work on arrays :-(
+        if( $tokens[ count( $tokens ) - 1 ] == ')' ) array_pop( $tokens ); // -1 doesnt work on arrays :-(
 
         $schema_entry[ 'oid' ] = array_shift( $tokens ); // first token is the oid
         
@@ -322,41 +328,7 @@ require_once( 'Net/LDAP.php' );
             }
         }
         return $tokens;
-    }
-    
-    /**
-     * pushes an error to the error stack
-     *
-     * @access private
-     * @param object Net_LDAP_Error $err
-     * @return boolean 
-     */
-    function _pushError( $err ) 
-    {
-        return array_push( $this->_errors, $err );
-    }
-
-    /**
-     * has an error occured?
-     *
-     * @access public
-     * @return boolean 
-     */
-    function hasError() 
-    {
-        return ( count( $this->_errors ) > 0 );
-    }
-    
-    /**
-     * return the last error
-     *
-     * @access public
-     * @return mixed Net_LDAP_Error or false
-     */
-    function &getError()
-    {
-        return array_pop( $this->_errors );
-    }
+    }    
  }
- 
+
 ?>
