@@ -435,7 +435,16 @@ class Net_LDAP_Entry extends PEAR
         }
         // New entry
         if ($this->_new === true) {
-            return $ldap->add(&$this);
+            $msg = $ldap->add($this);
+            if (Net_LDAP::isError($msg)) {
+                return $msg;
+            }
+            $this->_new = false;
+            $this->_changes['add'] = array();
+            $this->_changes['delete'] = array();
+            $this->_changes['replace'] = array();
+            $this->_original = $this->_attributes;
+            return;
         }
         // Rename/move entry
         if (false == is_null($this->_newdn)) {
@@ -515,6 +524,43 @@ class Net_LDAP_Entry extends PEAR
             $attr = $this->_map[$name];
         }
         return $attr;
+    }
+    
+    /**
+     * Copy the current entry to another place in the directory
+     *
+     * @access public
+     * @param object Net_LDAP
+     * @param string New distinguished name
+     * @param boolean Is the new name relative to current parent
+     * @return mixed Net_LDAP_Entry or Net_LDAP_Error
+     */
+    function &copy(&$ldap, $dn, $relative = false)
+    {
+        if ($relative == true) {
+            $dn = "$dn," . $this->dn();
+        }
+        // get the attribute which makes up the rdn
+        $parts = @ldap_explode_dn($this->dn(), 0);
+        list($attr, $value) = explode('=', $parts[0]);
+
+        // remove it from the entry (not valid in copy)
+        $old_e = $this; // backup
+        $old_e->delete(array($attr => $value));
+
+        // get the attribute which makes up the new rdn
+        $parts = @ldap_explode_dn($dn, 0);
+        list($attr, $value) = explode('=', $parts[0]);
+        
+        $old_e->add(array($attr => $value));        
+        
+        $entry = new Net_LDAP_Entry($dn);
+        $entry->add($old_e->getValues());
+        $msg = $entry->update($ldap);
+        if (Net_LDAP::isError($msg)) {
+            return $msg;
+        }
+        return $entry;
     }
 }
 
