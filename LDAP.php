@@ -111,6 +111,9 @@ require_once('LDAP/Search.php');
     function Net_LDAP($config = array())
     {
         $this->PEAR('Net_LDAP_Error');
+        if (!function_exists('ldap_connect')){
+            return $this->raiseError("It seems that you do not have the ldap-extension installed. Please install it before using this package.");
+        }
         if (is_array($config)) {
             foreach ($config as $k => $v) {
                 if (isset($this->_config[$k])) {
