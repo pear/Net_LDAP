@@ -1,41 +1,97 @@
 <?php
+
+/**
+ * Net_LDAP_Entry
+ *
+ * This class resembles an LDAP Entry ...
+ *
+ * @package Net_LDAP
+ * @author Tarjei Huse
+ * @version $Id$
+ */
 class Net_LDAP_Entry extends PEAR
 {
+    /**#@+
+     * Array of the attributes
+     *
+     * @access private
+     * @var array
+     */
+    var $_attrs = array();
+    
+    /**
+     * Array of attributes to be deleted upon update()
+     */    
+    var $_delAttrs = array();
 
     /**
-     * Array of the attributes the user has
-     * */
-    var $_attrs = array(); // the attribute array
-    var $_delAttrs = array(); // Attributes to be deleted upon ->update()
-    var $_modAttrs = array(); // attributes to be modified upon ->update()
-    var $_addAttrs = array(); // Attributes to be added upon ->update()
-    var $_dn = ''; // The dn
-    var $_link = null; // ldap resourcelink.
-    
-    var $_olddn = ''; // The users old DN if the dn has been changed
+     * Array of attributes to be modified upon update()
+     */    
+    var $_modAttrs = array();
 
-    /* used for debugging class */
+    /**
+     * Array of attributes to be added upon update()
+     */        
+    var $_addAttrs = array();
+    /**#@-*/
+    
+    /**
+     * The distinguished name of the entry
+     * 
+     * @access private
+     * @var string
+     */
+    var $_dn = '';
+    
+    /**
+     * LDAP resource link
+     * 
+     * @access private
+     * @var resource
+     */
+    var $_link = null;
+    
+    /**
+     * Value of old DN if DN has changed
+     *
+     * @access private
+     * @var string
+     */
+    var $_olddn = '';
+
+    /**#@+
+     * Array of errors for debugging class
+     *
+     * @access private
+     */
     var $_error = array();
 
-    // updatechecks
+    /**
+     * updatechecks
+     */
     var $updateCheck = array('newdn'    => false,
                              'modify'   => false,
                              'newEntry' => true
                              ); // since the entry is not changed before the update();
-    /* _schema: Net::LDAP::Schema object. May be removed.  */
+
+    /**
+     * Net_LDAP_Schema object TO BE REMOVED
+     */                             
     var $_schema;
-    /* _utfAttr
-     * array to save ldapsearches. Will contain the most normal utized attributes.
-     *
-     * */
+    
+    /**
+     * Array of attributes to be UTF8 en/decoded (TO BE REMOVED!)
+     */
     var $_utfAttr = array (); 
 
-    /* _nonUtfAttr
-     * array to save ldapsearches. Will contain the most normal attributes that should not be utf8.
-     * */
+    /**
+     * Array of attributes that should not be utf8. (TO BE REMOVED!)
+     */
     var $_nonUtfAttr = array ('homedirectory');
+    /**#@-*/
     
     /** Constructor
+     *
      * @param - link - ldap_resource_link, dn = string entry dn, attributes - array entry attributes array.
      * @return - none
      **/
@@ -53,27 +109,35 @@ class Net_LDAP_Entry extends PEAR
         } else {
             $this->updateCheck['newEntry'] = true;
         }
-        
-
-
     }
-    /** Set the reasourcelink to the ldapserver.
+    /** 
+     * Set the reasourcelink to the ldapserver.
      *
-     * */
+     * @access private
+     * @param resource LDAP link
+     */
     function _set_link(&$link) 
     {
         $this->_link = $link;
     }
-    /** _set_dn - set the entrys DN 
-     * */
+    
+    /**
+     * set the entrys DN 
+     *
+     * @access private
+     * @param string
+     */
     function _set_dn ($dn)
     {
         $this->_dn = $dn;
     }
 
-    /** _set_attributes - sets the internal array of the entrys attributes.
-     * 
-     * */
+    /**
+     * sets the internal array of the entrys attributes.
+     *
+     * @access private
+     * @param array
+     */
     function _set_attributes ($attributes= array())
     {
         $this->_attrs = $attributes;
@@ -81,13 +145,15 @@ class Net_LDAP_Entry extends PEAR
         $this->updateCheck['newEntry'] = false;
     }
 
-   /** clean_entry - removes [count] entries from the array.
+   /** 
+    * removes [count] entries from the array.
     * 
-   * remove all the count elements in the array:
-   * Used before ldap_modify, ldap_add
-   * 
-   * @params - none
-   * */
+    * remove all the count elements in the array:
+    * Used before ldap_modify, ldap_add
+    * 
+    * @access private
+    * @return array Cleaned array of attributes
+    */
     function _clean_entry()
     {
         $attributes = array();
@@ -108,31 +174,32 @@ class Net_LDAP_Entry extends PEAR
 
     }
 
-   /** attributes -  returns an assosiative array of all the attributes in the array
+   /**
+    * returns an assosiative array of all the attributes in the array
     *
     * attributes -  returns an assosiative array of all the attributes in the array
-    * on the form array ('attributename'=>'singelvalue' , 'attribute'=>array('multiple','values'))
+    * of the form array ('attributename'=>'singelvalue' , 'attribute'=>array('multiple','values'))
+    *
     * @param none
-    * @return $array of attributes and values.
-   */
-
+    * @return array Array of attributes and values.
+    */
     function attributes ()
     {
         return Net_LDAP::UTF8Decode($this->_clean_entry());
     }
 
-   /** add -  Add one or more attribute to the entry
+   /**
+    * Add one or more attribute to the entry
     *
     * The values given will be added to the values which already exist for the given attributes.
     * usage:
     * $entry->add ( array('sn'=>'huse',objectclass=>array(top,posixAccount)))
-    * @param $array of attributes example: array('sn'=>'huse',objectclass=>array(top,posixAccount))
-    * @return Net_Ldap_Error if error, else true.
+    *
+    * @param array Array of attributes
+    * @return mixed Net_Ldap_Error if error, else true.
     */
-
     function add ($attr = array())
     {
-
         if (!isset($this->_attrs['count']) ) {
             $this->_attrs['count'] = 0;
         }
@@ -164,11 +231,12 @@ class Net_LDAP_Entry extends PEAR
         return true;
     }
 
-   /** dn - Set or get the DN for the object
+   /**
+    * Set or get the DN for the object
     *
     * If a new dn is supplied, this will move the object when running $obj->update();
-    * @param - string DN
-    * @return none
+    *
+    * @param string DN
     */
     function dn ($newdn="")
     {
@@ -181,35 +249,34 @@ class Net_LDAP_Entry extends PEAR
         $this->updateCheck['newdn'] = true;
     }
    
-   /** exists - check if a certain attribute exists in the directory
+   /**
+    * check if a certain attribute exists in the directory
     *
-    * Checks if the entry contains a certain attribute.
-    * @params string attribute name.
+    * @param string attribute name.
     * @return boolean
-   */
+    */
     function exists ($attr)
     {
         if (array_key_exists($attr,$this->_attrs)) {
             return true;
-        }
-    
+        }   
         return false;
     }
 
-   /** get_value get the values for a attribute
+   /**
+    * get_value get the values for a attribute
+    *
     * returns either an array or a string
-    * $attr is a string with the attribute name.
-    *
-    *
-    * @param $attr string attribute name
-    *        $options assoiative array, possible values:
+    * possible values for option:
     *           alloptions - returns an array with the values + a countfield.
     *                       i.e.: array (count=>1, 'sn'=>'huse');
     *           single - returns the, first value in the array as a string.
+    *
+    * @param $attr string attribute name
+    * @param $options array 
     */
     function get_value($attr = '',$options = '')
     {
-
         if (array_key_exists($attr,$this->_attrs)) {
 
             if ($options == 'single') {
@@ -233,16 +300,18 @@ class Net_LDAP_Entry extends PEAR
         }
     }
 
-    /* modify - add/delete/modify attributes
+    /**
+     * add/delete/modify attributes
      *
      * this function tries to do all the things that replace(),delete() and add() does on an object.
      * Syntax:
      * array ( 'attribute' => newval, 'delattribute' => '', newattrivute => newval);
      * Note: You cannot use this function to modify parts of an attribute. You must modify the whole attribute.
      * You may call the function many times before running $entry->update();
+     *
      * @param array attributes to be modified
      * @return mixed errorObject if failure, true if success.
-     * */
+     */
     function modify ( $attrs = array()) {
     
         if (!is_array($attrs) || count ($attrs) < 1 ) {
@@ -281,13 +350,15 @@ class Net_LDAP_Entry extends PEAR
     }
 
     
-   /** replace - replace a certain attributes value
+   /**
+    * replace a certain attributes value
     *
     * replace - replace a certain attributes value
     * example:
     * $entry->replace(array('uid'=>array('tarjei')));
+    *
     * @param array attributes to be replaced
-    * @return error if failure, true if sucess.
+    * @return mixed error if failure, true if sucess.
     */
     function replace ($attrs = array() )
     {
@@ -312,13 +383,14 @@ class Net_LDAP_Entry extends PEAR
         return true;
     }
 
-   /** delete -  delete attributes
+   /** 
+    * delete attributes
     *
-    * Use this function to delete certian attributes from an object.
+    * Use this function to delete certain attributes from an object.
     *
     * @param - array of attributes to be deleted
     * @return mixed Net_Ldap_Error if failure, true if success.
-    * */
+    */
     function delete($attrs = array())
     {
 
@@ -353,15 +425,15 @@ class Net_LDAP_Entry extends PEAR
         return true;
     }
 
-   /** update -  update the Entry in LDAP
+   /**
+    * update the Entry in LDAP
     *
     * After modifying an object, you must run update() to
     * make the updates on the ldap server. Before that, they only exists in the object.
     *
     * @param object Net_LDAP
     * @return mixed Net_LDAP_Error object on failure or true on success
-    *
-    * */
+    */
     function update ($ldapObject = null)
     {
         if ($ldapObject == null && $this->_link == null ) {

@@ -75,7 +75,7 @@ require_once( 'Net/LDAP.php' );
      * matchingruleuses, nameforms, syntaxes
      *
      * @access public
-     * @var string $type
+     * @param string $type
      * @return mixed Array or Net_LDAP_Error
      */
     function &getAll( $type )
