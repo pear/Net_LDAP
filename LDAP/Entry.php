@@ -241,7 +241,7 @@ class Net_LDAP_Entry extends PEAR
                 $this->_attrs['count']++;
             }
             // Fix for bug #952
-            if (false == is_array($this->_addAttrs[$k])) {
+            if (empty($this->_addAttrs[$k])) {
                 $this->_addAttrs[$k] = array();
             }
             if (false == is_array($v)) {
