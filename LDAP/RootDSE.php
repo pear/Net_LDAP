@@ -181,7 +181,7 @@ class Net_LDAP_RootDSE extends PEAR
         if (!is_array($values)) $values = array($values);
      
         foreach ($values as $value) {
-            if (!@in_array($value, $this->get_value($attr))) {
+            if (!@in_array($value, $this->get_value($attr, 'all'))) {
                 return false;
             }
         }        

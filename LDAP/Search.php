@@ -50,12 +50,14 @@ class Net_LDAP_Search extends PEAR
     var $_link;
 
     /**
-     * Array of entries
+     * Net_LDAP object
+     *
+     * A reference of the Net_LDAP object for passing to Net_LDAP_Entry
      *
      * @access private
-     * @var array
+     * @var object Net_LDAP
      */
-    var $_entries = array();
+    var $_ldap;
     
     /**
      * Result entry identifier
@@ -86,11 +88,19 @@ class Net_LDAP_Search extends PEAR
     * @param resource Search result identifier
     * @param resource Link identifier
     */
-    function Net_LDAP_Search (&$search, &$link)
+    function Net_LDAP_Search (&$search, &$ldap)
     {
         $this->PEAR('Net_LDAP_Error');
         
-        $this->_setSearch($search, $link);
+        $this->setSearch($search);
+        
+        if (is_a($ldap, 'Net_LDAP')) {
+            $this->_ldap = $ldap;
+            $this->setLink($this->_ldap->getLink());
+        } else {
+            $this->setLink($ldap);        
+        }
+        
         $this->_errorCode = @ldap_errno($link);
     }
 
@@ -101,23 +111,13 @@ class Net_LDAP_Search extends PEAR
      */
     function entries()
     {
-        if ($this->count() == 0) {
-            return array();
+        $entries = array();
+        
+        while ($entry = $this->shiftEntry()) {
+            $entries[] = $entry;
         }
         
-        $this->_entry = @ldap_first_entry( $this->_link,$this->_search);
-        $entry = new Net_LDAP_Entry(&$this->_link,    
-                                    @ldap_get_dn($this->_link, $this->_entry),
-                                    @ldap_get_attributes($this->_link, $this->_entry));
-        array_push($this->_entries, $entry);
-
-        while ($this->_entry = @ldap_next_entry($this->_link,$this->_entry)) {
-            $entry = new Net_LDAP_Entry(&$this->_link,
-                                        @ldap_get_dn($this->_link, $this->_entry),
-                                        @ldap_get_attributes($this->_link, $this->_entry));
-            array_push($this->_entries, $entry);
-        }
-        return $this->_entries;
+        return $entries;
     }
    
     /**
@@ -125,7 +125,7 @@ class Net_LDAP_Search extends PEAR
      *
      * @return mixed Net_LDAP_Entry object or false
      */
-    function shiftEntry()
+    function &shiftEntry()
     {
         if ($this->count() == 0 ) {
             return false;
@@ -133,14 +133,12 @@ class Net_LDAP_Search extends PEAR
 
         if (is_null($this->_entry)) {
             $this->_entry = @ldap_first_entry($this->_link, $this->_search);
-            $entry = new Net_LDAP_Entry(ldap_get_dn($this->_link, $this->_entry),
-                	                    ldap_get_attributes($this->_link, $this->_entry));
+            $entry = new Net_LDAP_Entry(&$this->_entry, &$this->_ldap);
         } else {
-            if (!$this->_entry = ldap_next_entry($this->_link, $this->_entry)) {
+            if (!$this->_entry = @ldap_next_entry($this->_link, $this->_entry)) {
                 return false;
             }
-    	    $entry = new Net_LDAP_Entry(ldap_get_dn($this->_link,$this->_entry),
-            	                        ldap_get_attributes($this->_link,$this->_entry));
+    	    $entry = new Net_LDAP_Entry(&$this->_entry, &$this->_ldap);
         }
         return $entry;
     }
@@ -188,16 +186,27 @@ class Net_LDAP_Search extends PEAR
     }
 
    /**
-    * Set the searchobjects resourcelinks
+    * Set the search objects resource link
     *
-    * @access private
+    * @access public
     * @param resource Search result identifier
-    * @param resource Resource link identifier
+    * @return void
     */
-    function _setSearch(&$search,&$link)
+    function setSearch(&$search)
     {      
         $this->_search = $search;
-        $this->_link   = $link;
+    }
+
+   /**
+    * Set the ldap ressource link
+    *
+    * @access public
+    * @param resource Link identifier
+    * @return void
+    */
+    function setLink(&$link)
+    {      
+        $this->_link = $link;
     }
    
    /**

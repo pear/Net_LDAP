@@ -41,6 +41,32 @@ require_once("PEAR.php");
 class Net_LDAP_Entry extends PEAR
 {
     /**
+     * Entry ressource identifier
+     *
+     * @access private
+     * @var ressourcee
+     */
+    var $_entry = null;
+    
+    /**
+     * LDAP ressource identifier
+     *
+     * @access private
+     * @var ressource
+     */
+    var $_link = null;
+    
+    /**
+     * Net_LDAP object
+     *
+     * This object will be used for updating and schema checking
+     *
+     * @access private
+     * @var object Net_LDAP
+     */
+    var $_ldap = null;
+    
+    /**
      * Distinguished name of the entry
      *
      * @access private
@@ -119,22 +145,37 @@ class Net_LDAP_Entry extends PEAR
      * @param $attributes array
      * @return none
      */
-    function Net_LDAP_Entry($dn = null, $attributes = array())
+    function Net_LDAP_Entry($entry = null, $ldap = null)
     {        
         $this->PEAR('Net_LDAP_Error');
+
+        if (is_resource($entry)) {
+            $this->_entry = &$entry;            
+        } else {
+            $this->_dn = $entry;
+        }
         
-        $this->_dn = $dn;
+        if (is_a($ldap, 'Net_LDAP')) {
+            $this->_ldap = &$ldap;
+            $this->_link = $ldap->getLink();
+        } elseif (is_resource($ldap)) {
+            $this->_link = $ldap;
+        } elseif (is_array($ldap)) {
+            $this->setAttributes($ldap);
+        }
                 
-        if (is_array($attributes) && count($attributes) > 0) {
-            $this->_new = false; // This cannot be a new entry
-            $this->_setAttributes($attributes);
+        if (is_resource($this->_entry) && is_resource($this->_link)) {
+            $this->_new = false;        
+            $this->_dn  = @ldap_get_dn($this->_link, $this->_entry);
+            $this->setAttributes();
         }
     }
     
     /**
      * Get or set the distinguished name of the entry
      *
-     * When called without
+     * If called without an argument the current dn gets returned, else the
+     * current value gets returned
      *
      * @access public
      * @param $dn string New distinguished name
@@ -143,7 +184,11 @@ class Net_LDAP_Entry extends PEAR
     function dn($dn = null)
     {
         if (false == is_null($dn)) {
-            $this->_newdn = $dn;
+            if (is_null($this->_dn)) {
+                $this->_dn = $dn;
+            } else {
+                $this->_newdn = $dn;
+            }
             return true;
         }                
         return (isset($this->_newdn) ? $this->_newdn : $this->_dn);    
@@ -155,8 +200,41 @@ class Net_LDAP_Entry extends PEAR
      * @access private
      * @param $attributes array
      */
-    function _setAttributes($attributes = array())
+    function setAttributes($attributes = null)
     {
+        // fetch attributes from the server
+        if (is_null($attributes) && is_resource($this->_entry) && is_resource($this->_link))
+        {
+            // fetch schema
+            if (is_a($this->_ldap, 'Net_LDAP')) {
+                $schema = $this->_ldap->schema();
+            }
+            // fetch attributes
+            $attributes = array();
+            do {
+                if (empty($attr)) {
+                    $ber = null;
+                    $attr = @ldap_first_attribute($this->_link, $this->_entry, $ber);
+                } else {
+                    $attr = @ldap_next_attribute($this->_link, $this->_entry, $ber);
+                }                
+                if ($attr) {
+                    $func = 'ldap_get_values'; // function to fetch value
+                    if (is_a($schema, 'Net_LDAP_Schema')) {
+                        // try to get binary values as binary data
+                        $attr_s = $schema->get('attribute', $attr);
+                        if (false === Net_LDAP::isError($attr_s)) {
+                            if ($attr_s['syntax'] == NET_LDAP_SYNTAX_OCTET_STRING) {
+                                $func = 'ldap_get_values_len';
+                            }
+                        }
+                    }
+                    // fetch attribute value (needs error checking?)
+                    $attributes[$attr] = $func($this->_link, $this->_entry, $attr);
+                }
+            } while ($attr);
+        }
+        
         if (is_array($attributes) && count($attributes) > 0) {
             if (isset($attributes["count"]) && is_numeric($attributes["count"])) {
                 unset($attributes["count"]);
@@ -554,6 +632,7 @@ class Net_LDAP_Entry extends PEAR
         $old_e->add(array($attr => $value));        
         
         $entry = new Net_LDAP_Entry($dn);
+        
         $entry->add($old_e->getValues());
         $msg = $entry->update($ldap);
         if (Net_LDAP::isError($msg)) {

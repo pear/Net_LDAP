@@ -513,10 +513,10 @@ define ('NET_LDAP_ERROR', 1000);
         if ($err = @ldap_errno($this->_link)) {             
             if ($err == 32) {
                 // Errorcode 32 = no such object, i.e. a nullresult.
-                return $obj = & new Net_LDAP_Search ($search, $this->_link); 
+                return $obj = & new Net_LDAP_Search ($search, $this); 
             } elseif ($err == 4) {
                 // Errorcode 4 = sizelimit exeeded. TODO
-                return $obj = & new Net_LDAP_Search (search, $this->_link);             
+                return $obj = & new Net_LDAP_Search ($search, $this);             
             } elseif ($err == 87) {
                 // bad search filter
                 return $this->raiseError($this->errorMessage($err) . "($filter)", $err);
@@ -525,7 +525,7 @@ define ('NET_LDAP_ERROR', 1000);
                 return $this->raiseError($this->errorMessage($err) . $msg, $err);                 
             }
         } else {
-            return $obj = & new Net_LDAP_Search($search, $this->_link);
+            return $obj = & new Net_LDAP_Search($search, $this);
         }
     }
 
@@ -833,39 +833,42 @@ define ('NET_LDAP_ERROR', 1000);
      */
      function &schema($dn = null)
      {
-        require_once('Net/LDAP/Schema.php');
-        
-        $schema = & new Net_LDAP_Schema();
-
-        if (is_null($dn)) {
-            // get the subschema entry via root dse
-            $dse = $this->rootDSE(array('subschemaSubentry'));
-            if (false == Net_LDAP::isError($dse)) {
-                $base = $dse->getValue('subschemaSubentry', 'single');
-                if (!Net_LDAP::isError($base)) {
-                    $dn = $base;
+        if (false == is_a($this->_schema, 'Net_LDAP_Schema'))
+        {
+            require_once('Net/LDAP/Schema.php');
+            
+            $this->_schema = & new Net_LDAP_Schema();
+    
+            if (is_null($dn)) {
+                // get the subschema entry via root dse
+                $dse = $this->rootDSE(array('subschemaSubentry'));
+                if (false == Net_LDAP::isError($dse)) {
+                    $base = $dse->getValue('subschemaSubentry', 'single');
+                    if (!Net_LDAP::isError($base)) {
+                        $dn = $base;
+                    }
                 }
             }
+            if (is_null($dn)) {
+                $dn = 'cn=Subschema';
+            }        
+            
+            // fetch the subschema entry
+            $result = $this->search($dn, '(objectClass=*)',
+                                    array('attributes' => array_values($this->_schema->types),
+                                          'scope' => 'base'));
+            if (Net_LDAP::isError($result)) {
+                return $result;
+            }
+    
+            $entry = $result->shiftEntry();
+            if (false === $entry) {
+                return PEAR::raiseError('Could not fetch Subschema entry');
+            }
+            
+            $this->_schema->parse($entry);
         }
-        if (is_null($dn)) {
-            $dn = 'cn=Subschema';
-        }        
-        
-        // fetch the subschema entry
-        $result = $this->search($dn, '(objectClass=*)',
-                                array('attributes' => array_values($schema->types), 'scope' => 'base'));
-        if (Net_LDAP::isError($result)) {
-            return $result;
-        }
-
-        $entry = $result->shiftEntry();
-        if (false === $entry) {
-            return PEAR::raiseError('Could not fetch Subschema entry');
-        }
-        
-        $schema->parse($entry);
-
-        return $schema;
+        return $this->_schema;
     }
 
     /**
