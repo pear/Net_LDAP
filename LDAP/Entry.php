@@ -224,7 +224,7 @@ class Net_LDAP_Entry extends PEAR
                         // try to get binary values as binary data
                         $attr_s = $schema->get('attribute', $attr);
                         if (false === Net_LDAP::isError($attr_s)) {
-                            if ($attr_s['syntax'] == NET_LDAP_SYNTAX_OCTET_STRING) {
+                            if (false !== strpos($attr_s['syntax'], NET_LDAP_SYNTAX_OCTET_STRING)) {
                                 $func = 'ldap_get_values_len';
                             }
                         }
