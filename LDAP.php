@@ -598,7 +598,26 @@ class Net_Ldap extends PEAR
     function &rootDse( $attrs = null ) 
     {
         require_once( 'Net/LDAP/RootDSE.php' );
-        return Net_LDAP_RootDSE::get( $this, $attrs );
+        
+        if( is_array( $attrs ) && count( $attrs ) > 0 ) {
+            $attributes = $attrs;
+        } else {
+            $attributes = array( 'namingContexts',
+                                 'altServer',
+                                 'supportedExtension',
+                                 'supportedControl',
+                                 'supportedSASLMechanisms',
+                                 'supportedLDAPVersion',
+                                 'subschemaSubentry' );
+        }
+        $result = $this->search( '', '(objectClass=*)',
+                                 array( 'attributes' => $attributes, 'scope' => 'base' ) );
+        if( Net_LDAP::isError( $result ) ) return $result;
+        
+        $entry = $result->shift_entry();
+        if( false === $entry ) return $this->raiseError( 'Could not fetch RootDSE entry' );
+
+        return new Net_LDAP_RootDSE( $entry );
     }
     
     /**
@@ -622,11 +641,32 @@ class Net_Ldap extends PEAR
      */
      function &schema( $dn = null )
      {
-         require_once( 'Net/LDAP/Schema.php' );
-          
-         $schema = new Net_LDAP_Schema( $this, $dn );
-                  
-         return ( ( ( $schema->hasError() ) ? $schema->getError() : $schema ) );
+        require_once( 'Net/LDAP/Schema.php' );
+        
+        $schema = new Net_LDAP_Schema();
+
+        if( is_null( $dn ) ) {
+            // get the subschema entry via root dse
+            $dse = $this->rootDSE( array( 'subschemaSubentry' ) );
+            if( false == Net_Ldap::isError( $dse ) )
+            {
+                $base = $dse->getValue( 'subschemaSubentry', 'single' );
+                if( !Net_Ldap::isError( $base ) ) $dn = $base;
+            }
+        }
+        if( is_null( $dn ) ) $dn = 'cn=Subschema';
+        
+        // fetch the subschema entry
+        $result = $this->search( $dn, '(objectClass=*)',
+                                 array( 'attributes' => array_values( $schema->types ), 'scope' => 'base' ) 
+                               );
+        if( Net_Ldap::isError( $result ) ) return $result;
+
+        $entry = $result->shift_entry();
+        if( false === $entry ) return $this->raiseError( 'Could not fetch Subschema entry' );
+
+        $schema->parse( $entry );
+        return ( ( ( $schema->hasError() ) ? $schema->getError() : $schema ) );
      }
 }
 

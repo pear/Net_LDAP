@@ -1,10 +1,3 @@
-Net_LDAP_Schema:
-
-This class fetches Schema information from the LDAP server parses this information
-and makes it available in an array. Most of the code has been inspired by perl-ldap
-( http:// perl-ldap.sourceforge.net ). You will find portions of their implementation
-in here. Usuage is roughly the same but pearized. 
-
 Examples:
 
 First of all connect to your server as usual. (Some servers require authentication
@@ -20,7 +13,8 @@ $schema = $ldap->schema();
 if( Net_LDAP::isError( $schema ) ) die ( $schema->getMessage() );
 
 You can give a parameter to $ldap->schema() which sets the Subschema Entry dn. If
-it is omitted, the entry dn will be fetched internally via rootDSE(). 
+it is omitted, the entry dn will be fetched internally via rootDSE(). If that fails
+it will be set to "cn=Subschema".
 
 $schema = $ldap->schema( 'cn=Subschema' );
 
@@ -29,7 +23,7 @@ Now you can work with the schema and retrieve information:
 $attrs = $schema->getAll( 'attributes' );
 
 This returns an array with all attributes and their information such as syntax,
-equality, max_length etc. Look at the returned array to see what inforamtion was
+equality, max_length etc. Look at the returned array to see what information was
 passed.
 
 Valid options to getAll() are:

@@ -1,5 +1,12 @@
 <?PHP
 
+/*****************************************************************
+ * This class takes a Subschema entry, parses this information   *
+ * and makes it available in an array. Most of the code has been *
+ * inspired by perl-ldap( http://perl-ldap.sourceforge.net).     *
+ * You will find portions of their implementation in here.       *
+ *****************************************************************/
+
 require_once( 'PEAR.php' );
 require_once( 'Net/LDAP.php' );
 
@@ -11,15 +18,7 @@ require_once( 'Net/LDAP.php' );
  * @version $Id$
  */
  class Net_LDAP_Schema extends PEAR
- {
-    /**
-     * Net_LDAP_Entry containing the Subschema entry
-     *
-     * @access private
-     * @var object $_entry Net_LDAP_Entry
-     */
-    var $_entry;
-    
+ {    
     /**
      * Array which holds errors
      *
@@ -31,17 +30,18 @@ require_once( 'Net/LDAP.php' );
     /**
      * Map of entry types to ldap attributes of subschema entry
      *
-     * @access private
+     * @access public
      * @var array
      */
-    var $_types = array( 'attribute'        => 'attributeTypes',
-                         'ditcontentrule'   => 'dITContentRules',
-                         'ditstructurerule' => 'dITStructureRules',
-                         'matchingrule'     => 'matchingRules',
-                         'matchingruleuse'  => 'matchingRuleUse',
-                         'nameform'         => 'nameForms',
-                         'objectclass'      => 'objectClasses',
-                         'syntax'           => 'ldapSyntaxes' );
+    var $types = array( 'attribute'        => 'attributeTypes',
+                        'ditcontentrule'   => 'dITContentRules',
+                        'ditstructurerule' => 'dITStructureRules',
+                        'matchingrule'     => 'matchingRules',
+                        'matchingruleuse'  => 'matchingRuleUse',
+                        'nameform'         => 'nameForms',
+                        'objectclass'      => 'objectClasses',
+                        'syntax'           => 'ldapSyntaxes' );
+
     /**#@+
      * Array of entries belonging to this type
      *
@@ -68,53 +68,12 @@ require_once( 'Net/LDAP.php' );
     /**
      * constructor of the class
      *
-     * Fetches $dn via rootDSE if none was given. Then parses the subschema entry.
-     *
      * @access public
-     * @param object Net_LDAP Net_LDAP instance for searching
-     * @param string $dn Subschema entry     
      */       
-    function Net_LDAP_Schema( &$ldap, $dn )
+    function Net_LDAP_Schema()
     {
         $this->PEAR( 'Net_LDAP_Error' ); // default error class
         $this->setErrorHandling( PEAR_ERROR_CALLBACK, array( &$this, '_pushError' ) );
-
-        if( false == is_null( $dn ) ) {
-            $base = $dn;
-        } else {
-            // get the subschema entry via root dse
-            $dse = $ldap->rootDSE( array( 'subschemaSubentry' ) );
-            if( Net_Ldap::isError( $dse ) ) {
-                $this->raiseError( $dse );
-                return false;
-            }
-            $base = $dse->getValue( 'subschemaSubentry', 'single' );
-            if( Net_Ldap::isError( $base ) ) {
-                $this->raiseError( $base );
-                return false;
-            }
-        }
-        
-        // fetch attributes from the subschema entry
-        $result = $ldap->search( $base,
-                                '(objectClass=*)',
-                                 array( 'attributes' => array_values( $this->_types ),
-                                        'scope' => 'base' ) 
-                               );
-        if( Net_Ldap::isError( $result ) ) { 
-            $this->_raiseError( $result );
-            return false; 
-        }
-
-        $entry = $result->shift_entry();
-        if( false === $entry ) {
-            $this->raiseError( 'Could not fetch Subschema entry' );
-            return false;
-        }
-
-        $this->_entry = &$entry; // save the entry
-        
-        $this->_parse(); // parse the schema
     }
 
     /**
@@ -154,10 +113,10 @@ require_once( 'Net/LDAP.php' );
      function &get( $type, $name )
      {
         $type = strtolower( $type );
-        if( false == key_exists( $type, $this->_types ) ) return false;
+        if( false == key_exists( $type, $this->types ) ) return false;
 
         $name = strtolower( $name );
-        $type_var = &$this->{ '_' . $this->_types[ $type ] };
+        $type_var = &$this->{ '_' . $this->types[ $type ] };
         
         if( key_exists( $name, $type_var ) ) {
             return $type_var[ $name ];
@@ -219,20 +178,21 @@ require_once( 'Net/LDAP.php' );
     }
 
     /**
-     * parses the schema
+     * Parses the schema of the given Subschema entry
      *
-     * @access private
+     * @access public
+     * @param object Net_LDAP_Entry Subschema entry
      */
-    function _parse() 
+    function parse( &$entry )
     {
-        foreach ( $this->_types as $type => $attr )
+        foreach ( $this->types as $type => $attr )
         {
             // initialize map type to entry
             $type_var = '_' . $attr ;
             $this->{ $type_var } = array();
             
             // get values for this type
-            $values = $this->_entry->get_value( $attr );
+            $values = $entry->get_value( $attr );
                         
             if( is_array( $values ) )
             {
@@ -346,6 +306,12 @@ require_once( 'Net/LDAP.php' );
         // this one is taken from perl-ldap, modified for php
         $pattern = "/\s* (?:([()]) | ([^'\s()]+) | '((?:[^']+|'[^\s)])*)') \s*/x";
         
+        /**
+         * This one matches one big pattern wherin only one of the three subpatterns matched
+         * We are interested in the subpatterns that matched. If it matched its value will be
+         * non-empty and so it is a token. Tokens may be round brackets, a string, or a string
+         * enclosed by '
+         */
         preg_match_all( $pattern, $value, $matches );
 
         for( $i = 0; $i < count( $matches[ 0 ] ); $i++ ) {        // number of tokens (full pattern match)

@@ -6,15 +6,6 @@ require_once( 'Net/LDAP.php' );
 /**
  * Net_LDAP_RootDSE: getting the rootDSE entry of a LDAP server
  *
- * This class is a wrapper to get the rootDSE entry of a LDAP server
- * Usuage:
- *
- * $ldap = Net_LDAP::connect($config);
- * $dse = $ldap->root_dse();
- * if(Net_LDAP::isError($dse)) die($dse->getMessage());
- * $dse->getValue('namingContexts', 'single');
- * if($dse->supportedVersion(3)) do_something();
- *
  * @package Net_LDAP
  * @author Jan Wagner <wagner@netsols.de>
  * @version $Id$
@@ -36,38 +27,7 @@ class Net_LDAP_RootDSE extends PEAR
     {
         $this->_entry = $entry;      
     }
-    
-    /**
-     * static function to create an instance of the class
-     *
-     * @static
-     * @access public
-     * @param object $ldap Net_LDAP 
-     * @param array $attrs Attributes to search for
-     * @return mixed Ldap_Error or Net_LDAP_RootDSE
-     */
-    function &get( &$ldap, $attrs ) 
-    {                
-        if( is_array( $attrs ) && count( $attrs ) > 0 ) {
-            $attributes = $attrs;
-        } else {
-            $attributes = array( 'namingContexts',
-                                 'altServer',
-                                 'supportedExtension',
-                                 'supportedControl',
-                                 'supportedSASLMechanisms',
-                                 'supportedLDAPVersion',
-                                 'subschemaSubentry' );
-        }
-        $result = $ldap->search( '', '(objectClass=*)', array( 'attributes' => $attributes, 'scope' => 'base' ) );
-        if( Net_LDAP::isError( $result ) ) return $result;
-        
-        $entry = $result->shift_entry();
-        if( Net_LDAP::isError( $entry ) ) return $entry;
-       
-        return new Net_LDAP_RootDSE( $entry );
-    }
-    
+
     /**
      * Gets the requested attribute value
      *
