@@ -131,6 +131,68 @@ class Net_LDAP_Test extends PHPUnit_TestCase
         }
         return true;
     }
+    
+    function testReBind()
+    {
+        $this->ldap->done();
+        $config = $this->config;
+        $binddn = $config["binddn"];
+        $bindpw = $config["bindpw"];
+        unset($config["binddn"]);
+        unset($config["bindpw"]);
+        $ldap =& new Net_LDAP($config);
+        // bind anonymously
+        $msg = $ldap->bind();
+        if (Net_LDAP::isError($msg)) {
+            $this->fail($msg->getMessage());
+            return false;
+        }
+        // bind with credentials
+        $msg = $ldap->bind($binddn, $bindpw);
+        if (Net_LDAP::isError($msg)) {
+            $this->fail($msg->getMessage());
+            return false;
+        }
+        return true;        
+    }
+    
+    function testRecursiveDelete()
+    {
+        // get existing entry for copy
+        $entry = &$this->ldap->getEntry($GLOBALS['existing_dn']);
+        if (Net_LDAP::isError($entry)) {
+            $this->fail($entry->getMessage());
+            return false;
+        }
+        // copy to rename dn
+        $newentry = &$entry->copy($this->ldap, $GLOBALS['rename_dn'], false);
+        if (Net_LDAP::isError($newentry)) {
+            $this->fail($newentry->getMessage());
+            return false;
+        }
+        // get rdn to prepend to newentry dn so it becomes a subentry
+        $rdn = ldap_explode_dn($newentry->dn(), 0);
+        if (isset($rdn['count'])) {
+            unset($rdn['count']);
+        }
+        $rdn = array_shift($rdn);
+        
+        // add a copy of new entry as subentry to itself
+        $msg = $newentry->copy($this->ldap, $rdn, true);
+        if (Net_LDAP::isError($msg)) {
+            $this->fail($msg->getMessage());
+            return false;
+        }
+        // test deleting newentry with its subentry
+        $msg = $this->ldap->delete($newentry->dn(), array('recursive' => true));
+        if (Net_LDAP::isError($msg)) {
+            $this->fail($msg->getMessage());
+            return false;
+        }
+        return true;
+    }
+    
+    
 }
 
 ?>
