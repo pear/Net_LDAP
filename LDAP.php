@@ -44,7 +44,7 @@ class Net_LDAP extends PEAR
          'base' => '',
          'port' => 389,
          'version' => 3,
-         'filter' => '(uid=*)',
+         'filter' => '(objectClass=*)',
          'scope' => 'sub'
         );
   

@@ -366,7 +366,7 @@ class Net_Ldap_Entry extends PEAR
                 return $this->raiseError("Moving or renaming an dn is not supported using ldap V2!",80);
             }
           //    ldap_rename ( resource link_identifier, string dn, string newrdn, string newparent, bool deleteoldrdn)
-            $newparent = ldap_explode_dn($this->_dn);
+            $newparent = ldap_explode_dn($this->_dn,0);
             // remove the first part
             array_pop($newparent);
             if (!@ldap_rename( $this->_link,$this->_olddn,$this->_dn,$newparent,true) ){
