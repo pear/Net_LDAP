@@ -30,11 +30,20 @@ Net-Ldap layers itself on top of PHP's existing ldap extensions.
     </maintainer>
   </maintainers>
 <release>
-    <version>0.6.1</version>
+    <version>0.6.2</version>
     <state>beta</state>
     <date>2003-10-17</date>
     <notes>
-    Fixed some minour typos, fixed Entry.php so entries may be added nicely + renaming the UFT8 functions. 
+    Major change: utf8encoding now checks that the attribute should be encoded. Correct usage:
+    $util = new Net_LDAP_Util($ldap);
+    $attrs = $util->utf8Encode( $attrs );
+    I.e utf8encoding has been moved out of the entryobject.
+    Thanks to Jan for the code.
+    New functions:
+    getEntry($dn) gets a single entry based on the dn.
+    dnExists($dn) checks if the dn exists.
+    
+    Also, as usual some bugfixes has been made, amongst them some from Piero Calucci <calucci@sissa.it>.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="Net">
@@ -44,6 +53,7 @@ Net-Ldap layers itself on top of PHP's existing ldap extensions.
             <file name="Search.php"/>
             <file name="RootDSE.php"/>
             <file name="Schema.php"/>
+            <file name="Util.php" />
         </dir>
         <dir name="tests" role="test">
             <file name="tests.php"/>
@@ -54,6 +64,7 @@ Net-Ldap layers itself on top of PHP's existing ldap extensions.
           <file name="STATUS"/>
           <file name="Schema.txt"/>
           <file name="RootDSE.txt"/>
+          <file name="Utf8.txt" />
       </dir>
     </filelist>
   </release>
@@ -108,6 +119,7 @@ Net-Ldap layers itself on top of PHP's existing ldap extensions.
         <notes>
         Renamed  the Net_LDAP::ArrayUTF8Decode and Net_LDAP::ArrayUTF8Encode functions to UTFDecode and UTFEncode. These are used by the Net_LDAP::Entry objects to ensure that things work ok.
         </notes>
+        
         </release>                 
 </changelog>
 </package>

@@ -79,16 +79,6 @@ class Net_LDAP_Entry extends PEAR
      */                             
     var $_schema;
     
-    /**
-     * Array of attributes to be UTF8 en/decoded (TO BE REMOVED!)
-     */
-    var $_utfAttr = array (); 
-
-    /**
-     * Array of attributes that should not be utf8. (TO BE REMOVED!)
-     */
-    var $_nonUtfAttr = array ('homedirectory');
-    /**#@-*/
     
     /** Constructor
      *
@@ -461,7 +451,7 @@ class Net_LDAP_Entry extends PEAR
         if ($this->updateCheck['newEntry']) {
            //print "<br>"; print_r($this->_clean_entry());
 
-            if (!@ldap_add($this->_link, $this->dn(), Net_LDAP::UTF8Encode($this->_clean_entry()))) {
+            if (!@ldap_add($this->_link, $this->dn(), $this->_clean_entry() ) {
                   return $this->raiseError("Entry" . $this->dn() . " not added!" . ldap_error($this->_link), ldap_errno($this->_link));
             } else {
                 return true;
@@ -473,7 +463,7 @@ class Net_LDAP_Entry extends PEAR
             
             // modified attributes
             if (( count($this->_modAttrs)>0) &&
-                  !ldap_modify($this->_link, $this->dn(), Net_LDAP::UTF8Encode($this->_modAttrs)))
+                  !ldap_modify($this->_link, $this->dn(), $this->_modAttrs))
             {
                 return $this->raiseError("Entry " . $this->dn() . " not modified(attribs not modified): " .
                                          ldap_error($this->_link),ldap_errno($this->_link));
@@ -490,14 +480,14 @@ class Net_LDAP_Entry extends PEAR
                         }
                     }
                 }
-                if ( !ldap_mod_del($this->_link, $this->dn(), Net_LDAP::UTF8Encode($this->_delAttrs))) {
+                if ( !ldap_mod_del($this->_link, $this->dn(), $this->_delAttrs) ) {
                     return $this->raiseError("Entry " . $this->dn() . " not modified (attributes not deleted): " .
                                              ldap_error($this->_link),ldap_errno($this->_link));
                 }
             }
             
             // new attributes
-            if (( count($this -> _addAttrs)) > 0 && !ldap_modify($this -> _link, $this -> dn(),Net_LDAP::UTF8Encode( $this -> _addAttrs))) {
+            if (( count($this -> _addAttrs)) > 0 && !ldap_modify($this -> _link, $this -> dn(), $this -> _addAttrs) ) {
                 return $this -> raiseError( "Entry " . $this->dn() . " not modified (attributes not added): " . ldap_error($this->_link),ldap_errno($this->_link));
             }
                         

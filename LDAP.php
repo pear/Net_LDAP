@@ -34,10 +34,11 @@ class Net_LDAP extends PEAR
      * version = ldap version (defaults to v 3)
      * filter = default search filter
      * scope = default search scope
-     *
+     * encode - automaticly utfencode attributes that are added/modified? Only attributes that should be encoded will be encoded. 
      * @var array
      */
-     var $_config = array ('dn',
+     var $_config = array (
+         'dn',
          'host' => 'localhost',
          'password',
          'tls' => false,
@@ -46,6 +47,7 @@ class Net_LDAP extends PEAR
          'version' => 3,
          'filter' => '(objectClass=*)',
          'scope' => 'sub'
+
         );
   
     /**
@@ -495,16 +497,25 @@ class Net_LDAP extends PEAR
 
     }
 
-    /* getVersion () - get the LDAP_VERSION that is used on the connection.
+    /* getLDAPVersion () - get the LDAP_VERSION that is used on the connection.
      * A lot of ldap functionality is defined by what version the ldap-server is, either v2 or v3.
      * @params none
      * @return int version - the version used.
      *
      * */
 
-    function getVersion ()
+    function getLDAPVersion ()
     {
         return $this->_config['version'];
+    }
+                            
+    /* getVersion() - get the Net_LDAP version. 
+     * for now, raises an error.
+     *
+     * */
+    function getVersion ()
+    {
+        return $this->raiseError("This function is not yet supported by Net_LDAP. If you want to find the LDAP Protocolversion use getLDAPVersion()");
     }
 
     /* dnExists() - tells if a dn exists allready.
@@ -541,50 +552,7 @@ class Net_LDAP extends PEAR
       return false;
 
    }
-
-
-    /* UTF8Encode ($array) - utfencode an array
-     * Utf8 encodes the values in the supplied array.
-     * @params array
-     * @return array the encoded array
-    */
-
-    function UTF8Encode($array)
-    {
-
-      if (is_array($array) ) {
-          $return = array();
-          foreach ($array as $k => $v){
-            $return[$k] = Net_LDAP::UTF8Encode($array[$k]);
-          }
-          return $return;
-
-
-      } else {
-        return utf8_encode($array);
-      }
-
-
-
-    }
-    /* UTF8Decode - decode an array of utf8encoded values.
-     * @returns array utf8decoded values
-     * @params array the array to be decoded.
-    */
-
-    function UTF8Decode($array)
-    {
-
-        if (is_array($array) ) {
-            $return = array();
-            foreach ($array as $k => $v){
-                $return[$k] = Net_LDAP::UTF8Decode($array[$k]);
-            }
-            return $return;
-        } else {
-            return utf8_decode($array);
-        }
-    }
+   
 
     /* errorMessage - returns the string for an ldap errorcode.
      * Made to be able to make better errorhandling
@@ -691,7 +659,7 @@ class Net_LDAP extends PEAR
         $result = $this->search( '', '(objectClass=*)',
                                  array( 'attributes' => $attributes, 'scope' => 'base' ) );
         if( Net_LDAP::isError( $result ) ) return $result;
-        
+
         $entry = $result->shift_entry();
         if( false === $entry ) return $this->raiseError( 'Could not fetch RootDSE entry' );
 

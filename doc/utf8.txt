@@ -1,0 +1,15 @@
+UTF8 and Net_LDAP:
+
+It is hard to know exactly what entries need utf8 every time you need them, so here's the simple way to salvation:
+
+Use Net_LDAP_Util!
+The class will check if utf8 is needed.
+
+Code:
+$util = new Net_LDAP_Util($ldap); // $ldap is your base ldap object.
+$attrs = $util->utf8Encode( $attrs ); // now the attributes have been encoded.
+
+$entry->add ($attrs) ; // add attributes to the entry.
+             
+Thanks to Jan for the code.
+                 

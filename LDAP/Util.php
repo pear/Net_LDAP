@@ -103,6 +103,7 @@ class Net_LDAP_Util extends PEAR
         }
         return $attributes;    
     }
+    
 }
 
 ?>
