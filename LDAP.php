@@ -29,6 +29,15 @@ require_once('PEAR.php');
 require_once('LDAP/Entry.php');
 require_once('LDAP/Search.php');
 
+
+/**
+ * Errorconstants.
+ * 
+ **/
+/* errors that are not ldaperrorcodes.  */
+define ('LDAP_INT_ERROR', 1000);
+
+
 /**
  * Net_LDAP - manipulate LDAP servers the right way!
  *
@@ -73,6 +82,14 @@ require_once('LDAP/Search.php');
      */
     var $_link;
 
+    /**
+     * Net_LDAP Release Version
+     *
+     * @access private
+     * $var string
+     **/
+    var $_version = "0.6.6";
+    
     /**
      * Net_LDAP_Schema object
      *
