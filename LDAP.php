@@ -139,8 +139,9 @@ require_once('LDAP/Search.php');
     /**
      * Creates the initial ldap-object
      *
-     * Static function that returns either an error object or the new Net_LDAP object.
-     * Something like a factory. Takes a config array with the needed parameters. 
+     * Static function that returns either an error object or the new Net_LDAP
+     * object. Something like a factory. Takes a config array with the needed
+     * parameters. 
      *
      * @access public
      * @param array Configuration array
@@ -162,7 +163,7 @@ require_once('LDAP/Search.php');
      * Bind to the ldap-server
      *
      * This function binds with the given dn and password to the server. In case
-     * no connections has been made yet, it will be startet and startTLS issued
+     * no connection has been made yet, it will be startet and startTLS issued
      * if appropiate.
      *
      * @access public
@@ -188,8 +189,8 @@ require_once('LDAP/Search.php');
         }
         if (false === $msg) {
             return PEAR::raiseError("Bind failed: " .
-                                         @ldap_error($this->_link),
-                                         @ldap_errno($this->_link));
+                                    @ldap_error($this->_link),
+                                    @ldap_errno($this->_link));
         }
         return true;
     }
@@ -197,12 +198,9 @@ require_once('LDAP/Search.php');
     /**
      * Connect to the ldap-server
      *
-     * This function connects to the given LDAP server. If no host is given the
-     * ones in _config are used.
+     * This function connects to the given LDAP server.
      *
      * @access private
-     * @param string Hostname to connect to
-     * @param string Port number to connect to
      * @return mixed Net_LDAP_Error or true
      */
     function _connect()
@@ -299,33 +297,31 @@ require_once('LDAP/Search.php');
     /**
      * Delete an entry from the directory
      *
-     * The object may either be a string representing the dn or a Net_LDAP_Entry object.
-     * The param array may contain a boolean value named recursive. When set, all subentries
-     * of the Entry will be deleted as well
+     * The object may either be a string representing the dn or a Net_LDAP_Entry
+     * object. When the boolean paramter recursive is set, all subentries of the
+     * entry will be deleted as well
      *
      * @access public
      * @param mixed string or Net_LDAP_Entry
-     * @param array
+     * @param boolean recursive
      * @return mixed Net_LDAP_Error or true  
      */
-    function delete($dn, $param = array())
+    function delete($dn, $recursive = false)
     {
-        if (is_object($dn) && is_a($dn, 'Net_LDAP_Entry')) {
+        if (is_a($dn, 'Net_LDAP_Entry')) {
              $dn = $dn->dn();
-        } elseif (false == is_string($dn)) {
-            return PEAR::raiseError("$dn is not a string nor an entry object!",34); 
+        }
+        if (false == is_string($dn)) {
+            return PEAR::raiseError("Parameter is not a string nor an entry object!"); 
         }
         // Recursive delete searches for children and calls delete for them
-        if (isset($param['recursive']) && $param['recursive'] == true ) {
-            $parms = array('scope' => 'one', 'attributes' => array(''));
-            $result = $this->search($dn, '(objectClass=*)', $parms);
-            if (Net_LDAP::isError($result)) {
-                return $result;
-            }
-            while ($entry = $result->shiftEntry()) {
-                $msg = $this->delete($entry->dn(), array('recursive' => true));
-                if (Net_LDAP::isError($msg)) {
-                    return $msg;
+        if ($recursive) {
+            $result = @ldap_list($this->_link, $dn, '(objectClass=*)', array(null));
+            if (@ldap_count_entries($this->_link, $result)) {
+                $subentry = @ldap_first_entry($this->_link, $result);
+                $this->delete(@ldap_get_dn($this->_link, $subentry));
+                while ($subentry = @ldap_next_entry($this->_link, $subentry)) {
+                    $this->delete(@ldap_get_dn($this->_link, $subentry));
                 }
             }
         } 
@@ -345,113 +341,62 @@ require_once('LDAP/Search.php');
     /**
      * Modify an ldapentry
      *
-     * This is taken from the perlpod of net::ldap, and explains things quite nicely.
-     * modify ( DN, OPTIONS )
-     * Modify the contents of DN on the server. DN May be a
-     * string or a Net::LDAP::Entry object.
+     * This one takes the dn or a Net_LDAP_Entry object and an array of actions.
+     * This array should be something like this:
      *
-     * dn  This option is here for compatibility only, and
-     * may be removed in future.  Previous releases did
-     * not take the DN argument which replaces this
-     * option.
+     * array('add' => array('attribute1' => array('val1', 'val2'),
+     *                      'attribute2' => array('val1')),
+     *       'delete' => array('attribute1'),
+     *       'replace' => array('attribute1' => array('val1')),
+     *       'changes' => array('add' => ...,
+     *                          'delete' => array('attribute1', 'attribute2'),
+     *                          'delete' => array('attribute2' => array('val1')),
+     *                          'replace' => ...))
      *
-     * add The add option should be a reference to a HASH.
-     * The values of the HASH are the attributes to add,
-     * and the values may be a string or a reference to a
-     * list of values.
-     *
-     * delete
-     * A reference to an ARRAY of attributes to delete.
-     * TODO: This does not support deleting one or two values yet - use
-     * replace.
-     *
-     * replace
-     * The <replace> option takes a argument in the same
-     * form as add, but will cause any existing
-     * attributes with the same name to be replaced. If
-     * the value for any attribute in the årray is a ref­
-     * erence to an empty string the all instances of the
-     * attribute will be deleted.
-     *
-     * changes
-     * This is an alternative to add, delete and replace
-     * where the whole operation can be given in a single
-     * argument. The argument should be a array
-     *
-     * Values in the ARRAY are used in pairs, the first
-     * is the operation add, delete or replace and the
-     * second is a reference to an ARRAY of attribute
-     * values.
-     *
-     * The attribute value list is also used in pairs.
-     * The first value in each pair is the attribute name
-     * and the second is a reference to a list of values.
-     *
-     * Example:
-     * $ldap->modify ( $dn, array (changes => array(
-     * 'delete' => array('faxNumber' => ''),
-     * 'add' => array('sn' => 'Barr'),
-     * 'replace' => array(email => 'tarjei@nu.no'))));
+     * The changes array is there so the order of operations can be influenced
+     * (the operations are done in order of appearance).
+     * The function calls the corresponding functions of an Net_LDAP_Entry
+     * object. A detailed description of array structures can be found there.
      *
      * @access public
-     * @param string
-     * @param array
+     * @param mixed Net_LDAP_Entry object or dn (string)
+     * @param array Array of changes
      * @return mixed Net_LDAP_Error or true
      */
-    function modify($dn , $params = array())
+    function modify($entry , $parms = array())
     {
-        if (is_object($dn)) {
-             $dn = $dn->dn();
-        }
-
-         // since $params['dn'] is not used in net::ldap now:
-        if (isset($params['dn'])) {
-             return $this->raiseError("This feature will not be implemented!");
-        }
-
-        if (isset($params['changes'])) {
-
-             if (isset($params['changes']['add']) &&
-                 !@ldap_modify($this->_link, $dn, $params['changes']['add'])) {
-
-                 return $this->raiseError("Net_LDAP::modify: $dn not modified because:" . ldap_error($this->_link),
-                                           ldap_errno($this->_link));
-             }
-
-             if (isset($params['changes']['replace']) &&
-                 !@ldap_modify($this->_link, $dn, $params['changes']['replace'])) {
-
-                 return $this->raiseError("Net_LDAP::modify: replace change didn't work: " . ldap_error($this->_link),
-                                          ldap_errno($this->_link));
-             }
-
-             if (isset($params['changes']['delete']) &&
-                 !@ldap_mod_del($this->_link, $dn, $params['changes']['delete'])) {
-
-                 return $this->raiseError("Net_LDAP::modify:delete did not work" . ldap_error($this->_link),
-                                          ldap_errno($this->_link));
-             }
-        }
-
-        if (isset($params['add']) && !@ldap_add($this->_link, $dn, $params['add'])) {
-            return $this->raiseError(ldap_error($this->_link), ldap_errno($this->_link));
-        }
-
-        if (isset($params['replace']) && !@ldap_modify($this->_link, $dn, $params['replace'])) {
-            return $this->raiseError(ldap_error($this->_link), ldap_errno($this->_link));
-        }
-
-        if (isset($params['delete'])) {
-             // since you delete an attribute by making it empty:
-            foreach ($params['delete'] as $k) {
-                $params['delete'][$k] = '';
-            }
-
-            if (!@ldap_modify($this->_link, $dn, $params['delete'])) {
-                 return $this->raiseError(ldap_error($this->_link), ldap_errno($this->_link));
+        if (is_string($entry)) {
+            $entry = $this->getEntry($entry);
+            if (Net_LDAP::isError($entry)) {
+                return $entry;
             }
         }
-        // everything went fine :)
+        if (!is_a($entry, 'Net_LDAP_Entry')) {
+            return PEAR::raiseError("Parameter is not a string nor an entry object!");
+        }
+        
+        foreach (array('add', 'delete', 'replace') as $action) {
+            if (isset($parms[$action])) {
+                $msg = $entry->$action($parms[$action]);
+                if (Net_LDAP::isError($msg)) {
+                    return $msg;
+                }
+                $msg = $entry->update($this);
+                if (Net_LDAP::isError($msg)) {
+                    return $msg;
+                }
+            }
+        }
+        
+        if (isset($parms['changes'])) {
+            foreach ($parms['changes'] as $action => $value) {
+                $msg = $this->modify($entry->dn(), array($action => $value));
+                if (Net_LDAP::isError($msg)) {
+                    return $msg;
+                }
+            }
+        }
+        
         return true;
     }
 
@@ -459,7 +404,7 @@ require_once('LDAP/Search.php');
      * Run a ldap query
      *
      * Search is used to query the ldap-database.
-     * $base and $filter may be ommitted. BaseDN and default filter will then be used.
+     * $base and $filter may be ommitted.The one from config will then be used.
      * Params may contain:
      *
      * scope: The scope which will be used for searching 
@@ -468,10 +413,9 @@ require_once('LDAP/Search.php');
      *        one  - Immediately below $base
      * sizelimit: Limit the number of entries returned (default: 0),
      * timelimit: Limit the time spent for searching (default: 0),
-     * attrsonly: If true, the search will only return the attribute names, NO values
-     * attributes: Array of attribute names, which the entry should contain. It is good practice
-     *             to limit this to just the ones you need, so by default this function does not
-     *             return any attributes at all.
+     * attrsonly: If true, the search will only return the attribute names,
+     * attributes: Array of attribute names, which the entry should contain.
+     *             It is good practice to limit this to just the ones you need
      * [NOT IMPLEMENTED]
      * deref: By default aliases are dereferenced to locate the base object for the search, but not when
      *        searching subordinates of the base object. This may be changed by specifying one of the
@@ -502,7 +446,7 @@ require_once('LDAP/Search.php');
         (isset($params['sizelimit']))  ? $sizelimit  = $params['sizelimit']  : $sizelimit = 0;
         (isset($params['timelimit']))  ? $timelimit  = $params['timelimit']  : $timelimit = 0;
         (isset($params['attrsonly']))  ? $attrsonly  = $params['attrsonly']  : $attrsonly = 0;        
-        (isset($params['attributes'])) ? $attributes = $params['attributes'] : $attributes = array('');        
+        (isset($params['attributes'])) ? $attributes = $params['attributes'] : $attributes = array();        
        
         if (!is_array($attributes)) {
             PEAR::raiseError("The param attributes must be an array!");
@@ -531,29 +475,23 @@ require_once('LDAP/Search.php');
                                   $sizelimit,
                                   $timelimit);
         
-        if ($err = @ldap_errno($this->_link)) { 
-
+        if ($err = @ldap_errno($this->_link)) {             
             if ($err == 32) {
                 // Errorcode 32 = no such object, i.e. a nullresult.
-                return $obj = & new Net_LDAP_Search (& $search, $this->_link); 
-                
-            // Errorcode 4 = sizelimit exeeded. this will be handled better in time...
-            //} elseif ($err == 4) {
-            //    return $obj = & new Net_LDAP_Search ($search, $this->_link); 
-            
+                return $obj = & new Net_LDAP_Search ($search, $this->_link); 
+            } elseif ($err == 4) {
+                // Errorcode 4 = sizelimit exeeded. TODO
+                return $obj = & new Net_LDAP_Search (search, $this->_link);             
             } elseif ($err == 87) {
                 // bad search filter
                 return $this->raiseError($this->errorMessage($err) . "($filter)", $err);
-            } else {
-                
+            } else {                
                 $msg = "\nParameters:\nBase: $base\nFilter: $filter\nScope: $scope";
                 return $this->raiseError($this->errorMessage($err) . $msg, $err);                 
             }
         } else {
-            @$obj = & new Net_LDAP_Search($search, $this->_link);
-           return $obj;
+            return $obj = & new Net_LDAP_Search($search, $this->_link);
         }
-
     }
 
     /**
@@ -566,7 +504,7 @@ require_once('LDAP/Search.php');
      */
     function getLDAPVersion()
     {
-        if($this->_link) {
+        if(is_resource($this->_link)) {
             @ldap_get_option( $this->_link, LDAP_OPT_PROTOCOL_VERSION, $version);
         } else {
             $version = $this->_config['version'];
@@ -648,11 +586,12 @@ require_once('LDAP/Search.php');
     */
    function &getEntry($dn, $attr = array())
    {
-        $result = $this->search($dn, '(objectClass=*)', array('scope' => 'base', 'attributes' => $attr));
+        $result = $this->search($dn, '(objectClass=*)',
+                                array('scope' => 'base', 'attributes' => $attr));
         if (Net_LDAP::isError($result)) {
             return $result;
         }
-        $entry = $result->shift_entry();
+        $entry = $result->shiftEntry();
         if (false == $entry) {
             return PEAR::raiseError('Could not fetch entry');
         }
