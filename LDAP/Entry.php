@@ -38,7 +38,10 @@ class Net_Ldap_Entry extends PEAR
         }
         if (count ($attributes)>0 ) {
             $this->_set_attributes($attributes);
+        } else {
+            $this->updateCheck['newEntry'] = true;
         }
+        
 
 
     }
@@ -103,7 +106,7 @@ class Net_Ldap_Entry extends PEAR
 
     function attributes ()
     {
-        return Net_LDAP::ArrayUTF8Decode($this->_clean_entry());
+        return Net_LDAP::arrayUTF8Decode($this->_clean_entry());
     }
 
    /** add -  Add one or more attribute to the entry
@@ -199,9 +202,9 @@ class Net_Ldap_Entry extends PEAR
 
             if ($options == 'single') {
                 if (is_array($this->_attrs[$attr])) {
-                    return Net_LDAP::ArrayUTF8Decode($this->_attrs[$attr][0]);
+                    return Net_LDAP::arrayUTF8Decode($this->_attrs[$attr][0]);
                 } else {
-                    return Net_LDAP::ArrayUTF8Decode($this->_attrs[$attr]);
+                    return Net_LDAP::arrayUTF8Decode($this->_attrs[$attr]);
                 }
             }
 
@@ -211,7 +214,7 @@ class Net_Ldap_Entry extends PEAR
                 unset ( $value['count'] );
             }
 
-            return  Net_LDAP::ArrayUTF8Decode($value);
+            return  Net_LDAP::arrayUTF8Decode($value);
             
         } else {
             return '';
@@ -357,8 +360,9 @@ class Net_Ldap_Entry extends PEAR
             $this->_link = $ldapObject->_link;
         }
 
-        if ($this->updateCheck['newdn']) {
-            if ( $ldapObject->getVersion != 3) {
+        //if it's a new 
+        if ($this->updateCheck['newdn'] && !$this->updateCheck['newEntry']) {
+            if ( $ldapObject->getVersion() != 3) {
                 return $this->raiseError("Moving or renaming an dn is not supported using ldap V2!",80);
             }
           //    ldap_rename ( resource link_identifier, string dn, string newrdn, string newparent, bool deleteoldrdn)
@@ -373,7 +377,7 @@ class Net_Ldap_Entry extends PEAR
         if ($this->updateCheck['newEntry']) {
            //print "<br>"; print_r($this->_clean_entry());
 
-            if (!@ldap_add($this->_link, $this->dn(), Net_LDAP::ArrayUTF8Encode($this->_clean_entry()))) {
+            if (!@ldap_add($this->_link, $this->dn(), Net_LDAP::arrayUTF8Encode($this->_clean_entry()))) {
                   return $this->raiseError("Entry" . $this->dn() . " not added!" . ldap_error($this->_link), ldap_errno($this->_link));
             } else {
                 return true;
@@ -382,13 +386,13 @@ class Net_Ldap_Entry extends PEAR
         } else {
             $this->_error['first'] = $this->_modAttrs;
             $this->_error['count'] = count($this -> _modAttrs); 
-            if (( count($this -> _modAttrs)>0) &&  !ldap_modify($this -> _link, $this -> dn(), Net_LDAP::ArrayUTF8Encode($this -> _modAttrs))) {
+            if (( count($this -> _modAttrs)>0) &&  !ldap_modify($this -> _link, $this -> dn(), Net_LDAP::arrayUTF8Encode($this -> _modAttrs))) {
                 return $this->raiseError("Entry " . $this->dn() . " not modified(attribs not modified): " . ldap_error($this->_link),ldap_errno($this->_link));
             }
-            if (( count($this -> _delAttrs) > 0 ) && !ldap_mod_del($this -> _link, $this -> dn(), Net_LDAP::ArrayUTF8Encode($this -> _delAttrs))) {
+            if (( count($this -> _delAttrs) > 0 ) && !ldap_mod_del($this -> _link, $this -> dn(), Net_LDAP::arrayUTF8Encode($this -> _delAttrs))) {
                 return $this->raiseError("Entry " . $this->dn() . " not modified (attributes not deleted): " . ldap_error($this->_link),ldap_errno($this->_link));
             }
-            if (( count($this -> _addAttrs)) > 0 && !ldap_modify($this -> _link, $this -> dn(),Net_LDAP::ArrayUTF8Encode( $this -> _addAttrs))) {
+            if (( count($this -> _addAttrs)) > 0 && !ldap_modify($this -> _link, $this -> dn(),Net_LDAP::arrayUTF8Encode( $this -> _addAttrs))) {
                 return $this -> raiseError( "Entry " . $this->dn() . " not modified (attributes not added): " . ldap_error($this->_link),ldap_errno($this->_link));
             }
             

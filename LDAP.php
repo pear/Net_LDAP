@@ -514,7 +514,7 @@ class Net_Ldap extends PEAR
      * @return array the encoded array
     */
 
-    function _ArrayUTF8Encode($array)
+    function arrayUTF8Encode($array)
     {
 
       if (is_array($array) ) {
