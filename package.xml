@@ -30,24 +30,13 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.6.3</version>
+    <version>0.6.4</version>
     <state>beta</state>
-    <date>2003-11-12</date>
+    <date>2004-02-07</date>
     <notes>
-      It seems that 0.6.2 was out too fast. So this is mainly a bugfix release:   
-   
-      - Removed remaining Net_LDAP::UTF8Encode and Net_LDAP::UTF8Decode calls in Net_LDAP_Entry,
-        which stopped attributes() and get_entry() from working
-      - The UTF8 functions somehow got outside the Net_LDAP class ... FIXED.
-      - The usuage example of the last release was wrong. We decided to move UTF8 handling into Net_LDAP.
-        Handling should be done this way:
-      
-      $attr = $ldap->utf8Encode($attr);
-      $entry->modify($attr);
-      $attr = $ldap->utf8Decode( $entry->attributes() );
-
-      - This means Net_LDAP_Util is useless right now, but will be extended in the future.
-      - Jan did a complete overhaul of the phpdoc stuff. Everything seems to be fine now with phpDocumentor.
+	- Added a new LDAP::reBind method. Usefull for first searching for uid=username and then binding as that dn.
+	- Fixed bug #289 and #290.
+    	Todo: Rewrite entry.php :-)
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="Net">
@@ -68,7 +57,7 @@
 	<file name="STATUS"/>
 	<file name="Schema.txt"/>
 	<file name="RootDSE.txt"/>
-	<file name="Utf8.txt" />
+	<file name="utf8.txt" />
       </dir>
     </filelist>
   </release>
@@ -144,7 +133,26 @@
 
     Also, as usual some bugfixes has been made, amongst them some from Piero Calucci.
     </notes>
-        
+    
+    <version>0.6.3</version>
+    <state>beta</state>
+    <date>2003-11-12</date>
+    <notes>
+      It seems that 0.6.2 was out too fast. So this is mainly a bugfix release:   
+   
+      - Removed remaining Net_LDAP::UTF8Encode and Net_LDAP::UTF8Decode calls in Net_LDAP_Entry,
+        which stopped attributes() and get_entry() from working
+      - The UTF8 functions somehow got outside the Net_LDAP class ... FIXED.
+      - The usuage example of the last release was wrong. We decided to move UTF8 handling into Net_LDAP.
+        Handling should be done this way:
+      
+      $attr = $ldap->utf8Encode($attr);
+      $entry->modify($attr);
+      $attr = $ldap->utf8Decode( $entry->attributes() );
+
+      - This means Net_LDAP_Util is useless right now, but will be extended in the future.
+      - Jan did a complete overhaul of the phpdoc stuff. Everything seems to be fine now with phpDocumentor.
+    </notes>   
         </release>                 
 </changelog>
 </package>

@@ -6,10 +6,15 @@ so here's the simple way to salvation:
 Net_LDAP will check internally if utf8 is needed.
 
 Code:
-$attrs = $ldap->utf8Encode( $attrs ); // now the attributes have been encoded.
-$entry->add ($attrs) ; // add attributes to the entry.
-
-$attrs = $entry->attributes();
-$attrs = $ldap->utf8Decode($attrs); // the other way around
-
+      // $attr is some text a user entered with funny characters in it.
+      // If $attr should not be utfized (f.x. userPassword) then utf8Encode
+      // will not encode the attribute.
+      $attr = $ldap->utf8Encode($attr); 
+      // now insert the correctly encoded attribute  into the directory.
+      $entry->modify($attr);
+      
+      // later when you access the attributes of that user, decode the ones
+      // that have to be decoded.
+      $attr = $ldap->utf8Decode( $entry->attributes() );
+                  
 Thanks to Jan for the code.

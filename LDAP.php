@@ -173,6 +173,33 @@ require_once('LDAP/Search.php');
     }
 
     /**
+     * ReBind to the ldap-server using another dn and password
+     *
+     * The function may be used if you do not create the object using Net_LDAP::connect.
+     *
+     * @access public
+     * @param string $dn - the DN to bind as.
+     *        string $password - the bassword to use.
+     * @return mixed Net_LDAP_Error or true
+     * @see $_config
+     */
+   
+    function reBind ($dn = null, $password = null) 
+    {
+       
+        if ($dn && $password ) {
+            $bind = @ldap_bind($this->_link, $dn, $password);
+        } else {
+            $bind = @ldap_bind($this->_link);
+        }
+
+        if (!$bind) {
+            return $this->raiseError("Bind failed " . @ldap_error($this->_link), @ldap_errno($this->_link));
+        }
+        return true;
+    }
+    
+    /**
      * Starts an encrypted session
      *
      * @access public
@@ -583,6 +610,7 @@ require_once('LDAP/Search.php');
         }
         return false;
     }
+    
 
    /**
     * Get a specific entry based on the dn
