@@ -152,8 +152,7 @@ class Net_LDAP_Search extends PEAR
      */
     function shift_entry() 
     {
-        $args = func_get_args();
-        return call_user_func_array(array($this, 'shiftEntry'), $args);
+        return $this->shiftEntry();
     }
    
     /**
