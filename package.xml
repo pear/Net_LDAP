@@ -57,6 +57,16 @@ Net_LDAP layers itself on top of PHP's existing ldap extensions.</description>
     </filelist>
   </release>
   <changelog>
+      <release>
+         <version>0.6.7</version>
+         <date>2005-XX-XX</date>
+         <license>LGPL</license>
+         <state>beta</state>
+    <notes>
+        Fixed small bug related to shift_entry() as an alias for shiftEntry().
+    </notes>
+        </release>
+        
     <release>
       <version>0.6.6</version>
       <date>2005-03-01</date>
@@ -72,6 +82,7 @@ Fixed bug #3560 (Missing test.php in docs)
 </notes>
     </release>
     <release>
+     
       <version>0.6.5</version>
       <date>2004-03-09</date>
       <license>PHP License</license>
