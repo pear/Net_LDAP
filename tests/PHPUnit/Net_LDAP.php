@@ -127,6 +127,103 @@ class Net_LDAP_Test extends PHPUnit_TestCase
             $this->assertFalse(Net_LDAP::isError($msg), 'Could not rename entry');
         }
     }
+    
+    function testDeleteWholeAttribute()
+    {
+        if (empty($GLOBALS['delete_attr'])) {
+            $this->fail('You need to supply delete_attr for this test');
+            return false;
+        }
+
+        $entry = $this->ldap->getEntry($GLOBALS['existing_dn']);        
+        if (Net_LDAP::isError($entry) || $entry === false) {
+            $this->fail("Could not fetch entry {$GLOBALS['existing_dn']}");
+            return false;
+        }
+
+        $attrs = $GLOBALS['delete_attr'];
+        
+        // first delete the whole attribute
+        $attr = array_shift(array_keys($attrs));
+        $oldAttrs = $entry->get_value($attr); // save
+        
+        $entry->delete(array($attr => array()));
+        $err = $entry->update();
+        if (Net_LDAP::isError($err)) {
+            $this->fail($err->getMessage());
+            return;
+        }
+        unset($entry);
+        
+        // refetch the entry
+        $entry = $this->ldap->getEntry($GLOBALS['existing_dn']);        
+        if (Net_LDAP::isError($entry) || $entry === false) {
+            $this->fail("Could not fetch entry {$GLOBALS['existing_dn']}");
+            return false;
+        }        
+        $this->assertEquals('', $entry->get_value($attr));
+        // undo delete
+
+        $err = $entry->add(array($attr => $oldAttrs));
+        if (Net_LDAP::isError($err)) {
+            $this->fail($err->getMessage());
+            return;
+        }
+        $err = $entry->update();
+        if (Net_LDAP::isError($err)) {
+            $this->fail($err->getMessage());
+            return;
+        }
+    }
+
+    function testModDelete()
+    {
+        if (empty($GLOBALS['delete_attr'])) {
+            $this->fail('You need to supply delete_attr for this test');
+            return false;
+        }
+
+        $entry = $this->ldap->getEntry($GLOBALS['existing_dn']);        
+        if (Net_LDAP::isError($entry) || $entry === false) {
+            $this->fail("Could not fetch entry {$GLOBALS['existing_dn']}");
+            return false;
+        }        
+        $attrs = $GLOBALS['delete_attr'];
+        
+        $attr  = array_shift(array_keys($attrs));
+        $value = array_shift($attrs[$attr]);
+
+        $this->assertTrue(in_array($value, $entry->get_value($attr)), 'value to delete not in attribute');
+
+        $entry->delete(array($attr => $value));
+        $err = $entry->update();
+        if (Net_LDAP::isError($err)) {
+            $this->fail($err->getMessage());
+            return;
+        }
+        unset($entry);
+        
+        // refetch the entry
+        $entry = $this->ldap->getEntry($GLOBALS['existing_dn']);        
+        if (Net_LDAP::isError($entry) || $entry === false) {
+            $this->fail("Could not fetch entry {$GLOBALS['existing_dn']}");
+            return false;
+        }
+        $newAttrs = $entry->get_value($attr);
+        $this->assertFalse(in_array($value, $newAttrs), 'deleted value still in attribute');
+        
+        // undo delete
+        $err = $entry->add(array($attr => array($value)));
+        if (Net_LDAP::isError($err)) {
+            $this->fail($err->getMessage());
+            return;
+        }
+        $err = $entry->update();
+        if (Net_LDAP::isError($err)) {
+            $this->fail($err->getMessage());
+            return;
+        }
+    }
 }
 
 ?>
