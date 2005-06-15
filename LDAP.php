@@ -140,7 +140,7 @@ define ('NET_LDAP_ERROR', 1000);
     function &connect($config = array())
     {
         if (!function_exists('ldap_connect')){
-            return $this->raiseError("It seems that you do not have the ldap-extension installed. Please install it before using this package.");
+            return Net_LDAP::raiseError("It seems that you do not have the ldap-extension installed. Please install it before using this package.");
         }
         @$obj =& new Net_LDAP($config);
         $err  = $obj->bind();
@@ -755,7 +755,7 @@ define ('NET_LDAP_ERROR', 1000);
     * @param array Array of Attributes to select
     * @return object Net_LDAP_Entry or Net_LDAP_Error 
     */
-   function &getEntry($dn, $attr = array(''))
+   function &getEntry($dn, $attr = array())
    {
         $result = $this->search($dn, '(objectClass=*)', array('scope' => 'base', 'attributes' => $attr));
         if (Net_LDAP::isError($result)) {
