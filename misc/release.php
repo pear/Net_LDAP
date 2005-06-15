@@ -2,15 +2,13 @@
 
 require_once 'PEAR/PackageFileManager.php';
 
-$version = '0.6.6';
+$version = '0.6.7';
 $notes = 'Bugfix release';
 $changelog = '
-Fixed bug #1060 (Wrong array_push_call in Net_LDAP_Search)
-Fixed bug #1136,#2985 (Recursive delete not working)
-Fixed bug #2391 (Implemented getOption()/SetOption() for LDAP_OPT_REFERRALS)
-Fixed bug #2860 (Call-time pass-by-reference)
-Fixed bug #2986 (Missing parameter to ldap_error in LDAP.php)
-Fixed bug #3560 (Missing test.php in docs)
+Fixed bug #4453 (static connect function made call to $this)
+Fixed bug #4483 (changed default behavior of Net_LDAP::getEntry to return all attributes)
+Fixed bug #4589 (empty array for attribute values in delete will now delete all values)
+Fixed another bug in Net_LDAP::add while working on bug#4589 (add would not add new values at the attribute level due to ldap_modify being called)
 ';
 
 $options = array('changelogoldtonew' => false,
@@ -18,14 +16,14 @@ $options = array('changelogoldtonew' => false,
                  'packagedirectory' => './',
                  'baseinstalldir' => 'Net',
                  'ignore' => array('tests/PHPUnit/', 'CVS/', 'project.index', 'release.php', '*~'),
-		 'exceptions' => array('tests/tests.php' => 'doc'),
+		         'exceptions' => array('tests/tests.php' => 'doc'),
                  'dir_roles' => array('doc' => 'doc'),
                  'version' => $version,
                  'state' => 'beta',
                  'notes' => $notes,
                  'changelognotes' => $changelog,
                  'deps' => array(),
-		 'license' => 'LGPL'
+		         'license' => 'LGPL'
                  );
 
 

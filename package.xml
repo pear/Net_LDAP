@@ -27,8 +27,8 @@ Net_LDAP layers itself on top of PHP's existing ldap extensions.</description>
     </maintainer>
   </maintainers>
   <release>
-    <version>0.6.6</version>
-    <date>2005-03-01</date>
+    <version>0.6.7</version>
+    <date>2005-06-15</date>
     <license>LGPL</license>
     <state>beta</state>
     <notes>Bugfix release</notes>
@@ -57,32 +57,31 @@ Net_LDAP layers itself on top of PHP's existing ldap extensions.</description>
     </filelist>
   </release>
   <changelog>
-      <release>
-         <version>0.6.7</version>
-         <date>2005-XX-XX</date>
-         <license>LGPL</license>
-         <state>beta</state>
-    <notes>
-        Fixed small bug related to shift_entry() as an alias for shiftEntry().
-    </notes>
-        </release>
-        
+    <release>
+      <version>0.6.7</version>
+      <date>2005-06-15</date>
+      <license>LGPL</license>
+      <state>beta</state>
+      <notes>
+Fixed bug #4453 (static connect function made call to $this)
+Fixed bug #4483 (changed default behavior of Net_LDAP::getEntry to return all attributes)
+Fixed bug #4589 (empty array for attribute values in delete will now delete all values)
+Fixed another bug in Net_LDAP::add while working on bug#4589 (add would not add new values at the attribute level due to ldap_modify being called)
+</notes>
+    </release>
     <release>
       <version>0.6.6</version>
       <date>2005-03-01</date>
       <license>LGPL</license>
       <state>beta</state>
-      <notes>
-Fixed bug #1060 (Wrong array_push_call in Net_LDAP_Search)
+      <notes>Fixed bug #1060 (Wrong array_push_call in Net_LDAP_Search)
 Fixed bug #1136,#2985 (Recursive delete not working)
 Fixed bug #2391 (Implemented getOption()/SetOption() for LDAP_OPT_REFERRALS)
 Fixed bug #2860 (Call-time pass-by-reference)
 Fixed bug #2986 (Missing parameter to ldap_error in LDAP.php)
-Fixed bug #3560 (Missing test.php in docs)
-</notes>
+Fixed bug #3560 (Missing test.php in docs)</notes>
     </release>
     <release>
-     
       <version>0.6.5</version>
       <date>2004-03-09</date>
       <license>PHP License</license>
