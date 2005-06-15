@@ -226,17 +226,21 @@ class Net_LDAP_Entry extends PEAR
             // empty entrys should not be added to the entry.
             if ($v == '') {
                 continue;
-            }
+            } elseif (!is_array($v)) {
+	        $v = array($v);
+	    }
 
             if ($this->exists($k)) {
                 if (!is_array($this->_attrs[$k])) {
                     return $this->raiseError("Possible malformed array as parameter to Net_LDAP::add().");
                 }
-                array_push($this->_attrs[$k],$v);
-                $this->_attrs[$k]['count']++;
+		foreach ($v as $value) {
+                    array_push($this->_attrs[$k], $value);
+                    $this->_attrs[$k]['count']++;
+		}
             } else {
-                $this->_attrs[$k][0] = $v;
-                $this->_attrs[$k]['count'] = 1;
+                $this->_attrs[$k] = $v;
+                $this->_attrs[$k]['count'] = count($v);
                 $this->_attrs[$this->_attrs['count']] = $k;
                 $this->_attrs['count']++;
             }
@@ -244,12 +248,12 @@ class Net_LDAP_Entry extends PEAR
             if (empty($this->_addAttrs[$k])) {
                 $this->_addAttrs[$k] = array();
             }
-            if (false == is_array($v)) {
-                $v = array($v);
-            }
-            foreach ($v as $value) {
-                array_push($this->_addAttrs[$k], $value);
-            }
+	    // BUGFIX: as ldap_modify is called we need to supply
+	    //         the old values as well
+	    $this->_addAttrs[$k] = $this->_attrs[$k];
+	    if (isset($this->_addAttrs[$k]['count'])) {
+	        unset($this->_addAttrs[$k]['count']);
+	    }
         }
         return true;
     }
@@ -415,14 +419,14 @@ class Net_LDAP_Entry extends PEAR
     {
         foreach ($attrs as $k => $v) {
             
-            if ($this->exists ($k)) {
+            if ($this->exists($k)) {
                 // if v is a null, then remove the whole attribute, else only the value.
-                if ($v == '') {
+                if ($v == '' || (is_array($v) &&count($v) == 0)) {
                     unset($this->_attrs[$k]);
-                    $this->_delAttrs[$k] = "";                    
+                    $this->_delAttrs[$k] = $v;
                 // else we remove only the correct value.
                 } else {                
-                    for ($i = 0;$i< $this->_attrs[$k]['count'];$i++) {
+                    for ($i = 0; $i< $this->_attrs[$k]['count']; $i++) {
                         if ($this->_attrs[$k][$i] == $v ) {
                             unset ($this->_attrs[$k][$i]);
                             $this->_delAttrs[$k] = $v;
@@ -501,6 +505,7 @@ class Net_LDAP_Entry extends PEAR
                 if (@ldap_get_option( $this->_link, LDAP_OPT_PROTOCOL_VERSION, $version) && $version == 3) {
                     foreach ( $this->_delAttrs as $k => $v ) {
                         if ( $v == '' && $this->exists($k) ) {
+			    // this won't work I guess, as it has been unset above
                             $this->_delAttrs[$k] = $this->get_value( $k );
                         }
                     }
@@ -511,7 +516,7 @@ class Net_LDAP_Entry extends PEAR
                 }
             }
             
-            // new attributes
+            // add attributes
             if ((count($this->_addAttrs)) > 0 && !ldap_modify($this->_link, $this->dn(), $this->_addAttrs)) {
                 return $this->raiseError( "Entry " . $this->dn() . " not modified (attributes not added): " .
                                           ldap_error($this->_link),ldap_errno($this->_link));
