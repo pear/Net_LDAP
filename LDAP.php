@@ -1044,6 +1044,7 @@ class Net_LDAP_Error extends PEAR_Error
     /**
      * Net_LDAP_Error constructor.
      *
+     * @param string Error message
      * @param mixed Net_LDAP error code, or string with error message.
      * @param integer what "error mode" to operate in
      * @param integer what error level to use for $mode & PEAR_ERROR_TRIGGER
@@ -1051,13 +1052,24 @@ class Net_LDAP_Error extends PEAR_Error
      * @access public
      * @see PEAR_Error
      */
-    function Net_LDAP_Error($code = NET_LDAP_ERROR, $mode = PEAR_ERROR_RETURN,
-                            $level = E_USER_NOTICE, $debuginfo = null)
+    function Net_LDAP_Error($msg = 'unknown error',
+                            $code = NET_LDAP_ERROR,
+                            $mode = PEAR_ERROR_RETURN,
+                            $level = E_USER_NOTICE,
+                            $debuginfo = null)
     {
-        if (is_int($code)) {
-            $this->PEAR_Error('Net_LDAP_Error: ' . Net_LDAP::errorMessage($code), $code, $mode, $level, $debuginfo);
+        if (is_int($msg)) {
+            $this->PEAR_Error('Net_LDAP_Error: ' . Net_LDAP::errorMessage($msg),
+                              $msg,
+                              $mode,
+                              $level,
+                              $debuginfo);
         } else {
-            $this->PEAR_Error("Net_LDAP_Error: $code", NET_LDAP_ERROR, $mode, $level, $debuginfo);
+            $this->PEAR_Error("Net_LDAP_Error: $msg",
+                              NET_LDAP_ERROR,
+                              $mode,
+                              $level,
+                              $debuginfo);
         }
     }
 }
