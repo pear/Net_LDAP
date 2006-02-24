@@ -30,7 +30,7 @@ require_once('LDAP/Entry.php');
 require_once('LDAP/Search.php');
 
 /**
- *  Error constants for errors that are not LDAP errors 
+ *  Error constants for errors that are not LDAP errors
  */
 define ('NET_LDAP_ERROR', 1000);
 
@@ -51,7 +51,7 @@ define ('NET_LDAP_ERROR', 1000);
      * @var string
      */
     var $_version = "0.6.99";
-    
+
     /**
      * Class configuration array
      *
@@ -61,8 +61,8 @@ define ('NET_LDAP_ERROR', 1000);
      * starttls = when set, ldap_start_tls() is run after connecting.
      * bindpw   = no explanation needed
      * binddn   = the DN to bind as.
-     * basedn   = ldap base 
-     * options  = hash of ldap options to set (opt => val) 
+     * basedn   = ldap base
+     * options  = hash of ldap options to set (opt => val)
      * filter   = default search filter
      * scope    = default search scope
      *
@@ -72,9 +72,9 @@ define ('NET_LDAP_ERROR', 1000);
      var $_config = array('host'     => 'localhost',
                           'port'     => 389,
                           'version'  => 3,
-                          'starttls' => false,                          
-                          'binddn'   => '',                          
-                          'bindpw'   => '',                          
+                          'starttls' => false,
+                          'binddn'   => '',
+                          'bindpw'   => '',
                           'basedn'   => '',
                           'options'  => array(),
                           'filter'   => '(objectClass=*)',
@@ -95,7 +95,7 @@ define ('NET_LDAP_ERROR', 1000);
      * @var object Net_LDAP_Schema
      */
     var $_schema = null;
-    
+
     /**
      * Cache for attribute encoding checks
      *
@@ -110,7 +110,7 @@ define ('NET_LDAP_ERROR', 1000);
      *
      * Static function that returns either an error object or the new Net_LDAP
      * object. Something like a factory. Takes a config array with the needed
-     * parameters. 
+     * parameters.
      *
      * @access public
      * @param array Configuration array
@@ -119,15 +119,15 @@ define ('NET_LDAP_ERROR', 1000);
     function &connect($config = array())
     {
         @$obj = & new Net_LDAP($config);
-        
+
         $err  = $obj->bind();
         if (Net_LDAP::isError($err)) {
             return $err;
         }
-        
+
         return $obj;
     }
-    
+
     /**
      * Net_LDAP constructor
      *
@@ -141,7 +141,7 @@ define ('NET_LDAP_ERROR', 1000);
     function Net_LDAP($config = array())
     {
         $this->PEAR('Net_LDAP_Error');
-        
+
         if (!extension_loaded('ldap') && !dl('ldap')){
             return PEAR::raiseError("It seems that you do not have the ldap-extension installed. Please install it before using this package.");
         }
@@ -180,7 +180,7 @@ define ('NET_LDAP_ERROR', 1000);
                     }
                 }
             }
-        }    
+        }
     }
 
     /**
@@ -199,7 +199,7 @@ define ('NET_LDAP_ERROR', 1000);
     {
         if (Net_LDAP::isError($msg = $this->_connect())) {
             return $msg;
-        } 
+        }
         if (is_null($dn)) {
             $dn = $this->_config["binddn"];
         }
@@ -229,15 +229,15 @@ define ('NET_LDAP_ERROR', 1000);
      */
     function _connect()
     {
-        if ($this->_link === false) {            
+        if ($this->_link === false) {
             $this->_link = @ldap_connect($this->_config['host'],
                                          $this->_config['port']);
             if (false === $this->_link) {
                 return PEAR::raiseError("Could not connect to $host:$port");
-            }            
+            }
             if (Net_LDAP::isError($msg = $this->setLDAPVersion())) {
                 return $msg;
-            }            
+            }
             if ($this->_config["starttls"] === true) {
                 if (Net_LDAP::isError($msg = $this->startTLS())) {
                     return $msg;
@@ -253,11 +253,11 @@ define ('NET_LDAP_ERROR', 1000);
                         return $err;
                     }
                 }
-            }            
+            }
         }
-        return true; 
-    }    
-    
+        return true;
+    }
+
     /**
      * Starts an encrypted session
      *
@@ -273,13 +273,13 @@ define ('NET_LDAP_ERROR', 1000);
         }
         return true;
     }
-    
+
     /**
      * alias function of startTLS() for perl-ldap interface
-     * 
+     *
      * @see startTLS()
      */
-    function start_tls() 
+    function start_tls()
     {
         $args = func_get_args();
         return call_user_func_array(array( &$this, 'startTLS' ), $args);
@@ -339,7 +339,7 @@ define ('NET_LDAP_ERROR', 1000);
      * @access public
      * @param mixed string or Net_LDAP_Entry
      * @param boolean recursive
-     * @return mixed Net_LDAP_Error or true  
+     * @return mixed Net_LDAP_Error or true
      */
     function delete($dn, $recursive = false)
     {
@@ -347,7 +347,7 @@ define ('NET_LDAP_ERROR', 1000);
              $dn = $dn->dn();
         }
         if (false === is_string($dn)) {
-            return PEAR::raiseError("Parameter is not a string nor an entry object!"); 
+            return PEAR::raiseError("Parameter is not a string nor an entry object!");
         }
         // Recursive delete searches for children and calls delete for them
         if ($recursive) {
@@ -359,12 +359,12 @@ define ('NET_LDAP_ERROR', 1000);
                     $this->delete(@ldap_get_dn($this->_link, $subentry));
                 }
             }
-        } 
+        }
         // Delete the DN
         if (false == @ldap_delete($this->_link, $dn)) {
-            $error = @ldap_errno($this->_link);                
+            $error = @ldap_errno($this->_link);
             if ($error == 66) {
-                return PEAR::raiseError("Could not delete entry $dn because of subentries. Use the recursive param to delete them."); 
+                return PEAR::raiseError("Could not delete entry $dn because of subentries. Use the recursive param to delete them.");
             } else {
                 return PEAR::raiseError("Could not delete entry $dn: " .
                                          $this->errorMessage($error), $error);
@@ -372,7 +372,7 @@ define ('NET_LDAP_ERROR', 1000);
         }
         return true;
     }
-    
+
     /**
      * Modify an ldapentry
      *
@@ -409,7 +409,7 @@ define ('NET_LDAP_ERROR', 1000);
         if (!is_a($entry, 'Net_LDAP_Entry')) {
             return PEAR::raiseError("Parameter is not a string nor an entry object!");
         }
-        
+
         foreach (array('add', 'delete', 'replace') as $action) {
             if (isset($parms[$action])) {
                 $msg = $entry->$action($parms[$action]);
@@ -422,7 +422,7 @@ define ('NET_LDAP_ERROR', 1000);
                 }
             }
         }
-        
+
         if (isset($parms['changes'])) {
             foreach ($parms['changes'] as $action => $value) {
                 $msg = $this->modify($entry->dn(), array($action => $value));
@@ -431,7 +431,7 @@ define ('NET_LDAP_ERROR', 1000);
                 }
             }
         }
-        
+
         return true;
     }
 
@@ -442,7 +442,7 @@ define ('NET_LDAP_ERROR', 1000);
      * $base and $filter may be ommitted.The one from config will then be used.
      * Params may contain:
      *
-     * scope: The scope which will be used for searching 
+     * scope: The scope which will be used for searching
      *        base - Just one entry
      *        sub  - The whole tree
      *        one  - Immediately below $base
@@ -455,53 +455,53 @@ define ('NET_LDAP_ERROR', 1000);
      * deref: By default aliases are dereferenced to locate the base object for the search, but not when
      *        searching subordinates of the base object. This may be changed by specifying one of the
      *        following values:
-     *       
+     *
      *        never  - Do not dereference aliases in searching or in locating the base object of the search.
-     *        search - Dereference aliases in subordinates of the base object in searching, but not in 
-     *                locating the base object of the search. 
+     *        search - Dereference aliases in subordinates of the base object in searching, but not in
+     *                locating the base object of the search.
      *        find
      *        always
      *
      * @access public
-     * @param string LDAP searchbase 
+     * @param string LDAP searchbase
      * @param string LDAP search filter
      * @param array Array of options
      * @return object mixed Net_LDAP_Search or Net_LDAP_Error
      */
     function search($base = null, $filter = null, $params = array())
-    {		
-    	if (is_null($base)) {
+    {
+        if (is_null($base)) {
             $base = $this->_config['basedn'];
         }
         if (is_null($filter)) {
             $filter = $this->_config['filter'];
-        }        
-        
+        }
+
         /* setting searchparameters  */
         (isset($params['sizelimit']))  ? $sizelimit  = $params['sizelimit']  : $sizelimit = 0;
         (isset($params['timelimit']))  ? $timelimit  = $params['timelimit']  : $timelimit = 0;
-        (isset($params['attrsonly']))  ? $attrsonly  = $params['attrsonly']  : $attrsonly = 0;        
-        (isset($params['attributes'])) ? $attributes = $params['attributes'] : $attributes = array();        
-       
+        (isset($params['attrsonly']))  ? $attrsonly  = $params['attrsonly']  : $attrsonly = 0;
+        (isset($params['attributes'])) ? $attributes = $params['attributes'] : $attributes = array();
+
         if (!is_array($attributes)) {
             PEAR::raiseError("The param attributes must be an array!");
         }
-       
-        /* scoping makes searches faster!  */                 		
+
+        /* scoping makes searches faster!  */
         $scope = (isset($params['scope']) ? $params['scope'] : $this->_config['scope']);
-        
+
         switch ($scope) {
-        	case 'one':
-        		$search_function = 'ldap_list';
-        		break;
-        	case 'base':
-        		$search_function = 'ldap_read';
-        		break;
-        	default:
-        		$search_function = 'ldap_search';
-        }               
-                
-        $search = @call_user_func($search_function, 
+            case 'one':
+                $search_function = 'ldap_list';
+                break;
+            case 'base':
+                $search_function = 'ldap_read';
+                break;
+            default:
+                $search_function = 'ldap_search';
+        }
+
+        $search = @call_user_func($search_function,
                                   $this->_link,
                                   $base,
                                   $filter,
@@ -509,20 +509,20 @@ define ('NET_LDAP_ERROR', 1000);
                                   $attrsonly,
                                   $sizelimit,
                                   $timelimit);
-        
-        if ($err = @ldap_errno($this->_link)) {             
+
+        if ($err = @ldap_errno($this->_link)) {
             if ($err == 32) {
                 // Errorcode 32 = no such object, i.e. a nullresult.
-                return $obj = & new Net_LDAP_Search ($search, $this); 
+                return $obj = & new Net_LDAP_Search ($search, $this);
             } elseif ($err == 4) {
                 // Errorcode 4 = sizelimit exeeded. TODO
-                return $obj = & new Net_LDAP_Search ($search, $this);             
+                return $obj = & new Net_LDAP_Search ($search, $this);
             } elseif ($err == 87) {
                 // bad search filter
                 return $this->raiseError($this->errorMessage($err) . "($filter)", $err);
-            } else {                
+            } else {
                 $msg = "\nParameters:\nBase: $base\nFilter: $filter\nScope: $scope";
-                return $this->raiseError($this->errorMessage($err) . $msg, $err);                 
+                return $this->raiseError($this->errorMessage($err) . $msg, $err);
             }
         } else {
             return $obj = & new Net_LDAP_Search($search, $this);
@@ -546,16 +546,16 @@ define ('NET_LDAP_ERROR', 1000);
                 } else {
                     $err = @ldap_errno($this->_link);
                     if ($err) {
-                        $msg = @ldap_err2str($err);                        
+                        $msg = @ldap_err2str($err);
                     } else {
                         $err = NET_LDAP_ERROR;
                         $msg = $this->errorMessage($err);
-                    } 
+                    }
                     return $this->raiseError($msg, $err);
                 }
             } else {
                 return $this->raiseError("Unkown Option requested");
-            }    
+            }
         } else {
             return $this->raiseError("No LDAP connection");
         }
@@ -577,16 +577,16 @@ define ('NET_LDAP_ERROR', 1000);
                 } else {
                     $err = @ldap_errno($this->_link);
                     if ($err) {
-                        $msg = @ldap_err2str($err);                        
+                        $msg = @ldap_err2str($err);
                     } else {
                         $err = NET_LDAP_ERROR;
                         $msg = $this->errorMessage($err);
-                    } 
+                    }
                     return $this->raiseError($msg, $err);
                 }
             } else {
                 $this->raiseError("Unkown Option requested");
-            }    
+            }
         } else {
             $this->raiseError("No LDAP connection");
         }
@@ -625,7 +625,7 @@ define ('NET_LDAP_ERROR', 1000);
     }
 
     /**
-     * Get the Net_LDAP version. 
+     * Get the Net_LDAP version.
      *
      * @return string Net_LDAP version
      */
@@ -635,7 +635,7 @@ define ('NET_LDAP_ERROR', 1000);
     }
 
     /**
-     * Tell if a dn already exists 
+     * Tell if a dn already exists
      *
      * @param string
      * @return boolean
@@ -645,9 +645,9 @@ define ('NET_LDAP_ERROR', 1000);
         $dns = explode(",",$dn);
         $filter = array_shift($dns);
         $base= implode($dns,',');
-        //$base = $dn;        
+        //$base = $dn;
         //$filter = '(objectclass=*)';
-        
+
         $result = @ldap_list($this->_link, $base, $filter, array(), 1, 1);
         if (ldap_errno($this->_link) == 32) {
             return false;
@@ -660,7 +660,7 @@ define ('NET_LDAP_ERROR', 1000);
         }
         return false;
     }
-    
+
 
    /**
     * Get a specific entry based on the dn
@@ -682,7 +682,7 @@ define ('NET_LDAP_ERROR', 1000);
         }
         return $entry;
    }
-   
+
 
     /**
      * Returns the string for an ldap errorcode.
@@ -764,19 +764,19 @@ define ('NET_LDAP_ERROR', 1000);
 
          return isset($errorMessages[$errorcode]) ? $errorMessages[$errorcode] : $errorMessages[LDAP_ERROR];
     }
-    
+
     /**
      * Tell whether value is a Net_LDAP_Error or not
      *
      * @access public
-     * @param mixed 
+     * @param mixed
      * @return boolean
      */
     function isError($value)
     {
         return (is_a($value, "Net_LDAP_Error") || parent::isError($value));
     }
-        
+
     /**
      * gets a root dse object
      *
@@ -785,10 +785,10 @@ define ('NET_LDAP_ERROR', 1000);
      * @param array Array of attributes to search for
      * @return object mixed Net_LDAP_Error or Net_LDAP_RootDSE
      */
-    function &rootDse($attrs = null) 
+    function &rootDse($attrs = null)
     {
         require_once('Net/LDAP/RootDSE.php');
-        
+
         if (is_array($attrs) && count($attrs) > 0 ) {
             $attributes = $attrs;
         } else {
@@ -810,19 +810,19 @@ define ('NET_LDAP_ERROR', 1000);
         }
         return new Net_LDAP_RootDSE($entry);
     }
-    
+
     /**
      * alias function of rootDse() for perl-ldap interface
      *
      * @access public
      * @see rootDse()
      */
-    function &root_dse() 
+    function &root_dse()
     {
         $args = func_get_args();
         return call_user_func_array(array(&$this, 'rootDse'), $args);
     }
-    
+
     /**
      * get a schema object
      *
@@ -836,9 +836,9 @@ define ('NET_LDAP_ERROR', 1000);
         if (false == is_a($this->_schema, 'Net_LDAP_Schema'))
         {
             require_once('Net/LDAP/Schema.php');
-            
+
             $this->_schema = & new Net_LDAP_Schema();
-    
+
             if (is_null($dn)) {
                 // get the subschema entry via root dse
                 $dse = $this->rootDSE(array('subschemaSubentry'));
@@ -849,10 +849,32 @@ define ('NET_LDAP_ERROR', 1000);
                     }
                 }
             }
+
+            //
+            // Support for buggy LDAP servers (e.g. Siemens) that incorrectly
+            // call this entry subSchemaSubentry instead of subschemaSubentry.
+            // Note the correce case/spelling as per RFC 2251.
+            //
+            if (is_null($dn)) {
+                // get the subschema entry via root dse
+                $dse = $this->rootDSE(array('subSchemaSubentry'));
+                if (false == Net_LDAP::isError($dse)) {
+                    $base = $dse->getValue('subSchemaSubentry', 'single');
+                    if (!Net_LDAP::isError($base)) {
+                        $dn = $base;
+                    }
+                }
+            }
+
+            //
+            // Final fallback case where there is no subschemaSubentry attribute
+            // in the root DSE (this is a bug for an LDAP v3 server so report this
+            // to your LDAP vendor if you get this far).
+            //
             if (is_null($dn)) {
                 $dn = 'cn=Subschema';
-            }        
-            
+            }
+
             // fetch the subschema entry
             $result = $this->search($dn, '(objectClass=*)',
                                     array('attributes' => array_values($this->_schema->types),
@@ -860,12 +882,12 @@ define ('NET_LDAP_ERROR', 1000);
             if (Net_LDAP::isError($result)) {
                 return $result;
             }
-    
+
             $entry = $result->shiftEntry();
             if (false === $entry) {
                 return PEAR::raiseError('Could not fetch Subschema entry');
             }
-            
+
             $this->_schema->parse($entry);
         }
         return $this->_schema;
@@ -918,9 +940,9 @@ define ('NET_LDAP_ERROR', 1000);
         }
 
         if (is_array($attributes) && count($attributes) > 0) {
-            
+
             foreach( $attributes as $k => $v ) {
-                
+
                 if (!isset($this->_schemaAttrs[$k])) {
 
                     $attr = $this->_schema->get('attribute', $k);
@@ -932,9 +954,9 @@ define ('NET_LDAP_ERROR', 1000);
                         $encode = true;
                     } else {
                         $encode = false;
-                    }                  
+                    }
                     $this->_schemaAttrs[$k] = $encode;
-                  
+
                 } else {
                     $encode = $this->_schemaAttrs[$k];
                 }
@@ -953,7 +975,7 @@ define ('NET_LDAP_ERROR', 1000);
         }
         return $attributes;
     }
-    
+
     /**
      * Get the LDAP link
      *
@@ -983,13 +1005,13 @@ class Net_LDAP_Error extends PEAR_Error
      * @access public
      * @see PEAR_Error
      */
-    function Net_LDAP_Error($code = NET_LDAP_ERROR, $mode = PEAR_ERROR_RETURN,
+    function Net_LDAP_Error($message = 'Net_LDAP_Error', $code = NET_LDAP_ERROR, $mode = PEAR_ERROR_RETURN,
                             $level = E_USER_NOTICE, $debuginfo = null)
     {
         if (is_int($code)) {
-            $this->PEAR_Error('Net_LDAP_Error: ' . Net_LDAP::errorMessage($code), $code, $mode, $level, $debuginfo);
+            $this->PEAR_Error($message . ': ' . Net_LDAP::errorMessage($code), $code, $mode, $level, $debuginfo);
         } else {
-            $this->PEAR_Error("Net_LDAP_Error: $code", NET_LDAP_ERROR, $mode, $level, $debuginfo);
+            $this->PEAR_Error("$message: $code", NET_LDAP_ERROR, $mode, $level, $debuginfo);
         }
     }
 }
