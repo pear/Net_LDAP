@@ -9,6 +9,14 @@ $ldap_config= array('host' => 'localhost',
                     'bindpw' => '',
                     'filter' => '(objectClass=*)');
 
+$ldap_invalid_config= array('host' => 'localhost',
+                    'version' => 3,
+                    'starttls' => false,
+                    'basedn' => 'dc=babel,dc=home',
+                    'binddn' => 'cn=Directory Manager',
+                    'bindpw' => 'theWRONGpassWORD',
+                    'filter' => '(objectClass=*)');
+
 // this should be an existing dn which can be fetched with the above connection parameters
 $existing_dn = 'cn=Jan Wagner,ou=testing,o=netsols,c=de';
 $existing_dn_changes = array('add' => array('cn' => array('Testing')),
@@ -19,6 +27,11 @@ $rename_dn = 'cn=Kai Naumann,ou=testing,o=netsols,c=de';
 
 // these should be parameters for an ldap query that returns at least one entry with one attribute
 $search = array('filter' => '(&(objectClass=ispmanDomain)(ispmanStatus=active))',
+                'base'   => 'ou=ispman,o=netsols,c=de',
+                'parms'  => array('scope' => 'one', 'attributes' => array('cn')));
+
+// these should be parameters for an ldap query that returns at least 3 entries with one attribute
+$multi_search = array('filter' => '(objectClass=posixAccount)',
                 'base'   => 'ou=ispman,o=netsols,c=de',
                 'parms'  => array('scope' => 'one', 'attributes' => array('cn')));
 
