@@ -40,7 +40,7 @@ class Net_LDAP_Search extends PEAR
      * @var resource
      */
     var $_search;
-    
+
     /**
      * LDAP resource link
      *
@@ -58,7 +58,7 @@ class Net_LDAP_Search extends PEAR
      * @var object Net_LDAP
      */
     var $_ldap;
-    
+
     /**
      * Result entry identifier
      *
@@ -69,19 +69,19 @@ class Net_LDAP_Search extends PEAR
 
     /**
      * The errorcode the search got
-     * 
-     * Some errorcodes might be of interest, but might not be best handled as errors. 
+     *
+     * Some errorcodes might be of interest, but might not be best handled as errors.
      * examples: 4 - LDAP_SIZELIMIT_EXCEEDED - indecates a huge search.
      *               Incomplete results are returned. If you just want to check if there's anything in the search.
      *               than this is a point to handle.
      *           32 - no such object - search here returns a count of 0.
-     *          
+     *
      * @access private
      * @var int
      */
     var $_errorCode = 0; // if not set - sucess!
-    
-   /** 
+
+   /**
     * Constructor
     *
     * @access protected
@@ -91,16 +91,16 @@ class Net_LDAP_Search extends PEAR
     function Net_LDAP_Search (&$search, &$ldap)
     {
         $this->PEAR('Net_LDAP_Error');
-        
+
         $this->setSearch($search);
-        
+
         if (is_a($ldap, 'Net_LDAP')) {
             $this->_ldap = $ldap;
             $this->setLink($this->_ldap->getLink());
         } else {
-            $this->setLink($ldap);        
+            $this->setLink($ldap);
         }
-        
+
         $this->_errorCode = @ldap_errno($link);
     }
 
@@ -112,14 +112,14 @@ class Net_LDAP_Search extends PEAR
     function entries()
     {
         $entries = array();
-        
+
         while ($entry = $this->shiftEntry()) {
             $entries[] = $entry;
         }
-        
+
         return $entries;
     }
-   
+
     /**
      * Get the next entry in the searchresult.
      *
@@ -133,49 +133,49 @@ class Net_LDAP_Search extends PEAR
 
         if (is_null($this->_entry)) {
             $this->_entry = @ldap_first_entry($this->_link, $this->_search);
-            $entry = new Net_LDAP_Entry(&$this->_entry, &$this->_ldap);
+            $entry = new Net_LDAP_Entry($this->_entry, $this->_ldap);
         } else {
             if (!$this->_entry = @ldap_next_entry($this->_link, $this->_entry)) {
                 return false;
             }
-    	    $entry = new Net_LDAP_Entry(&$this->_entry, &$this->_ldap);
+            $entry = new Net_LDAP_Entry($this->_entry, $this->_ldap);
         }
         return $entry;
     }
-    
+
     /**
      * alias function of shiftEntry() for perl-ldap interface
-     * 
+     *
      * @see shiftEntry()
      */
-    function shift_entry() 
+    function shift_entry()
     {
         $args = func_get_args();
         return call_user_func_array(array( &$this, 'shiftEntry' ), $args);
     }
-   
+
     /**
      * Retrieve the last entry of the searchset. NOT IMPLEMENTED
      *
      * @return object Net_LDAP_Error
      */
-    function pop_entry () 
+    function pop_entry ()
     {
         PEAR::raiseError("Not implemented");
     }
-    
+
     /**
      * Return entries sorted NOT IMPLEMENTED
      *
      * @param array Array of sort attributes
      * @return object Net_LDAP_Error
      */
-    function sorted ($attrs = array()) 
+    function sorted ($attrs = array())
     {
         PEAR::raiseError("Not implemented");
     }
-    
-   /** 
+
+   /**
     * Return entries as object NOT IMPLEMENTED
     *
     * @return object Net_LDAP_Error
@@ -193,7 +193,7 @@ class Net_LDAP_Search extends PEAR
     * @return void
     */
     function setSearch(&$search)
-    {      
+    {
         $this->_search = $search;
     }
 
@@ -205,10 +205,10 @@ class Net_LDAP_Search extends PEAR
     * @return void
     */
     function setLink(&$link)
-    {      
+    {
         $this->_link = $link;
     }
-   
+
    /**
     * Returns the number of entries in the searchresult
     *
@@ -232,17 +232,17 @@ class Net_LDAP_Search extends PEAR
     {
         return $this->_errorCode;
     }
-    
-   /** Destructor 
+
+   /** Destructor
     *
     * @access protected
     */
-    function _Net_LDAP_Search() 
+    function _Net_LDAP_Search()
     {
         @ldap_free_result($this->_search);
     }
-    
-   /** 
+
+   /**
     * Closes search result
     */
     function done()
