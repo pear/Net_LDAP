@@ -43,6 +43,27 @@ class Net_LDAP_Test extends PHPUnit_TestCase
         return false;
     }
 
+    function testArrayConnection()
+    {
+        $array_config = $GLOBALS['ldap_array_config'];
+        $array_ldap = Net_LDAP::connect($array_config);
+        return $this->assertEquals('net_ldap', strtolower(get_class($array_ldap)));
+    }
+
+    function testInvalidArrayConnection()
+    {
+        $invalid_config = $GLOBALS['ldap_invalid_array_config'];
+        $invalid_ldap = Net_LDAP::connect($invalid_config);
+        if (Net_LDAP::isError($invalid_ldap)) {
+            //
+            // Yes, this is supposed to fail.
+            //
+            return true;
+        }
+        $this->fail(print_r($invalid_ldap, true));
+        return false;
+    }
+
     function testgetLDAPVersion()
     {
         return $this->assertEquals($this->config['version'], $this->ldap->getLDAPVersion());
@@ -85,7 +106,7 @@ class Net_LDAP_Test extends PHPUnit_TestCase
 
     function testUTF8()
     {
-        $array1 = array('street' => 'Bärensteiner Str. 30');
+        $array1 = array('street' => 'Bï¿½ensteiner Str. 30');
         $test   = $this->ldap->utf8Encode($array1);
         $this->assertEquals(utf8_encode($array1['street']), $test['street'],
                             'Encoding an attribute that should be encoded, was not.');
@@ -94,12 +115,12 @@ class Net_LDAP_Test extends PHPUnit_TestCase
         $this->assertEquals($array1['street'], $test['street'],
                             'An attribute that should have been decoded, was not');
 
-        $array2 = array('rfc822Mailbox' => 'krämer');
+        $array2 = array('rfc822Mailbox' => 'krï¿½er');
         $test   = $this->ldap->utf8Encode($array2);
         $this->assertEquals($array2['rfc822Mailbox'], $test['rfc822Mailbox'],
                             'An attribute that should not be encoded, was encoded');
 
-        $test = $this->ldap->utf8Decode(array('rfc822Mailbox' => utf8_encode('krämer')));
+        $test = $this->ldap->utf8Decode(array('rfc822Mailbox' => utf8_encode('krï¿½er')));
         $this->assertFalse($array2['rfc822Mailbox'] == $test['rfc822Mailbox'],
                            'An attribute that should not be decoded, was decoded');
 

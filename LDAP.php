@@ -1,46 +1,47 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +--------------------------------------------------------------------------+
-// | Net_LDAP                                                                 |
-// +--------------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                    |
-// +--------------------------------------------------------------------------+
-// | This library is free software; you can redistribute it and/or            |
-// | modify it under the terms of the GNU Lesser General Public               |
-// | License as published by the Free Software Foundation; either             |
-// | version 2.1 of the License, or (at your option) any later version.       |
-// |                                                                          |
-// | This library is distributed in the hope that it will be useful,          |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU        |
-// | Lesser General Public License for more details.                          |
-// |                                                                          |
-// | You should have received a copy of the GNU Lesser General Public         |
-// | License along with this library; if not, write to the Free Software      |
-// | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA |
-// +--------------------------------------------------------------------------+
-// | Authors: Tarjej Huse                                                     |
-// |          Jan Wagner                                                      |
-// +--------------------------------------------------------------------------+
-//
-// $Id$
+/**
+ * File containing the Net_LDAP interface class.
+ *
+ * PHP version 4
+ *
+ * LICENSE:  LGPL.
+ *
+ * @category    Net
+ * @package     Net_LDAP
+ * @author      Tarjej Huse
+ * @author      Jan Wagner
+ * @author      Del <del@babel.com.au>
+ * @copyright   2003-2006 Tarjej Huse, Jan Wagner, Del Elson.
+ * @license     http://www.gnu.org/copyleft/lesser.html
+ * @version     CVS: $Id$
+ * @link        http://pear.php.net/package/Net_LDAP/
+ */
 
+/**
+ * Package includes.
+ */
 require_once('PEAR.php');
 require_once('LDAP/Entry.php');
 require_once('LDAP/Search.php');
 
 /**
- *  Error constants for errors that are not LDAP errors
+ *  Error constants for errors that are not LDAP errors.
  */
 define ('NET_LDAP_ERROR', 1000);
 
 /**
  * Net_LDAP - manipulate LDAP servers the right way!
  *
- * @author Tarjei Huse
- * @author Jan Wagner
- * @version $Revision$
- * @package Net_LDAP
+ * @category    Net
+ * @package     Net_LDAP
+ * @author      Tarjej Huse
+ * @author      Jan Wagner
+ * @author      Del <del@babel.com.au>
+ * @copyright   2003-2006 Tarjej Huse, Jan Wagner, Del Elson.
+ * @license     http://www.gnu.org/copyleft/lesser.html
+ * @version     CVS: $Id$
+ * @link        http://pear.php.net/package/Net_LDAP/
  */
  class Net_LDAP extends PEAR
 {
@@ -79,6 +80,22 @@ define ('NET_LDAP_ERROR', 1000);
                           'options'  => array(),
                           'filter'   => '(objectClass=*)',
                           'scope'    => 'sub');
+
+    /**
+     * Host List
+     *
+     * @access private
+     * @var array
+     */
+    var $_host_list = array();
+
+    /**
+     * List of hosts that are known to be down.
+     *
+     * @access private
+     * @var array
+     */
+    var $_down_host_list = array();
 
     /**
      * LDAP resource link.
@@ -158,29 +175,51 @@ define ('NET_LDAP_ERROR', 1000);
      */
     function _setConfig($config)
     {
-        if (is_array($config)) {
-            foreach ($config as $k => $v) {
-                if (isset($this->_config[$k])) {
-                    $this->_config[$k] = $v;
-                } else {
-                    // map old (Net_LDAP) parms to new ones
-                    switch($k) {
-                        case "dn":
-                            $this->_config["binddn"] = $v;
-                            break;
-                        case "password":
-                            $this->_config["bindpw"] = $v;
-                            break;
-                        case "tls":
-                            $this->_config["starttls"] = $v;
-                            break;
-                        case "base":
-                            $this->_config["basedn"] = $v;
-                            break;
-                    }
+
+        //
+        // Parameter check -- probably should raise an error here if config
+        // is not an array.
+        //
+        if (! is_array($config)) {
+            return;
+        }
+
+        foreach ($config as $k => $v) {
+            if (isset($this->_config[$k])) {
+                $this->_config[$k] = $v;
+            } else {
+                // map old (Net_LDAP) parms to new ones
+                switch($k) {
+                    case "dn":
+                        $this->_config["binddn"] = $v;
+                        break;
+                    case "password":
+                        $this->_config["bindpw"] = $v;
+                        break;
+                    case "tls":
+                        $this->_config["starttls"] = $v;
+                        break;
+                    case "base":
+                        $this->_config["basedn"] = $v;
+                        break;
                 }
             }
         }
+
+        //
+        // Ensure the host list is an array.
+        //
+        if (is_array($this->_config['host'])) {
+            $this->_host_list = $this->_config['host'];
+        } else {
+            $this->_host_list = array($this->_config['host']);
+        }
+
+        //
+        // Reset the down host list, which seems like a sensible thing to do
+        // if the config is being reset for some reason.
+        //
+        $this->_down_host_list = array();
     }
 
     /**
@@ -229,33 +268,117 @@ define ('NET_LDAP_ERROR', 1000);
      */
     function _connect()
     {
-        if ($this->_link === false) {
-            $this->_link = @ldap_connect($this->_config['host'],
-                                         $this->_config['port']);
-            if (false === $this->_link) {
-                return PEAR::raiseError("Could not connect to $host:$port");
+
+        //
+        // Return true if we are already connected.
+        //
+        if ($this->_link !== false) {
+            return true;
+        }
+
+        //
+        // Connnect to the LDAP server if we are not connected.  Note that
+        // with some LDAP clients, ldap_connect returns a link value even
+        // if no connection is made.  We need to do at least one anonymous
+        // bind to ensure that a connection is actually valid.
+        //
+        // Ref: http://www.php.net/manual/en/function.ldap-connect.php
+        //
+
+        //
+        // Trick to catch empty _host_list arrays.
+        //
+        $current_error = PEAR::raiseError('Please pass in an array of servers to Net_LDAP');
+
+        //
+        // Cycle through the host list.
+        //
+        foreach ($this->_host_list as $host) {
+
+            //
+            // Skip this host if it is known to be down.
+            //
+            if (in_array($host, $this->_down_host_list)) {
+                continue;
             }
+
+            //
+            // Record the host that we are actually connecting to in case
+            // we need it later.
+            //
+            $this->_config['host'] = $host;
+
+            //
+            // Attempt a connection.
+            //
+            $this->_link = @ldap_connect($host, $this->_config['port']);
+            if (false === $this->_link) {
+                $current_error = PEAR::raiseError('Could not connect to ' .
+                    $host . ':' . $this->_config['port']);
+                continue;
+            }
+
+            //
+            // Attempt an anonymous bind.
+            //
+            if (! @ldap_bind($this->_link)) {
+                $current_error = PEAR::raiseError("Bind failed: " .
+                                        @ldap_error($this->_link),
+                                        @ldap_errno($this->_link));
+
+                //
+                // DO NOT attempt to call ldap_close on this connection ID,
+                // even attempting to do so can be fatal.  Just discard the
+                // link ID and record the host as down.
+                //
+                $this->_link = false;
+                $this->_down_host_list[] = $host;
+                continue;
+            }
+
+            //
+            // Set LDAP parameters, now we know we have a valid connection.
+            //
             if (Net_LDAP::isError($msg = $this->setLDAPVersion())) {
-                return $msg;
+                $current_error = $msg;
+                $this->_link = false;
+                $this->_down_host_list[] = $host;
+                continue;
             }
             if ($this->_config["starttls"] === true) {
                 if (Net_LDAP::isError($msg = $this->startTLS())) {
-                    return $msg;
+                    $current_error = $msg;
+                    $this->_link = false;
+                    $this->_down_host_list[] = $host;
+                    continue;
                 }
             }
             if (isset($this->_config['options']) &&
                 is_array($this->_config['options']) &&
-                count($this->_config['options']))
-            {
+                count($this->_config['options'])) {
                 foreach ($this->_config['options'] as $opt => $val) {
                     $err = $this->setOption($opt, $val);
                     if (Net_LDAP::isError($err)) {
-                        return $err;
+                        $current_error = $err;
+                        $this->_link = false;
+                        $this->_down_host_list[] = $host;
+                        continue 2;
                     }
                 }
             }
+
+            //
+            // At this stage we have connected, bound, and set up options,
+            // so we have a known good LDAP server.  Time to go home.
+            //
+            return true;
         }
-        return true;
+
+
+        //
+        // All connection attempts have failed.
+        //
+        return $current_error;
     }
 
     /**
@@ -762,7 +885,9 @@ define ('NET_LDAP_ERROR', 1000);
                               1000 => "Unknown Net_LDAP Error"
                               );
 
-         return isset($errorMessages[$errorcode]) ? $errorMessages[$errorcode] : $errorMessages[LDAP_ERROR];
+         return isset($errorMessages[$errorcode]) ?
+            $errorMessages[$errorcode] :
+            $errorMessages[NET_LDAP_ERROR] . ' (' . $errorcode . ')';
     }
 
     /**
