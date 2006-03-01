@@ -33,7 +33,7 @@ $ldap_invalid_array_config= array('host' => array('ford.babel.office', 'eddie.ba
                     'starttls' => false,
                     'basedn' => 'o=Medemail,c=AU',
                     'binddn' => 'cn=Directory Manager',
-                    'bindpw' => 'hakeswill',
+                    'bindpw' => 'theCORRECTpassword',
                     'filter' => '(objectClass=*)');
 
 // this should be an existing dn which can be fetched with the above connection parameters
