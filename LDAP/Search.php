@@ -71,7 +71,7 @@ class Net_LDAP_Search extends PEAR
      * The errorcode the search got
      *
      * Some errorcodes might be of interest, but might not be best handled as errors.
-     * examples: 4 - LDAP_SIZELIMIT_EXCEEDED - indecates a huge search.
+     * examples: 4 - LDAP_SIZELIMIT_EXCEEDED - indicates a huge search.
      *               Incomplete results are returned. If you just want to check if there's anything in the search.
      *               than this is a point to handle.
      *           32 - no such object - search here returns a count of 0.
@@ -165,14 +165,34 @@ class Net_LDAP_Search extends PEAR
     }
 
     /**
-     * Return entries sorted NOT IMPLEMENTED
+     * Return entries sorted
      *
-     * @param array Array of sort attributes
-     * @return object Net_LDAP_Error
+     * [BUG] there is a problem with multivalued attributes. If sorting by such an attribute, only the first
+     *       attribute is used for the compare, not the highest/lowest one in the list. This results in uncorrect sorting.
+     *       The solution to this is to fetch the attributes here and sort them by hand or to wait for the
+     *       php-developers to fix this inside ldap_sort().
+     *
+     * @param array $attrs Array of sort attributes, order from left to right
+     * @param bool  $order if set to true, the sort will be decreasing
+     * @return mixed Array of sorted entries
      */
-    function sorted ($attrs = array())
+    function sorted ($attrs = array(), $order = false)
     {
-        PEAR::raiseError("Not implemented");
+        $attrs = array_reverse($attrs);
+        foreach ($attrs as $attribute) {
+            if (!ldap_sort($this->_link, $this->_search, $attribute)){
+                $this->raiseError("Sorting failed for Attribute " . $attribute);
+            }
+        }
+
+        $results = ldap_get_entries($this->_link, $this->_search);
+
+        unset($results['count']); //for tidier output
+        if ($order) {
+            return array_reverse($results);
+        } else {
+            return $results;
+        }
     }
 
    /**
