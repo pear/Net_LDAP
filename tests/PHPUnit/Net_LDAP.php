@@ -106,7 +106,7 @@ class Net_LDAP_Test extends PHPUnit_TestCase
 
     function testUTF8()
     {
-        $array1 = array('street' => 'Bï¿½ensteiner Str. 30');
+        $array1 = array('street' => 'Bärensteiner Str. 30');
         $test   = $this->ldap->utf8Encode($array1);
         $this->assertEquals(utf8_encode($array1['street']), $test['street'],
                             'Encoding an attribute that should be encoded, was not.');
@@ -115,12 +115,12 @@ class Net_LDAP_Test extends PHPUnit_TestCase
         $this->assertEquals($array1['street'], $test['street'],
                             'An attribute that should have been decoded, was not');
 
-        $array2 = array('rfc822Mailbox' => 'krï¿½er');
+        $array2 = array('rfc822Mailbox' => 'krämer');
         $test   = $this->ldap->utf8Encode($array2);
         $this->assertEquals($array2['rfc822Mailbox'], $test['rfc822Mailbox'],
                             'An attribute that should not be encoded, was encoded');
 
-        $test = $this->ldap->utf8Decode(array('rfc822Mailbox' => utf8_encode('krï¿½er')));
+        $test = $this->ldap->utf8Decode(array('rfc822Mailbox' => utf8_encode('krämer')));
         $this->assertFalse($array2['rfc822Mailbox'] == $test['rfc822Mailbox'],
                            'An attribute that should not be decoded, was decoded');
 
@@ -202,6 +202,7 @@ class Net_LDAP_Test extends PHPUnit_TestCase
             return false;
         }
         $newdn = new Net_LDAP_Entry($GLOBALS['rename_dn']);
+        
         if (Net_LDAP::isError($msg = $newdn->add($entry->getValues()))) {
             $this->fail($msg->getMessage());
             return false;
