@@ -118,7 +118,8 @@ define('NET_LDAP_SYNTAX_OCTET_STRING', '1.3.6.1.4.1.1466.115.121.1.40');
                      'syntaxes'          => &$this->_ldapSyntaxes );
 
         $key = strtolower($type);
-        return ((key_exists($key, $map)) ? $map[$key] : PEAR::raiseError("Unknown type $type"));
+        $ret = ((key_exists($key, $map)) ? $map[$key] : PEAR::raiseError("Unknown type $type"));
+        return $ret;
     }
     
     /**

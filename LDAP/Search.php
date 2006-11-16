@@ -85,8 +85,8 @@ class Net_LDAP_Search extends PEAR
     * Constructor
     *
     * @access protected
-    * @param resource Search result identifier
-    * @param resource Link identifier
+    * @param resource $search         Search result identifier
+    * @param Net_LDAP|resource $ldap  Net_LDAP object or just a LDAP-Link resource
     */
     function Net_LDAP_Search (&$search, &$ldap)
     {
@@ -95,13 +95,13 @@ class Net_LDAP_Search extends PEAR
         $this->setSearch($search);
 
         if (is_a($ldap, 'Net_LDAP')) {
-            $this->_ldap = $ldap;
+            $this->_ldap =& $ldap;
             $this->setLink($this->_ldap->getLink());
         } else {
             $this->setLink($ldap);
         }
 
-        $this->_errorCode = @ldap_errno($link);
+        $this->_errorCode = @ldap_errno($this->_link);
     }
 
     /**

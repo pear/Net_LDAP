@@ -145,7 +145,7 @@ class Net_LDAP_Entry extends PEAR
      * @param $attributes array
      * @return none
      */
-    function Net_LDAP_Entry($entry = null, $ldap = null)
+    function Net_LDAP_Entry($entry = null, &$ldap)
     {
         $this->PEAR('Net_LDAP_Error');
 
@@ -462,7 +462,7 @@ class Net_LDAP_Entry extends PEAR
      * If the attribue value is null, the attribute will de deleted
      *
      * @access public
-     * @param $attr
+     * @param array
      */
     function replace($attr = array())
     {
@@ -495,13 +495,17 @@ class Net_LDAP_Entry extends PEAR
      * Update the entry on the directory server
      *
      * @access public
-     * @param object Net_LDAP
+     * @param object Net_LDAP, optional. If you provide a object, be sure to PASS IT VIA REFERENCE!
      * @return mixed
      */
-    function update(&$ldap)
+    function update($ldap=false)
     {
-        if (!is_a($ldap, 'Net_LDAP')) {
-            return PEAR::raiseError("Need a Net_LDAP object as parameter");
+        if (!$ldap) {  // If object is not provided, then use this entrys ldap object
+            $ldap =& $this->_ldap;
+        } else {
+            if (!is_a($ldap, 'Net_LDAP')) {
+                return PEAR::raiseError("Need a Net_LDAP object as parameter");
+            }
         }
 
         $link = $ldap->getLink();
@@ -547,7 +551,7 @@ class Net_LDAP_Entry extends PEAR
         // Modified entry
         foreach ($this->_changes["add"] as $attr => $value) {
             // if attribute exists, add new values
-            if (array_key_exists($attr, $this->_original)) {
+            if ($this->exists($attr)) {
                 if (false === @ldap_mod_add($link, $this->dn(), array($attr => $value))) {
                     return PEAR::raiseError("Could not add new values to attribute $attr: " .
                                             @ldap_error($link), @ldap_errno($link));

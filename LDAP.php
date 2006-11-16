@@ -46,14 +46,6 @@ define ('NET_LDAP_ERROR', 1000);
  class Net_LDAP extends PEAR
 {
     /**
-     * Net_LDAP Release Version
-     *
-     * @access private
-     * @var string
-     */
-    var $_version = "0.6.99";
-
-    /**
      * Class configuration array
      *
      * host     = the ldap host to connect to
@@ -121,6 +113,17 @@ define ('NET_LDAP_ERROR', 1000);
      *            to determine whether they should be utf8 encoded or not.
      */
     var $_schemaAttrs = array();
+    
+    /**
+     * Returns the Net_LDAP Release version.
+     *
+     * @static
+     * @return string Net_LDAP version
+     */
+    function getVersion()
+    {
+        return "0.6.99";
+    }
 
     /**
      * Creates the initial ldap-object
@@ -747,15 +750,6 @@ define ('NET_LDAP_ERROR', 1000);
         return $this->setOption("LDAP_OPT_PROTOCOL_VERSION", $version);
     }
 
-    /**
-     * Get the Net_LDAP version.
-     *
-     * @return string Net_LDAP version
-     */
-    function getVersion ()
-    {
-        return $this->_version;
-    }
 
     /**
      * Tell if a dn already exists
@@ -933,7 +927,8 @@ define ('NET_LDAP_ERROR', 1000);
         if (false === $entry) {
             return PEAR::raiseError('Could not fetch RootDSE entry');
         }
-        return new Net_LDAP_RootDSE($entry);
+        $ret = new Net_LDAP_RootDSE($entry);
+        return $ret;
     }
 
     /**
