@@ -644,6 +644,21 @@ class Net_LDAP_Entry extends PEAR
         }
         return $entry;
     }
+    
+    /**
+     * Returns a reference to the LDAP-Object of this entry
+     *
+     * @access public
+     * @return Net_LDAP|Net_LDAP_Error   Reference to the Net_LDAP Object (the connection) or Net_LDAP_Error
+     */
+    function &getLDAP()
+    {
+        if (!is_a($this->_ldap, 'Net_LDAP')) {
+            return PEAR::raiseError("LDAP is not a valid Net_LDAP object");
+        } else {
+            return $this->_ldap;
+        }
+    }
 }
 
 ?>
