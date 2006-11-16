@@ -138,14 +138,14 @@ class Net_LDAP_Entry extends PEAR
      * Constructor
      *
      * Constructor of the entry. Sets up the distinguished name and the entries
-     * attributes. If no attributes are given, it is assumed to be a new entry.
+     * attributes.
      *
      * @access protected
-     * @param $dn string
-     * @param $attributes array
+     * @param $ldap Net_LDAP                Net_LDAP object
+     * @param $entry string|ressource       Either a DN or a LDAP-Entry
      * @return none
      */
-    function Net_LDAP_Entry($entry = null, &$ldap)
+    function Net_LDAP_Entry(&$ldap, $entry = null)
     {
         $this->PEAR('Net_LDAP_Error');
 
@@ -635,7 +635,7 @@ class Net_LDAP_Entry extends PEAR
 
         $old_e->add(array($attr => $value));
 
-        $entry = new Net_LDAP_Entry($dn);
+        $entry = new Net_LDAP_Entry(null, $dn);
 
         $entry->add($old_e->getValues());
         $msg = $entry->update($ldap);

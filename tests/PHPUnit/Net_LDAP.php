@@ -201,7 +201,7 @@ class Net_LDAP_Test extends PHPUnit_TestCase
             $this->fail($entry->getMessage());
             return false;
         }
-        $newdn = new Net_LDAP_Entry($GLOBALS['rename_dn']);
+        $newdn = new Net_LDAP_Entry(null, $GLOBALS['rename_dn']);
         
         if (Net_LDAP::isError($msg = $newdn->add($entry->getValues()))) {
             $this->fail($msg->getMessage());

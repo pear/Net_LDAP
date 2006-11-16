@@ -133,12 +133,12 @@ class Net_LDAP_Search extends PEAR
 
         if (is_null($this->_entry)) {
             $this->_entry = @ldap_first_entry($this->_link, $this->_search);
-            $entry = new Net_LDAP_Entry($this->_entry, $this->_ldap);
+            $entry = new Net_LDAP_Entry($this->_ldap, $this->_entry);
         } else {
             if (!$this->_entry = @ldap_next_entry($this->_link, $this->_entry)) {
                 return false;
             }
-            $entry = new Net_LDAP_Entry($this->_entry, $this->_ldap);
+            $entry = new Net_LDAP_Entry($this->_ldap, $this->_entry);
         }
         return $entry;
     }
