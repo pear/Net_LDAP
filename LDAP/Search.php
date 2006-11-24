@@ -88,7 +88,7 @@ class Net_LDAP_Search extends PEAR
     * @param resource $search         Search result identifier
     * @param Net_LDAP|resource $ldap  Net_LDAP object or just a LDAP-Link resource
     */
-    function Net_LDAP_Search (&$search, &$ldap)
+    function Net_LDAP_Search(&$search, &$ldap)
     {
         $this->PEAR('Net_LDAP_Error');
 
@@ -123,7 +123,7 @@ class Net_LDAP_Search extends PEAR
     /**
      * Get the next entry in the searchresult.
      *
-     * @return mixed Net_LDAP_Entry object or false
+     * @return Net_LDAP_Entry|false  Reference to Net_LDAP_Entry object or false
      */
     function &shiftEntry()
     {
@@ -157,9 +157,10 @@ class Net_LDAP_Search extends PEAR
     /**
      * Retrieve the last entry of the searchset. NOT IMPLEMENTED
      *
-     * @return object Net_LDAP_Error
+     * @return Net_LDAP_Error
+     * @todo implement me!
      */
-    function pop_entry ()
+    function pop_entry()
     {
         PEAR::raiseError("Not implemented");
     }
@@ -175,8 +176,9 @@ class Net_LDAP_Search extends PEAR
      * @param array $attrs Array of sort attributes, order from left to right
      * @param bool  $order if set to true, the sort will be decreasing
      * @return mixed Array of sorted entries
+     * @todo Add multivalue sort support (FR #8346)
      */
-    function sorted ($attrs = array(), $order = false)
+    function sorted($attrs = array(), $order = false)
     {
         $attrs = array_reverse($attrs);
         foreach ($attrs as $attribute) {
@@ -198,9 +200,10 @@ class Net_LDAP_Search extends PEAR
    /**
     * Return entries as object NOT IMPLEMENTED
     *
-    * @return object Net_LDAP_Error
+    * @return Net_LDAP_Error
+    * @obsolete   This seems to be the same as {@link entries()}!
     */
-    function as_struct ()
+    function as_struct()
     {
         PEAR::raiseError("Not implemented");
     }
@@ -209,7 +212,7 @@ class Net_LDAP_Search extends PEAR
     * Set the search objects resource link
     *
     * @access public
-    * @param resource Search result identifier
+    * @param resource $search Search result identifier
     * @return void
     */
     function setSearch(&$search)
@@ -221,7 +224,7 @@ class Net_LDAP_Search extends PEAR
     * Set the ldap ressource link
     *
     * @access public
-    * @param resource Link identifier
+    * @param resource $link Link identifier
     * @return void
     */
     function setLink(&$link)
@@ -253,7 +256,8 @@ class Net_LDAP_Search extends PEAR
         return $this->_errorCode;
     }
 
-   /** Destructor
+   /**
+    * Destructor
     *
     * @access protected
     */

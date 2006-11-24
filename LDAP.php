@@ -133,8 +133,8 @@ define ('NET_LDAP_ERROR', 1000);
      * parameters.
      *
      * @access public
-     * @param array Configuration array
-     * @return mixed object Net_LDAP_Error or Net_LDAP
+     * @param array $config Configuration array
+     * @return Net_LDAP_Error|Net_LDAP   Net_LDAP_Error or Net_LDAP object
      */
     function &connect($config = array())
     {
@@ -154,7 +154,7 @@ define ('NET_LDAP_ERROR', 1000);
      * Sets the config array
      *
      * @access protected
-     * @param array Configuration array
+     * @param array $config Configuration array
      * @return void
      * @see $_config
      */
@@ -173,7 +173,7 @@ define ('NET_LDAP_ERROR', 1000);
      * Sets the internal configuration array
      *
      * @access private
-     * @param array Configuration array
+     * @param array $config Configuration array
      * @return void
      */
     function _setConfig($config)
@@ -233,9 +233,9 @@ define ('NET_LDAP_ERROR', 1000);
      * if appropiate.
      *
      * @access public
-     * @param string Distinguished name for binding
-     * @param string Password for binding
-     * @return mixed Net_LDAP_Error or true
+     * @param string $dn        Distinguished name for binding
+     * @param string $password  Password for binding
+     * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
     function bind($dn = null, $password = null)
     {
@@ -267,7 +267,7 @@ define ('NET_LDAP_ERROR', 1000);
      * This function connects to the given LDAP server.
      *
      * @access private
-     * @return mixed Net_LDAP_Error or true
+     * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
     function _connect()
     {
@@ -388,7 +388,7 @@ define ('NET_LDAP_ERROR', 1000);
      * Starts an encrypted session
      *
      * @access public
-     * @return mixed True or Net_LDAP_Error
+     * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
     function startTLS()
     {
@@ -438,8 +438,8 @@ define ('NET_LDAP_ERROR', 1000);
      *
      * Use add to add a new Net_LDAP_Entry object to the directory.
      *
-     * @param object Net_LDAP_Entry
-     * @return mixed Net_LDAP_Error or true
+     * @param Net_LDAP_Entry $entry   Net_LDAP_Entry
+     * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
     function add($entry)
     {
@@ -463,9 +463,9 @@ define ('NET_LDAP_ERROR', 1000);
      * entry will be deleted as well
      *
      * @access public
-     * @param mixed string or Net_LDAP_Entry
-     * @param boolean recursive
-     * @return mixed Net_LDAP_Error or true
+     * @param string|Net_LDAP_Entry $dn DN-string or Net_LDAP_Entry
+     * @param boolean $recursive   Should we recurse?
+     * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
     function delete($dn, $recursive = false)
     {
@@ -520,9 +520,9 @@ define ('NET_LDAP_ERROR', 1000);
      * object. A detailed description of array structures can be found there.
      *
      * @access public
-     * @param mixed Net_LDAP_Entry object or dn (string)
-     * @param array Array of changes
-     * @return mixed Net_LDAP_Error or true
+     * @param string|Net_LDAP_Entry $entry DN-string or Net_LDAP_Entry
+     * @param array $params Array of changes
+     * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
     function modify($entry , $parms = array())
     {
@@ -589,10 +589,10 @@ define ('NET_LDAP_ERROR', 1000);
      *        always
      *
      * @access public
-     * @param string LDAP searchbase
-     * @param string LDAP search filter
-     * @param array Array of options
-     * @return object mixed Net_LDAP_Search or Net_LDAP_Error
+     * @param string $base LDAP searchbase
+     * @param string $filter LDAP search filter
+     * @param array $params Array of options
+     * @return Net_LDAP_Search|Net_LDAP_Error    Net_LDAP_Search object or Net_LDAP_Error object
      */
     function search($base = null, $filter = null, $params = array())
     {
@@ -659,9 +659,9 @@ define ('NET_LDAP_ERROR', 1000);
      * Set an LDAP option
      *
      * @access public
-     * @param string Option to set
-     * @param mixed Value to set Option to
-     * @return mixed Net_LDAP_Error or true
+     * @param string $option Option to set
+     * @param mixed $value Value to set Option to
+     * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
     function setOption($option, $value)
     {
@@ -691,8 +691,8 @@ define ('NET_LDAP_ERROR', 1000);
      * Get an LDAP option value
      *
      * @access public
-     * @param string Option to get
-     * @return mixed Net_LDAP_Error or option value
+     * @param string $option Option to get
+     * @return Net_LDAP_Error|string Net_LDAP_Error or option value
      */
     function getOption($option)
     {
@@ -740,7 +740,7 @@ define ('NET_LDAP_ERROR', 1000);
      * Set the LDAP_PROTOCOL_VERSION that is used on the connection.
      *
      * @param int Version to set
-     * @return mixed Net_LDAP_Error or TRUE
+     * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
     function setLDAPVersion($version = 0)
     {
@@ -754,7 +754,7 @@ define ('NET_LDAP_ERROR', 1000);
     /**
      * Tell if a dn already exists
      *
-     * @param string
+     * @param string $dn  The DN of the object to test
      * @return boolean
      */
     function dnExists($dn)
@@ -782,9 +782,9 @@ define ('NET_LDAP_ERROR', 1000);
    /**
     * Get a specific entry based on the dn
     *
-    * @param string dn
-    * @param array Array of Attributes to select
-    * @return mixed Net_LDAP_Entry or false
+    * @param string $dn   DN of the entry that should be fetched
+    * @param array  $attr Array of Attributes to select
+    * @return Net_LDAP_Error|true    Reference to Net_LDAP_Error object or true
     */
    function &getEntry($dn, $attr = array())
    {
@@ -809,7 +809,7 @@ define ('NET_LDAP_ERROR', 1000);
      * Tip: The best description of the errorcodes is found here:
      * http://www.directory-info.com/LDAP/LDAPErrorCodes.html
      *
-     * @param int Error code
+     * @param int $errorcode Error code
      * @return string The errorstring for the error.
      */
     function errorMessage($errorcode)
@@ -888,7 +888,7 @@ define ('NET_LDAP_ERROR', 1000);
      * Tell whether value is a Net_LDAP_Error or not
      *
      * @access public
-     * @param mixed
+     * @param mixed  $value  A variable, most commonly some Net_LDAP* object
      * @return boolean
      */
     function isError($value)
@@ -901,8 +901,8 @@ define ('NET_LDAP_ERROR', 1000);
      *
      * @access public
      * @author Jan Wagner <wagner@netsols.de>
-     * @param array Array of attributes to search for
-     * @return object mixed Net_LDAP_Error or Net_LDAP_RootDSE
+     * @param array $attrs Array of attributes to search for
+     * @return Net_LDAP_Error|Net_LDAP_RootDSE   Net_LDAP_Error or Net_LDAP_RootDSE object
      */
     function &rootDse($attrs = null)
     {
@@ -948,8 +948,8 @@ define ('NET_LDAP_ERROR', 1000);
      *
      * @access public
      * @author Jan Wagner <wagner@netsols.de>
-     * @param string Subschema entry dn
-     * @return object mixed Net_LDAP_Schema or Net_LDAP_Error
+     * @param string $dn Subschema entry dn
+     * @return Net_LDAP_Schema|Net_LDAP_Error  Net_LDAP_Schema or Net_LDAP_Error object
      */
      function &schema($dn = null)
      {
@@ -1021,8 +1021,9 @@ define ('NET_LDAP_ERROR', 1000);
      * can be used for adding or modifying.
      *
      * @access public
-     * @param array Array of attributes
+     * @param array $attributes Array of attributes
      * @return array Array of UTF8 encoded attributes
+     * @todo the code is doubled in class Net_LDAP_Util! one of the codes should only use the functions provided by the other
      */
     function utf8Encode($attributes)
     {
@@ -1033,8 +1034,9 @@ define ('NET_LDAP_ERROR', 1000);
      * Decodes the given attribute values
      *
      * @access public
-     * @param array Array of attributes
+     * @param array $attributes Array of attributes
      * @return array Array with decoded attribute values
+     * @todo the code is doubled in class Net_LDAP_Util! one of the codes should only use the functions provided by the other
      */
     function utf8Decode($attributes)
     {
@@ -1045,9 +1047,10 @@ define ('NET_LDAP_ERROR', 1000);
      * Encodes or decodes attribute values if needed
      *
      * @access private
-     * @param array Array of attributes
-     * @param array Function to apply to attribute values
+     * @param array $attributes Array of attributes
+     * @param array $function   Function to apply to attribute values
      * @return array Array of attributes with function applied to values
+     * @todo the code is doubled in class Net_LDAP_Util! one of the codes should only use the functions provided by the other
      */
     function _utf8($attributes, $function)
     {
@@ -1118,10 +1121,11 @@ class Net_LDAP_Error extends PEAR_Error
     /**
      * Net_LDAP_Error constructor.
      *
-     * @param mixed Net_LDAP error code, or string with error message.
-     * @param integer what "error mode" to operate in
-     * @param integer what error level to use for $mode & PEAR_ERROR_TRIGGER
-     * @param mixed additional debug info, such as the last query
+     * @param string  $message    String with error message.
+     * @param integer $code       Net_LDAP error code
+     * @param integer $mode       what "error mode" to operate in
+     * @param mixed   $level      what error level to use for $mode & PEAR_ERROR_TRIGGER
+     * @param mixed   $debuginfo  additional debug info, such as the last query
      * @access public
      * @see PEAR_Error
      */

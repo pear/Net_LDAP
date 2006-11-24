@@ -23,7 +23,7 @@
 // +--------------------------------------------------------------------------+
 //
 // $Id$
-  
+
 /**
  * Utility Class for Net_LDAP
  *
@@ -40,7 +40,7 @@ class Net_LDAP_Util extends PEAR
      * @var object Net_LDAP
      */
     var $_ldap = null;
-    
+
     /**
      * Net_LDAP_Schema object
      *
@@ -48,14 +48,14 @@ class Net_LDAP_Util extends PEAR
      * @var object Net_LDAP_Schema
      */
     var $_schema = null;
-    
+
     /**
      * Constructur
      *
      * Takes an LDAP object by reference and saves it. Then the schema will be fetched.
      *
      * @access public
-     * @param object Net_LDAP
+     * @param Net_LDAP Reference to Net_LDAP object
      */
     function Net_LDAP_Util(&$ldap)
     {
@@ -65,7 +65,7 @@ class Net_LDAP_Util extends PEAR
             if (Net_LDAP::isError($this->_schema)) $this->_schema = null;
         }
     }
-    
+
     /**
      * Encodes given attributes to UTF8 if needed
      *
@@ -74,33 +74,36 @@ class Net_LDAP_Util extends PEAR
      * can be used for adding or modifying.
      *
      * @access public
-     * @param array Array of attributes
+     * @param array $attributes Array of attributes
      * @return array Array of UTF8 encoded attributes
+     * @todo the code is doubled in class Net_LDAP! one of the codes should only use the functions provided by the other
      */
     function utf8Encode($attributes)
     {
         return $this->_utf8($attributes, 'utf8_encode');
     }
-    
+
     /**
      * Decodes the given attribute values
      *
      * @access public
-     * @param array Array of attributes
+     * @param array $attributes Array of attributes
      * @return array Array with decoded attribute values
+     * @todo the code is doubled in class Net_LDAP! one of the codes should only use the functions provided by the other
      */
     function utf8Decode($attributes)
     {
         return $this->_utf8($attributes, 'utf8_decode');
     }
-    
+
     /**
      * Encodes or decodes attribute values if needed
      *
      * @access private
-     * @param array Array of attributes
-     * @param array Function to apply to attribute values
+     * @param array $attributes Array of attributes
+     * @param array $function Function to apply to attribute values
      * @return array Array of attributes with function applied to values
+     * @todo the code is doubled in class Net_LDAP! one of the codes should only use the functions provided by the other
      */
     function _utf8($attributes, $function)
     {
@@ -112,8 +115,8 @@ class Net_LDAP_Util extends PEAR
                 $attr = $this->_schema->get('attribute', $k);
                 if (Net_LDAP::isError($attr)) {
                     continue;
-                }                
-                if (false !== strpos($attr['syntax'], '1.3.6.1.4.1.1466.115.121.1.15')) {                    
+                }
+                if (false !== strpos($attr['syntax'], '1.3.6.1.4.1.1466.115.121.1.15')) {
                     if (is_array($v)) {
                         foreach ($v as $ak => $av ) {
                             $v[$ak] = call_user_func($function, $av );
@@ -125,8 +128,8 @@ class Net_LDAP_Util extends PEAR
                 $attributes[$k] = $v;
             }
         }
-        return $attributes;    
-    }    
+        return $attributes;
+    }
 }
 
 ?>

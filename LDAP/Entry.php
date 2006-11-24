@@ -141,8 +141,8 @@ class Net_LDAP_Entry extends PEAR
      * attributes.
      *
      * @access protected
-     * @param $ldap Net_LDAP                Net_LDAP object
-     * @param $entry string|ressource       Either a DN or a LDAP-Entry
+     * @param Net_LDAP|ressource|array $ldap   Net_LDAP object, ldap-link ressource or array of attributes
+     * @param string|ressource         $entry  Either a DN or a LDAP-Entry
      * @return none
      */
     function Net_LDAP_Entry(&$ldap, $entry = null)
@@ -161,13 +161,13 @@ class Net_LDAP_Entry extends PEAR
         } elseif (is_resource($ldap)) {
             $this->_link = $ldap;
         } elseif (is_array($ldap)) {
-            $this->setAttributes($ldap);
+            $this->_setAttributes($ldap);
         }
 
         if (is_resource($this->_entry) && is_resource($this->_link)) {
             $this->_new = false;
             $this->_dn  = @ldap_get_dn($this->_link, $this->_entry);
-            $this->setAttributes();
+            $this->_setAttributes();
         }
     }
 
@@ -178,7 +178,7 @@ class Net_LDAP_Entry extends PEAR
      * current value gets returned
      *
      * @access public
-     * @param $dn string New distinguished name
+     * @param string $dn New distinguished name
      * @return string Disinguished name
      */
     function dn($dn = null)
@@ -197,10 +197,12 @@ class Net_LDAP_Entry extends PEAR
     /**
      * Sets the internal attributes array
      *
+     * This fetches the values for the attributes from the server.
+     *
      * @access private
-     * @param $attributes array
+     * @param array $attributes
      */
-    function setAttributes($attributes = null)
+    function _setAttributes($attributes = null)
     {
         // fetch attributes from the server
         if (is_null($attributes) && is_resource($this->_entry) && is_resource($this->_link))
@@ -294,7 +296,7 @@ class Net_LDAP_Entry extends PEAR
      * @access public
      * @param string $attr Attribute name
      * @param string $option Option
-     * @return mixed string, array or PEAR_Error
+     * @return string|array|PEAR_Error string, array or PEAR_Error
      */
     function getValue($attr, $option = null)
     {
@@ -339,7 +341,7 @@ class Net_LDAP_Entry extends PEAR
      * Returns whether an attribute exists or not
      *
      * @access public
-     * @param string Attribute name
+     * @param string $attr Attribute name
      * @return boolean
      */
     function exists($attr)
@@ -358,8 +360,13 @@ class Net_LDAP_Entry extends PEAR
      * attribute will be created. These changes are local to the entry and do
      * not affect the entry on the server until update() is called.
      *
+     * Note, that you can add values of attributes that you haven't selected, but if
+     * you do so, {@link getValue()} and {@link getValues()} will only return the
+     * values you added, _NOT_ all values present on the server. To avoid this, just refetch
+     * the entry.
+     *
      * @access public
-     * @param $attr array
+     * @param array $attr
      */
     function add($attr = array())
     {
@@ -404,7 +411,7 @@ class Net_LDAP_Entry extends PEAR
      *                                                      will be deleted
      *
      * @access public
-     * @param mixed
+     * @param string|array $attr
      */
     function delete($attr = null)
     {
@@ -462,7 +469,7 @@ class Net_LDAP_Entry extends PEAR
      * If the attribue value is null, the attribute will de deleted
      *
      * @access public
-     * @param array
+     * @param array $attr
      */
     function replace($attr = array())
     {
@@ -495,7 +502,7 @@ class Net_LDAP_Entry extends PEAR
      * Update the entry on the directory server
      *
      * @access public
-     * @param object Net_LDAP, optional. If you provide a object, be sure to PASS IT VIA REFERENCE!
+     * @param Net_LDAP $ldap (optional) If you provide a Net_LDAP object, be sure to PASS IT VIA REFERENCE!
      * @return mixed
      */
     function update($ldap=false)
@@ -595,7 +602,7 @@ class Net_LDAP_Entry extends PEAR
      * Returns the right attribute name
      *
      * @access private
-     * @param string Name of attribute
+     * @param string $attr Name of attribute
      * @return string The right name of the attribute
      */
     function _getAttrName($attr)
@@ -611,10 +618,10 @@ class Net_LDAP_Entry extends PEAR
      * Copy the current entry to another place in the directory
      *
      * @access public
-     * @param object Net_LDAP
-     * @param string New distinguished name
-     * @param boolean Is the new name relative to current parent
-     * @return mixed Net_LDAP_Entry or Net_LDAP_Error
+     * @param Net_LDAP $ldap       Net_LDAP
+     * @param string   $dn         New distinguished name
+     * @param boolean  $relative   Is the new name relative to current parent
+     * @return Net_LDAP_Entry|Net_LDAP_Error   Reference to Net_LDAP_Entry or Net_LDAP_Error
      */
     function &copy(&$ldap, $dn, $relative = false)
     {
@@ -644,7 +651,7 @@ class Net_LDAP_Entry extends PEAR
         }
         return $entry;
     }
-    
+
     /**
      * Returns a reference to the LDAP-Object of this entry
      *
