@@ -198,14 +198,49 @@ class Net_LDAP_Search extends PEAR
     }
 
    /**
-    * Return entries as object NOT IMPLEMENTED
+    * Return entries as array
     *
-    * @return Net_LDAP_Error
-    * @obsolete   This seems to be the same as {@link entries()}!
+    * This method returns the entries and the selected attributes values as
+    * array.
+    * The first array level contains all found entries where the keys are the
+    * DNs of the entries. The second level arrays contian the entries attributes
+    * such that the keys is the lowercased name of the attribute and the values
+    * are stored in another indexed array. Note that the attribute values are stored
+    * in an array even if there is no or just one value.
+    *
+    * The array has the following structure:
+    * <code>
+    * $return = array(
+    *           'cn=foo,dc=example,dc=com' => array(
+    *                                                'sn'       => array('foo'),
+    *                                                'multival' => array('val1', 'val2', 'valN')
+    *                                             )
+    *           'cn=bar,dc=example,dc=com' => array(
+    *                                                'sn'       => array('bar'),
+    *                                                'multival' => array('val1', 'valN')
+    *                                             )
+    *           )
+    * </code>
+    *
+    * @return array      associative result array as described above
     */
     function as_struct()
     {
-        PEAR::raiseError("Not implemented");
+        $return = array();
+        $entries = $this->entries();
+        foreach ($entries as $entry) {
+        	$attrs = array();
+        	$entry_attributes = $entry->attributes();
+        	foreach ($entry_attributes as $attr_name) {
+        		$attr_values = $entry->getValue($attr_name, 'all');
+        		if (!is_array($attr_values)) {
+        			$attr_values = array($attr_values);
+        		}
+        		$attrs[$attr_name] = $attr_values;
+        	}
+            $return[$entry->dn()] = $attrs;
+        }
+        return $return;
     }
 
    /**
