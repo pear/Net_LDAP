@@ -40,6 +40,20 @@ require_once("PEAR.php");
 * LDAP filters are defined in RFC-2254 and can be found under
 * {@link http://www.ietf.org/rfc/rfc2254.txt}
 *
+* Here a quick copy&paste example:
+* <code>
+* $filter0 = Net_LDAP_Filter::create('stars', 'equals', '***');
+* $filter_not0 = Net_LDAP_Filter::combine('not', $filter0);
+*
+* $filter1 = Net_LDAP_Filter::create('gn', 'begins', 'bar');
+* $filter2 = Net_LDAP_Filter::create('gn', 'ends', 'baz');
+* $filter_comp = Net_LDAP_Filter::combine('or',array($filter_not0, $filter1, $filter2));
+*
+* echo $filter_comp->asString();
+* // This will output: (|(!(stars=\0x5c0x2a\0x5c0x2a\0x5c0x2a))(gn=bar*)(gn=*baz))
+* // The stars in $filter0 are treaten as real stars unless you disable escaping.
+* </code>
+*
 * @package Net_LDAP
 * @author Benedikt Hallinger <b.hallinger@skyforcesystems.de>
 * @version $Revision$
@@ -97,13 +111,18 @@ class Net_LDAP_Filter extends PEAR
     * Constructor of a new part of a LDAP filter.
     *
     * The following matching rules exists:
-    *    - equals:   One of the attributes values is exactly $value
-    *                Please note that case sensitiviness is depends on the
-    *                attributes syntax configured in the server.
-    *    - begins:   One of the attributes values must begin with $value
-    *    - ends:     One of the attributes values must end with $value
-    *    - contains: One of the attributes values must contain $value
-    *    - any:      The attribute can contain any value but must be existent
+    *    - equals:         One of the attributes values is exactly $value
+    *                      Please note that case sensitiviness is depends on the
+    *                      attributes syntax configured in the server.
+    *    - begins:         One of the attributes values must begin with $value
+    *    - ends:           One of the attributes values must end with $value
+    *    - contains:       One of the attributes values must contain $value
+    *    - any:            The attribute can contain any value but must be existent
+    *    - greater:        The attributes value is greater than $value
+    *    - less:           The attributes value is less than $value
+    *    - greaterOrEqual: The attributes value is greater or equal than $value
+    *    - lessOrEqual:    The attributes value is less or equal than $value
+    *    - approx:         One of the attributes values is similar to $value
     *
     * If $escape is set to true (default) then Wildcards in the value will be escaped
     * properly. If it is set to false then $value will be treaten as raw value.
@@ -111,11 +130,11 @@ class Net_LDAP_Filter extends PEAR
     * Examples:
     * $filter = new Net_LDAP_Filter('sn', 'ends', 'foobar');
     * -> This will find entries that contain a attribute "sn" that ends with "foobar".
-    * $filter = new Net_LDAP_Filter('sn', 'exists');
+    * $filter = new Net_LDAP_Filter('sn', 'any');
     * -> This will find entries that contain a attribute "sn" that has any value set.
     *
     * @param string  $attr_name       Name of the attribute the filter should apply to
-    * @param string  $match           Matching rule (equals, begins, ends, contains, any)
+    * @param string  $match           Matching rule (equals, begins, ends, contains, greater, less, greaterOrEqual, lessOrEqual, approx, any)
     * @param string  $value           (optional) if given, then this is used as a filter
     * @param boolean $escape          Should the whole $value be escaped? (default: yes, see {@link escape()} for detailed information)
     * @return Net_LDAP_Filter|Net_LDAP_Error
@@ -128,7 +147,7 @@ class Net_LDAP_Filter extends PEAR
         if ($escape) {
             $value = Net_LDAP_Filter::escape($value);
         }
-        switch ($match) {
+        switch (strtolower($match)) {
             case 'equals':
                 $leaf_filter->_filter = '(' . $attr_name . '=' . $value . ')';
             break;
@@ -141,7 +160,22 @@ class Net_LDAP_Filter extends PEAR
             case 'contains':
                 $leaf_filter->_filter = '(' . $attr_name . '=*' . $value . '*)';
             break;
-            case 'exists':
+            case 'greater':
+                $leaf_filter->_filter = '(' . $attr_name . '>' . $value . ')';
+            break;
+            case 'less':
+                $leaf_filter->_filter = '(' . $attr_name . '<' . $value . ')';
+            break;
+            case 'greaterorequal':
+                $leaf_filter->_filter = '(' . $attr_name . '>=' . $value . ')';
+            break;
+            case 'lessorequal':
+                $leaf_filter->_filter = '(' . $attr_name . '<=' . $value . ')';
+            break;
+            case 'approx':
+                $leaf_filter->_filter = '(' . $attr_name . '=~' . $value . ')';
+            break;
+            case 'any':
                 $leaf_filter->_filter = '(' . $attr_name . '=*)';
             break;
             default:
