@@ -24,6 +24,7 @@
 require_once('PEAR.php');
 require_once('LDAP/Entry.php');
 require_once('LDAP/Search.php');
+require_once('LDAP/Filter.php');
 
 /**
  *  Error constants for errors that are not LDAP errors.
@@ -113,7 +114,7 @@ define ('NET_LDAP_ERROR', 1000);
      *            to determine whether they should be utf8 encoded or not.
      */
     var $_schemaAttrs = array();
-    
+
     /**
      * Returns the Net_LDAP Release version.
      *
@@ -590,7 +591,7 @@ define ('NET_LDAP_ERROR', 1000);
      *
      * @access public
      * @param string $base LDAP searchbase
-     * @param string $filter LDAP search filter
+     * @param string|Net_LDAP_Filter $filter     LDAP search filter or a Net_LDAP_Filter object
      * @param array $params Array of options
      * @return Net_LDAP_Search|Net_LDAP_Error    Net_LDAP_Search object or Net_LDAP_Error object
      */
@@ -601,6 +602,9 @@ define ('NET_LDAP_ERROR', 1000);
         }
         if (is_null($filter)) {
             $filter = $this->_config['filter'];
+        }
+        if (is_a($filter, 'Net_LDAP_Filter')) {
+            $filter = $filter->asString(); // convert NeT_LDAP_Filter to string representation
         }
 
         /* setting searchparameters  */
