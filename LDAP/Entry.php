@@ -303,7 +303,7 @@ class Net_LDAP_Entry extends PEAR
         $attr = $this->_getAttrName($attr);
 
         if (false == array_key_exists($attr, $this->_attributes)) {
-            return PEAR::raiseError("Unknown attribute requested");
+            return PEAR::raiseError("Unknown attribute ($attr) requested");
         }
 
         $value = $this->_attributes[$attr];

@@ -604,7 +604,10 @@ define ('NET_LDAP_ERROR', 1000);
             $filter = $this->_config['filter'];
         }
         if (is_a($filter, 'Net_LDAP_Filter')) {
-            $filter = $filter->asString(); // convert NeT_LDAP_Filter to string representation
+            $filter = $filter->asString(); // convert Net_LDAP_Filter to string representation
+        }
+        if (PEAR::isError($filter)) {
+            return $filter;
         }
 
         /* setting searchparameters  */
@@ -643,10 +646,10 @@ define ('NET_LDAP_ERROR', 1000);
         if ($err = @ldap_errno($this->_link)) {
             if ($err == 32) {
                 // Errorcode 32 = no such object, i.e. a nullresult.
-                return $obj = & new Net_LDAP_Search ($search, $this);
+                return $obj = & new Net_LDAP_Search ($search, $this, $attributes);
             } elseif ($err == 4) {
                 // Errorcode 4 = sizelimit exeeded. TODO
-                return $obj = & new Net_LDAP_Search ($search, $this);
+                return $obj = & new Net_LDAP_Search ($search, $this, $attributes);
             } elseif ($err == 87) {
                 // bad search filter
                 return $this->raiseError($this->errorMessage($err) . "($filter)", $err);
@@ -655,7 +658,7 @@ define ('NET_LDAP_ERROR', 1000);
                 return $this->raiseError($this->errorMessage($err) . $msg, $err);
             }
         } else {
-            return $obj = & new Net_LDAP_Search($search, $this);
+            return $obj = & new Net_LDAP_Search($search, $this, $attributes);
         }
     }
 
