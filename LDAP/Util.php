@@ -76,7 +76,8 @@ class Net_LDAP_Util extends PEAR
      * @access public
      * @param array $attributes Array of attributes
      * @return array Array of UTF8 encoded attributes
-     * @todo the code is doubled in class Net_LDAP! one of the codes should only use the functions provided by the other
+     * @todo the code is doubled in class Net_LDAP! Regarding to Jan utf8-stuff should be done inside Net_LDAP so THIS function is obsolete
+     * @obsolete
      */
     function utf8Encode($attributes)
     {
@@ -89,7 +90,8 @@ class Net_LDAP_Util extends PEAR
      * @access public
      * @param array $attributes Array of attributes
      * @return array Array with decoded attribute values
-     * @todo the code is doubled in class Net_LDAP! one of the codes should only use the functions provided by the other
+     * @todo the code is doubled in class Net_LDAP! Regarding to Jan utf8-stuff should be done inside Net_LDAP so THIS function is obsolete
+     * @obsolete
      */
     function utf8Decode($attributes)
     {
@@ -103,7 +105,8 @@ class Net_LDAP_Util extends PEAR
      * @param array $attributes Array of attributes
      * @param array $function Function to apply to attribute values
      * @return array Array of attributes with function applied to values
-     * @todo the code is doubled in class Net_LDAP! one of the codes should only use the functions provided by the other
+     * @todo the code is doubled in class Net_LDAP! Regarding to Jan utf8-stuff should be done inside Net_LDAP so THIS function is obsolete
+     * @obsolete
      */
     function _utf8($attributes, $function)
     {

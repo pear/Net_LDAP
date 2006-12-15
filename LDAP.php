@@ -1043,7 +1043,7 @@ define ('NET_LDAP_ERROR', 1000);
      * @access public
      * @param array $attributes Array of attributes
      * @return array Array with decoded attribute values
-     * @todo the code is doubled in class Net_LDAP_Util! one of the codes should only use the functions provided by the other
+     * @todo the code is doubled in class Net_LDAP_Util! regarding to Jan, THIS is the function that should be used.
      */
     function utf8Decode($attributes)
     {
@@ -1057,7 +1057,7 @@ define ('NET_LDAP_ERROR', 1000);
      * @param array $attributes Array of attributes
      * @param array $function   Function to apply to attribute values
      * @return array Array of attributes with function applied to values
-     * @todo the code is doubled in class Net_LDAP_Util! one of the codes should only use the functions provided by the other
+     * @todo the code is doubled in class Net_LDAP_Util! regarding to Jan, THIS is the function that should be used.
      */
     function _utf8($attributes, $function)
     {
