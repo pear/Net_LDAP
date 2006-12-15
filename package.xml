@@ -47,6 +47,7 @@
 	  <file name="RootDSE.php"/>
 	  <file name="Schema.php"/>
 	  <file name="Util.php" />
+	  <file name="Filter.php" />
         </dir>
         <dir name="tests" role="test">
 	  <file name="tests.php"/>
