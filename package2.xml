@@ -45,8 +45,7 @@ Net_LDAP layers itself on top of PHP&apos;s existing ldap extensions.
   <api>beta</api>
  </stability>
  <license>GPL License</license>
- <notes>- Added a new LDAP::reBind method. Usefull for first searching for uid=username and then binding as that dn.
-- Fixed bug #289 and #290.
+ <notes>
  </notes>
  <contents>
   <dir name="/">
@@ -211,8 +210,8 @@ $attr = $ldap-&gt;utf8Decode( $entry-&gt;attributes() );
    <notes>- Rewrite of much of the code
 - LOTS of bugs are fixed
 - New class for filter handling (Net_LDAP_Filter)
-- sorting support for searchresults (including multivalued sorting)
-
+- Sorting support for searchresults (including multivalued sorting)
+- Searched Entries can now be fetched as_struct() (array)!
    </notes>
   </release>
  </changelog>
