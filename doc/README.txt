@@ -10,8 +10,8 @@ from the fact that all array/list structures are different due to differences
 in the two languages) is that instead of the method new you'll have to use the
 method connect() instead.
 
-Patches and comments are most welcome! 
-
-Please send them to tarjei - at - nu.no.
+Patches and comments are most welcome!
+Please submit them via PEARS Bug tracking feature or via mail
+to one of Net_LDAPs developers. Use unified context diffs if possible!
 
 Tarjei
