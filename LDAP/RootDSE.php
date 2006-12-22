@@ -38,7 +38,7 @@ class Net_LDAP_RootDSE extends PEAR
      * @var object Net_LDAP_Entry
      **/
     var $_entry;
-    
+
     /**
      * class constructor
      *
