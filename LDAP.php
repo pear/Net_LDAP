@@ -139,6 +139,11 @@ define ('NET_LDAP_ERROR', 1000);
      */
     function &connect($config = array())
     {
+        $ldap_check = Net_LDAP::checkLDAPExtension();
+        if (Net_LDAP::iserror($ldap_check)) {
+            return $ldap_check;
+        }
+
         @$obj = & new Net_LDAP($config);
 
         $err  = $obj->bind();
@@ -162,11 +167,6 @@ define ('NET_LDAP_ERROR', 1000);
     function Net_LDAP($config = array())
     {
         $this->PEAR('Net_LDAP_Error');
-
-        if (!extension_loaded('ldap') && !dl('ldap')){
-            return PEAR::raiseError("It seems that you do not have the ldap-extension installed. Please install it before using this package.");
-        }
-
         $this->_setConfig($config);
     }
 
@@ -1018,6 +1018,24 @@ define ('NET_LDAP_ERROR', 1000);
             $this->_schema->parse($entry);
         }
         return $this->_schema;
+    }
+
+    /**
+    * Checks if phps ldap-extension is loaded
+    *
+    * If it is not loaded, it tries to load it manually using PHPs dl().
+    * It knows both windows-dll and *nix-so.
+    *
+    * @static
+    * @return Net_LDAP_Error|true
+    */
+    function checkLDAPExtension()
+    {
+        if (!extension_loaded('ldap') && !@dl('ldap.so') && !@dl('ldap.dll')){
+            return PEAR::raiseError("It seems that you do not have the ldap-extension installed. Please install it before using the Net_LDAP package.");
+        } else {
+            return true;
+        }
     }
 
     /**
