@@ -1031,7 +1031,7 @@ define ('NET_LDAP_ERROR', 1000);
     */
     function checkLDAPExtension()
     {
-        if (!extension_loaded('ldap') && !@dl('ldap.so') && !@dl('ldap.dll')){
+        if (!extension_loaded('ldap') && !@dl('ldap.' . PHP_SHLIB_SUFFIX)) {
             return PEAR::raiseError("It seems that you do not have the ldap-extension installed. Please install it before using the Net_LDAP package.");
         } else {
             return true;
