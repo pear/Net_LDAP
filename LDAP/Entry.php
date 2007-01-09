@@ -363,7 +363,7 @@ class Net_LDAP_Entry extends PEAR
      * Note, that you can add values of attributes that you haven't selected, but if
      * you do so, {@link getValue()} and {@link getValues()} will only return the
      * values you added, _NOT_ all values present on the server. To avoid this, just refetch
-     * the entry.
+     * the entry after calling {@link update()} or select the attribute.
      *
      * @access public
      * @param array $attr
