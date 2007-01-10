@@ -179,6 +179,8 @@ class Net_LDAP_Entry extends PEAR
      * If the DN was not set, the DN gets initialized. Call {@link update()} to actually create
      * the new Entry in the directory.
      *
+     * Please note that special characters (eg german umlauts) should be encoded using utf8_encode().
+     *
      * @access public
      * @param string $dn New distinguished name
      * @return string|true Distinguished name (or true if a new DN was provided)
@@ -554,10 +556,7 @@ class Net_LDAP_Entry extends PEAR
                 return PEAR::raiseError("Renaming/Moving an entry is only supported in LDAPv3");
             }
             // make dn relative to parent (needed for ldap rename)
-            $parent = ldap_explode_dn($this->_newdn);
-            if (isset($parent["count"])) {
-                unset($parent["count"]);
-            }
+            $parent = $this->ldap_explode_dn_escaped($this->_newdn, 0);
             $child = array_shift($parent);
             $parent = join(",", $parent);
             // rename
@@ -680,6 +679,33 @@ class Net_LDAP_Entry extends PEAR
             return $this->_ldap;
         }
     }
-}
 
+    /**
+     * Wrapper function for PHPs ldap_explode_dn()
+     *
+     * PHPs ldap_explode_dn() does not escape DNs so it will fail
+     * if the parameter $dn is something like <kbd>"<foobar>"</kbd> or contains
+     * Umlauts.
+     * This method ensures, that the DN is properly escaped and encoded.
+     *
+     * It is taken from http://php.net/ldap_explode_dn and slightly modified.
+     *
+     * @author DavidSmith@byu.net
+     * @param string $dn    The DN that should be split
+     * @param string $only
+     * @static
+     */
+    function ldap_explode_dn_escaped($dn, $only_values=0)
+    {
+        $dn = addcslashes( $dn, "<>" );
+        $result = ldap_explode_dn( $dn, $only_values );
+        if (isset($result["count"])) {
+            unset($result["count"]);
+        }
+        //translate hex code into ascii again
+        foreach( $result as $key => $value )
+            $result[$key] = preg_replace("/\\\([0-9A-Fa-f]{2})/e", "''.chr(hexdec('\\1')).''", $value);
+        return $result;
+     }
+}
 ?>
