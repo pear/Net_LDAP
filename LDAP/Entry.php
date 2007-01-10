@@ -174,12 +174,14 @@ class Net_LDAP_Entry extends PEAR
     /**
      * Get or set the distinguished name of the entry
      *
-     * If called without an argument the current dn gets returned, else the
-     * current value gets returned
+     * If called without an argument the current (or the new DN if set) DN gets returned.
+     * If you provide an DN, this entry is moved to the new location specified if a DN existed.
+     * If the DN was not set, the DN gets initialized. Call {@link update()} to actually create
+     * the new Entry in the directory.
      *
      * @access public
      * @param string $dn New distinguished name
-     * @return string Disinguished name
+     * @return string|true Distinguished name (or true if a new DN was provided)
      */
     function dn($dn = null)
     {
@@ -409,6 +411,14 @@ class Net_LDAP_Entry extends PEAR
      * array("attributename" => "value") - The value will be deleted
      * array("attributename" => array("value1", "value2") - The given values
      *                                                      will be deleted
+     * If $attr is null or omitted , then the whole Entry will be deleted!
+     *
+     * These changes are local to the entry and do
+     * not affect the entry on the server until {@link update()} is called.
+     *
+     * Please note that you must select the attribute (at $ldap->search() for example)
+     * to be able to delete values of it, Otherwise {@link update()} will silently fail
+     * and remove nothing.
      *
      * @access public
      * @param string|array $attr
@@ -417,6 +427,7 @@ class Net_LDAP_Entry extends PEAR
     {
         if (is_null($attr)) {
             $this->_delete = true;
+            return;
         }
         if (is_string($attr)) {
             $attr = array($attr);
@@ -432,7 +443,7 @@ class Net_LDAP_Entry extends PEAR
                 }
             }
         } else {
-            // Here we have a hash with "attributename"" => "value to delete"
+            // Here we have a hash with "attributename" => "value to delete"
             foreach ($attr as $name => $values) {
                 // get the correct attribute name
                 $name = $this->_getAttrName($name);
@@ -467,6 +478,9 @@ class Net_LDAP_Entry extends PEAR
      *       "attribute2name" => array("value1", "value2"))
      * If the attribute does not yet exist it will be added instead.
      * If the attribue value is null, the attribute will de deleted
+     *
+     * These changes are local to the entry and do
+     * not affect the entry on the server until {@link update()} is called.
      *
      * @access public
      * @param array $attr
@@ -621,7 +635,7 @@ class Net_LDAP_Entry extends PEAR
      * @param Net_LDAP $ldap       Net_LDAP
      * @param string   $dn         New distinguished name
      * @param boolean  $relative   Is the new name relative to current parent
-     * @return Net_LDAP_Entry|Net_LDAP_Error   Reference to Net_LDAP_Entry or Net_LDAP_Error
+     * @return Net_LDAP_Entry|Net_LDAP_Error   Reference to the copied Net_LDAP_Entry or Net_LDAP_Error
      */
     function &copy(&$ldap, $dn, $relative = false)
     {
