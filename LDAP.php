@@ -795,6 +795,9 @@ define ('NET_LDAP_ERROR', 1000);
     */
    function &getEntry($dn, $attr = array())
    {
+        if (!is_array($attr)) {
+            $attr = array($attr);
+        }
         $result = $this->search($dn, '(objectClass=*)',
                                 array('scope' => 'base', 'attributes' => $attr));
         if (Net_LDAP::isError($result)) {
