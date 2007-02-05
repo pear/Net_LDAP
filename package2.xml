@@ -28,24 +28,33 @@ Net_LDAP layers itself on top of PHP&apos;s existing ldap extensions.
   <email>wagner@netsols.de</email>
   <active>yes</active>
  </lead>
- <developer>
+ <lead>
   <name>Benedikt Hallinger</name>
   <user>beni</user>
   <email>beni@php.net</email>
   <active>yes</active>
- </developer>
- <date>2006-12-21</date>
- <time>13:49:41</time>
+ </lead>
+ <date>2007-02-05</date>
+ <time>16:00:00</time>
  <version>
-  <release>0.6.4</release>
-  <api>0.6.4</api>
+  <release>0.7.0</release>
+  <api>0.7.0</api>
  </version>
  <stability>
   <release>beta</release>
   <api>beta</api>
  </stability>
  <license>GPL License</license>
- <notes>
+ <notes>This long awaited release of Net_LDAP features more stability and new functionality.
+The main changes are:
+- Rewrite of much of the code (including some api changes!)
+- LOTS of fixed bugs!
+- New class for easy filter handling (Net_LDAP_Filter)
+- Sorting support for searchresults (including multivalued sorting!)
+- Searched Entries can now be fetched as_struct() (array)!
+- Some memory optimizations
+
+Please note also that Net_LDAPs configuration changed slightly. Please see $_config in LDAP.php for the new parameters.
  </notes>
  <contents>
   <dir name="/">
@@ -74,7 +83,7 @@ Net_LDAP layers itself on top of PHP&apos;s existing ldap extensions.
  <dependencies>
   <required>
    <php>
-    <min>4.0.0</min>
+    <min>4.2.0</min>
    </php>
    <pearinstaller>
     <min>1.4.0b1</min>
@@ -194,24 +203,6 @@ $entry-&gt;modify($attr);
 $attr = $ldap-&gt;utf8Decode( $entry-&gt;attributes() );
 - This means Net_LDAP_Util is useless right now, but will be extended in the future.
 - Jan did a complete overhaul of the phpdoc stuff. Everything seems to be fine now with phpDocumentor.
-   </notes>
-  </release>
-  <release>
-   <version>
-    <release>0.6.99</release>
-    <api>0.6.99</api>
-   </version>
-   <stability>
-    <release>beta</release>
-    <api>beta</api>
-   </stability>
-   <date>2006-12-21</date>
-   <license>GPL License</license>
-   <notes>- Rewrite of much of the code
-- LOTS of bugs are fixed
-- New class for filter handling (Net_LDAP_Filter)
-- Sorting support for searchresults (including multivalued sorting)
-- Searched Entries can now be fetched as_struct() (array)!
    </notes>
   </release>
  </changelog>

@@ -123,7 +123,7 @@ define ('NET_LDAP_ERROR', 1000);
      */
     function getVersion()
     {
-        return "0.6.99";
+        return "0.7.0";
     }
 
     /**
