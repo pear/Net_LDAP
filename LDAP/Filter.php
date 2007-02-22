@@ -55,7 +55,7 @@ require_once("PEAR.php");
 * </code>
 *
 * @package Net_LDAP
-* @author Benedikt Hallinger <b.hallinger@skyforcesystems.de>
+* @author Benedikt Hallinger <beni@php.net>
 * @version $Revision$
 */
 

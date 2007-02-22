@@ -39,14 +39,16 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <date></date>
     <version>
         <release>0.7.1</release>
-        <api>0.7.1</api>
+        <api>0.7.0</api>
     </version>
     <stability>
         <release>beta</release>
         <api>beta</api>
     </stability>
     <license>GPL License</license>
-    <notes>
+    <notes>This is not just a bugfix release of 0.7.0 but also introduces some internal optimisations:
+           - Fixed a connection bug whith LDAP V3 only servers
+           - clearer sanitizing of the host config parameter
     </notes>
 
     <contents>

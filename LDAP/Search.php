@@ -28,6 +28,7 @@
  * Result set of an LDAP search
  *
  * @author  Tarjei Huse
+ * @author  Benedikt Hallinger <beni@php.net>
  * @version $Revision$
  * @package Net_LDAP
  */

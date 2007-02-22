@@ -12,7 +12,8 @@
  * @author      Tarjej Huse
  * @author      Jan Wagner
  * @author      Del <del@babel.com.au>
- * @copyright   2003-2006 Tarjej Huse, Jan Wagner, Del Elson.
+ * @author      Benedikt Hallinger <beni@php.net>
+ * @copyright   2003-2007 Tarjej Huse, Jan Wagner, Del Elson, Benedikt Hallinger
  * @license     http://www.gnu.org/copyleft/lesser.html
  * @version     CVS: $Id$
  * @link        http://pear.php.net/package/Net_LDAP/
@@ -39,7 +40,8 @@ define ('NET_LDAP_ERROR', 1000);
  * @author      Tarjej Huse
  * @author      Jan Wagner
  * @author      Del <del@babel.com.au>
- * @copyright   2003-2006 Tarjej Huse, Jan Wagner, Del Elson.
+ * @author      Benedikt Hallinger <beni@php.net>
+ * @copyright   2003-2007 Tarjej Huse, Jan Wagner, Del Elson, Benedikt Hallinger
  * @license     http://www.gnu.org/copyleft/lesser.html
  * @version     CVS: $Id$
  * @link        http://pear.php.net/package/Net_LDAP/
@@ -49,7 +51,7 @@ define ('NET_LDAP_ERROR', 1000);
     /**
      * Class configuration array
      *
-     * host     = the ldap host to connect to
+     * host     = the ldap host to connect to (may be an array of several hosts to try)
      * port     = the server port
      * version  = ldap version (defaults to v 3)
      * starttls = when set, ldap_start_tls() is run after connecting.
@@ -75,7 +77,7 @@ define ('NET_LDAP_ERROR', 1000);
                           'scope'    => 'sub');
 
     /**
-     * Host List
+     * List of hosts we try to establish a connection to
      *
      * @access private
      * @var array
@@ -123,7 +125,7 @@ define ('NET_LDAP_ERROR', 1000);
      */
     function getVersion()
     {
-        return "0.7.0";
+        return '0.7.1';
     }
 
     /**
@@ -158,6 +160,10 @@ define ('NET_LDAP_ERROR', 1000);
      * Net_LDAP constructor
      *
      * Sets the config array
+     *
+     * Please note that the usual way of getting Net_LDAP to work is
+     * to call something like:
+     * <code>$ldap = Net_LDAP::connect($ldap_config);</code>
      *
      * @access protected
      * @param array $config Configuration array
@@ -216,7 +222,11 @@ define ('NET_LDAP_ERROR', 1000);
         if (is_array($this->_config['host'])) {
             $this->_host_list = $this->_config['host'];
         } else {
-            $this->_host_list = array($this->_config['host']);
+             if (strlen($this->_config['host']) > 0) {
+                $this->_host_list = array($this->_config['host']);
+             } else {
+                 $this->_host_list = array(); // this will cause an error in _connect(), so the user is notified
+             }
         }
 
         //
@@ -240,7 +250,8 @@ define ('NET_LDAP_ERROR', 1000);
      */
     function bind($dn = null, $password = null)
     {
-        if (Net_LDAP::isError($msg = $this->_connect())) {
+        $msg = $this->_connect();
+        if (Net_LDAP::isError($msg)) {
             return $msg;
         }
         if (is_null($dn)) {
@@ -290,14 +301,30 @@ define ('NET_LDAP_ERROR', 1000);
         //
 
         //
-        // Trick to catch empty _host_list arrays.
+        // Default error message in case all connection attempts fail but no message is set
         //
-        $current_error = PEAR::raiseError('Please pass in an array of servers to Net_LDAP');
+        $current_error = PEAR::raiseError('Unknown connection error');
+
+        //
+        // Catch empty $_host_list arrays.
+        //
+        if (!is_array($this->_host_list) || count($this->_host_list) == 0) {
+            $current_error = PEAR::raiseError('No Servers configured! Please pass in an array of servers to Net_LDAP');
+            return $current_error;
+        }
 
         //
         // Cycle through the host list.
         //
         foreach ($this->_host_list as $host) {
+
+            //
+            // Ensure we have a valid string for host name
+            //
+            if (is_array($host)) {
+                $current_error = PEAR::raiseError('No Servers configured! Please pass in an one dimensional array of servers to Net_LDAP! (multidimensional array detected!)');
+                continue;
+            }
 
             //
             // Skip this host if it is known to be down.
@@ -323,6 +350,16 @@ define ('NET_LDAP_ERROR', 1000);
             }
 
             //
+            // Set LDAP version before trying to bind.
+            //
+            if (Net_LDAP::isError($msg = $this->setLDAPVersion())) {
+                $current_error = $msg;
+                $this->_link = false;
+                $this->_down_host_list[] = $host;
+                continue;
+            }
+
+            //
             // Attempt an anonymous bind.
             //
             if (! @ldap_bind($this->_link)) {
@@ -343,12 +380,6 @@ define ('NET_LDAP_ERROR', 1000);
             //
             // Set LDAP parameters, now we know we have a valid connection.
             //
-            if (Net_LDAP::isError($msg = $this->setLDAPVersion())) {
-                $current_error = $msg;
-                $this->_link = false;
-                $this->_down_host_list[] = $host;
-                continue;
-            }
             if ($this->_config["starttls"] === true) {
                 if (Net_LDAP::isError($msg = $this->startTLS())) {
                     $current_error = $msg;
@@ -380,7 +411,7 @@ define ('NET_LDAP_ERROR', 1000);
 
 
         //
-        // All connection attempts have failed.
+        // All connection attempts have failed, return the last error.
         //
         return $current_error;
     }
@@ -690,7 +721,7 @@ define ('NET_LDAP_ERROR', 1000);
                 return $this->raiseError("Unkown Option requested");
             }
         } else {
-            return $this->raiseError("No LDAP connection");
+            return $this->raiseError("Could not set LDAP option: No LDAP connection");
         }
     }
 
