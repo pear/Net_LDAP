@@ -38,17 +38,15 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <!-- Information for this release -->
     <date></date>
     <version>
-        <release>0.7.1</release>
-        <api>0.7.0</api>
+        <release></release>
+        <api></api>
     </version>
     <stability>
         <release>beta</release>
         <api>beta</api>
     </stability>
     <license>GPL License</license>
-    <notes>This is not just a bugfix release of 0.7.0 but also introduces some internal optimisations:
-           - Fixed a connection bug whith LDAP V3 only servers
-           - clearer sanitizing of the host config parameter
+    <notes>
     </notes>
 
     <contents>
@@ -223,6 +221,22 @@ http://pear.php.net/dtd/package-2.0.xsd">
                    - Some memory optimizations
 
                    Please note also that Net_LDAPs configuration changed slightly. Please see $_config in LDAP.php for the new parameters.
+            </notes>
+        </release>
+        <release>
+            <date>2007-02-23</date>
+            <version>
+                <release>0.7.1</release>
+                <api>0.7.0</api>
+            </version>
+            <stability>
+                <release>beta</release>
+                <api>beta</api>
+            </stability>
+            <license>GPL License</license>
+            <notes>This is not just a bugfix release of 0.7.0 but also introduces some internal optimisations:
+                   - Fixed a connection bug whith LDAP V3 only servers
+                   - clearer sanitizing of the host config parameter
             </notes>
         </release>
     </changelog>
