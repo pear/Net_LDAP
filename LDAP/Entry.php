@@ -19,12 +19,13 @@
 // | License along with this library; if not, write to the Free Software      |
 // | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA |
 // +--------------------------------------------------------------------------+
-// | Authors: Jan Wagner                                                     |
+// | Authors: Jan Wagner, Tarjej Huse                                         |
 // +--------------------------------------------------------------------------+
 //
 // $Id$
 
 require_once("PEAR.php");
+require_once('Util.php');
 
 /**
  * Object representation of a directory entry
@@ -556,7 +557,7 @@ class Net_LDAP_Entry extends PEAR
                 return PEAR::raiseError("Renaming/Moving an entry is only supported in LDAPv3");
             }
             // make dn relative to parent (needed for ldap rename)
-            $parent = $this->ldap_explode_dn_escaped($this->_newdn, 0);
+            $parent = Net_LDAP_Util::ldap_explode_dn_escaped($this->_newdn, 0);
             $child = array_shift($parent);
             $parent = join(",", $parent);
             // rename
@@ -679,33 +680,5 @@ class Net_LDAP_Entry extends PEAR
             return $this->_ldap;
         }
     }
-
-    /**
-     * Wrapper function for PHPs ldap_explode_dn()
-     *
-     * PHPs ldap_explode_dn() does not escape DNs so it will fail
-     * if the parameter $dn is something like <kbd>"<foobar>"</kbd> or contains
-     * Umlauts.
-     * This method ensures, that the DN is properly escaped and encoded.
-     *
-     * It is taken from http://php.net/ldap_explode_dn and slightly modified.
-     *
-     * @author DavidSmith@byu.net
-     * @param string $dn    The DN that should be split
-     * @param string $only
-     * @static
-     */
-    function ldap_explode_dn_escaped($dn, $only_values=0)
-    {
-        $dn = addcslashes( $dn, "<>" );
-        $result = ldap_explode_dn( $dn, $only_values );
-        if (isset($result["count"])) {
-            unset($result["count"]);
-        }
-        //translate hex code into ascii again
-        foreach( $result as $key => $value )
-            $result[$key] = preg_replace("/\\\([0-9A-Fa-f]{2})/e", "''.chr(hexdec('\\1')).''", $value);
-        return $result;
-     }
 }
 ?>

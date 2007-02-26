@@ -25,9 +25,12 @@
 // $Id$
 
 require_once("PEAR.php");
+require_once('Util.php');
 
 /**
 * Object representation of a part of a LDAP filter.
+*
+* This Class is not completely compatible to the PERL interface!
 *
 * The purpose of this class is, that users can easily build LDAP filters
 * without having to worry about right escaping etc.
@@ -284,20 +287,11 @@ class Net_LDAP_Filter extends PEAR
     * @static
     * @param string $string  Any string who should be escaped
     * @return string         The string $string, but escaped
-    * @todo "null" escaping stuff needs some work i think...
     */
     function escape($string)
     {
-        $string = str_replace('*', '\0x2a', $string);
-        $string = str_replace('(', '\0x28', $string);
-        $string = str_replace(')', '\0x29', $string);
-        $string = str_replace('\\', '\0x5c', $string);
-
-        // null escaping seems to never apply. This probably needs some work!
-        $string = str_replace(null, '\0x2a', $string);
-        if ($string == null) $string = '\0x2a';  // apply escaped "null" if string is empty
-
-        return $string;
+        $array = Net_LDAP_Util::escape_filter_value(array($string));
+        return $array[0];
     }
 
     /**
