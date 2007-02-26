@@ -558,6 +558,10 @@ class Net_LDAP_Entry extends PEAR
             }
             // make dn relative to parent (needed for ldap rename)
             $parent = Net_LDAP_Util::ldap_explode_dn_escaped($this->_newdn, 0);
+            //NEW CODE: $parent = Net_LDAP_Util::ldap_explode_dn($this->_newdn, array('casefolding' => 'none', 'reverse' => false, 'onlyvalues' => false))
+            if (Net_LDAP::isError($parent)) {
+                return $parent;
+            }
             $child = array_shift($parent);
             $parent = join(",", $parent);
             // rename

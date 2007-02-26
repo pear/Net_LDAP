@@ -23,9 +23,14 @@
 // +--------------------------------------------------------------------------+
 //
 // $Id$
+require "PEAR.php";
+
 
 /**
  * Utility Class for Net_LDAP
+ *
+ * This class servers some functionality to the other classes of Net_LDAP but most of
+ * the methods can be used separately as well.
  *
  * @package Net_LDAP
  * @author Benedikt Hallinger <beni@php.net>
@@ -60,11 +65,15 @@ class Net_LDAP_Util extends PEAR
      * @param string $dn           The DN that should be split
      * @param string $only_values  Return just values, no attribute names ('foo' instead of 'cn=foo')
      * @static
+     * @deprecated This method gets superseeded by ldap_explode_dn(), if it is done
      */
     function ldap_explode_dn_escaped($dn, $only_values = 0)
     {
         $dn = addcslashes( $dn, "<>" );
         $result = ldap_explode_dn( $dn, $only_values );
+        if (!$result) {
+            return PEAR::raiseError("Error exploding DN: invalid DN!");
+        }
         if (isset($result["count"])) {
             unset($result["count"]);
         }
@@ -75,25 +84,22 @@ class Net_LDAP_Util extends PEAR
      }
 
     /**
-    * Comment taken from CPAN:
+    * Explodes the given DN into its elements
     *
-    * Explodes the given DN into an array of hashes and returns a reference to this array.
-    * Returns undef if DN is not a valid Distinguished Name.
-    * A Distinguished Name is a sequence of Relative Distinguished Names (RDNs), which themselves
-    * are sets of Attributes. For each RDN a hash is constructed with the attribute type names as
-    * keys and the attribute values as corresponding values. These hashes are then stored in an
-    * array in the order in which they appear in the DN.
+    * {@link http://www.ietf.org/rfc/rfc2253.txt RFC 2253} says, a Distinguished Name is a sequence
+    * of Relative Distinguished Names (RDNs), which themselves
+    * are sets of Attributes. For each RDN a array is constructed where the RDN part is stored.
     *
     * For example, the DN 'OU=Sales+CN=J. Smith,DC=example,DC=net' is exploded to:
-    * [ { 'OU' => 'Sales', 'CN' => 'J. Smith' }, { 'DC' => 'example' }, { 'DC' => 'net' } ]
+    * <kbd>array( [0] => 'OU=Sales', [1] => 'CN=J. Smith', [2] => 'DC=example', [3] => 'DC=net' )</kbd>
     *
-    * (RFC2253 string) DNs might also contain values, which are the bytes of the BER encoding of
+    * [NOT IMPLEMENTED] DNs might also contain values, which are the bytes of the BER encoding of
     * the X.500 AttributeValue rather than some LDAP string syntax. These values are hex-encoded
     * and prefixed with a #. To distinguish such BER values, ldap_explode_dn uses references to
     * the actual values, e.g. '1.3.6.1.4.1.1466.0=#04024869,DC=example,DC=com' is exploded to:
     * [ { '1.3.6.1.4.1.1466.0' => "\004\002Hi" }, { 'DC' => 'example' }, { 'DC' => 'com' } ];
     *
-    * It also performs the following operations on the given DN:
+    * [NOT IMPLEMENTED] It also performs the following operations on the given DN:
     *   - Unescape "\" followed by ",", "+", """, "\", "<", ">", ";", "#", "=", " ", or a hexpair
     *     and and strings beginning with "#".
     *   - Removes the leading 'OID.' characters if the type is an OID instead of a name.
@@ -106,16 +112,46 @@ class Net_LDAP_Util extends PEAR
     *               upper        Uppercase attribute type names. This is the default.
     *               none         Do not change attribute type names.
     *   reverse     If TRUE, the RDN sequence is reversed.
+    *   onlyvalues  If TRUE, then only attributes values are returned ('foo' instead of 'cn=foo')
     *
-    * @todo implement me!
+    * @todo Escaping stuff needs to be implemented completely: http://www.ietf.org/rfc/rfc2253.txt
+    * @todo OID stuff needs to be implemented
+    * @todo The return value is currently php-like. Maybe we should return exactly the structure perl would return
+    * @todo ldap_explode_dn does not (un)escape anything thus we should maybe code our own exploding mechanism. We could use unescape_dn_value() to do that
     * @static
-    * @param string $dn      The DN that should be exploded
+    * @author beni@php.net, based on work from DavidSmith@byu.net
+    * @param string $dn      The escaped DN that should be exploded
     * @param array  $options  Options to use
     * @return array    Parts of the exploded DN
     */
     function ldap_explode_dn($dn, $options = array('casefold' => 'upper'))
     {
-        PEAR::raiseError("Not implemented!");
+        $options['onlyvalues'] == true ? $options['onlyvalues'] = 1 : $options['onlyvalues'] = 0;
+        !isset($options['reverse']) ? $options['reverse'] = false : $options['reverse'] = true;
+        if (!isset($options['casefold'])) $options['casefold'] = 'upper';
+
+        // Escaping of DN
+        $dn = addcslashes( $dn, "<>" );
+        $dn_array = ldap_explode_dn( $dn, $options['onlyvalues'] );
+        if (!$dn_array) {
+            return PEAR::raiseError("Error exploding DN: invalid DN!");
+        }
+        if (isset($dn_array["count"])) {
+            unset($dn_array["count"]);
+        }
+
+        //translate hex code into ascii again and apply case folding
+        foreach ( $dn_array as $key => $value ) {
+            $value = preg_replace("/\\\([0-9A-Fa-f]{2})/e", "''.chr(hexdec('\\1')).''", $value);
+            if ($options['casefold'] == 'upper') $value = preg_replace("/^(\w+)=/e", "''.strtoupper('\\1').''", $value);
+            if ($options['casefold'] == 'lower') $value = preg_replace("/^(\w+)=/e", "''.strtolower('\\1').''", $value);
+        }
+
+        if ($options['reverse']) {
+            return array_reverse($dn_array);
+        } else {
+            return $dn_array;
+        }
     }
 
     /**
