@@ -684,5 +684,68 @@ class Net_LDAP_Entry extends PEAR
             return $this->_ldap;
         }
     }
+
+    /**
+    * Applies a regular expression onto a single- or multivalued attribute (like preg_match())
+    *
+    * This method behaves like PHPs preg_match() but with some exceptions.
+    * If you want to retrieve match information, then you MUST pass the
+    * $matches parameter via reference! otherwise you will get no matches.
+    * Since it is possible to have multi valued attributes the $matches
+    * array will have a additionally numerical dimension (one for each value):
+    * <code>
+    * $matches = array(
+    *         0 => array (usual preg_match() returnarray),
+    *         1 => array (usual preg_match() returnarray)
+    *     )
+    * </code>
+    * Please note, that $matches will be initialized to an empty array inside.
+    *
+    * Usage example:
+    * <code>
+    * $result = $entry->preg_match('/089(\d+)/', 'telephoneNumber', &$matches);
+    * if ( $result === true ){
+    *     echo "First match: ".$matches[0][1];   // Match of value 1, content of first bracket
+    * } else {
+    *     if ( Net_LDAP::isError($result) ) {
+    *         echo "Error: ".$result->getMessage();
+    *     } else {
+    *         echo "No match found.";
+    *     }
+    * }
+    * </code>
+    *
+    * Please note that it is important to test for an Net_LDAP_Error, because objects are
+    * evaluating to true by default, thus if a error occured, and you only check using "==" then
+    * you get misleading results. Use the "identical" (===) operator to test for matches to
+    * avoid this as shown above.
+    *
+    * @param string $regex     The regular expression
+    * @param string $attr_name The attribute to search in
+    * @param array  $matches   (optional, PASS BY REFERENCE!) Array to store matches in
+    * @return boolean|Net_LDAP_Error  TRUE, if we had a match in one of the values, otherwise false. Net_LDAP_Error in case something went wrong
+    */
+    function preg_match($regex, $attr_name, $matches = array()){
+        $matches = array();
+
+        // fetch attribute values
+        $attr = $this->getValue($attr_name, 'all');
+        if (Net_LDAP::isError($attr)) {
+            return $attr;
+        } else {
+            unset($attr['count']);
+        }
+
+        // perform preg_match() on all values
+        $match = false;
+        foreach ($attr as $thisvalue) {
+            $matches_int = array();
+            if (preg_match($regex, $thisvalue, $matches_int)) {
+                $match = true;
+                array_push($matches, $matches_int); // store matches in reference
+            }
+        }
+        return $match;
+    }
 }
 ?>
