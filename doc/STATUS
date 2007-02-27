@@ -1,5 +1,7 @@
-This is the first release of Net_Ldap. It is a clone of Perls Net::LDAP interface 
-to ldapservers. Enjoy!
+This is the status file of PEAR::Net_LDAP which is a clone of Perls Net::LDAP interface
+to ldapservers but also features some unique possibilitys. This file is a brief overview
+of changes introduced. Please refer to the PEAR site since the information in this file
+may be out of date.
 
 Changelog:
 * 0.1       initial release
