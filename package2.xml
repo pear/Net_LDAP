@@ -38,15 +38,24 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <!-- Information for this release -->
     <date></date>
     <version>
-        <release></release>
-        <api></api>
+        <release>0.7.2</release>
+        <api>0.7.2</api>
     </version>
     <stability>
         <release>beta</release>
         <api>beta</api>
     </stability>
     <license>GPL License</license>
-    <notes>
+    <notes>This release features some internal code movements to be more compatible to PERL::Net_LDAP.
+           The movements include:
+              * Removed UTF8 en-/decoding stuff from Net_LDAP_Utils class since this was moved to Net_LDAP class in 0.6.6
+              * Moved Filter encoding from Net_LDAP_Filter to Net_LDAP_Util
+              * Moved ldap_explode_dn_escaped() from Net_LDAP_Entry to Net_LDAP_Util
+              * Added perls functions from Net_LDAP::Util to our Util class, but they still need some work
+           Please note that ldap_explode_dn_escaped() is not available from Net_LDAP_Entry anymore.
+
+           Additionally some new functionality has been introduced. You can now apply regular expressions
+           directly to a entrys attributes and don't need to fetch the attribute values manually.
     </notes>
 
     <contents>
