@@ -54,8 +54,14 @@ http://pear.php.net/dtd/package-2.0.xsd">
               * Added perls functions from Net_LDAP::Util to our Util class, but they still need some work
            Please note that ldap_explode_dn_escaped() is not available from Net_LDAP_Entry anymore.
 
-           Additionally some new functionality has been introduced. You can now apply regular expressions
-           directly to a entrys attributes and don't need to fetch the attribute values manually.
+           Additionally some new functionality has been introduced:
+              * You can now apply regular expressions directly to a entrys attributes
+                and don't need to fetch the attribute values manually.
+              * Net_LDAP_Schema can check if a attributes syntax is binary
+
+           The following bugs have been resolved:
+              * Connections to LDAP servers that forbid anonymous binds are possible again
+              * The JPEG attribute is now properly returned as binary value instead of string
     </notes>
 
     <contents>
