@@ -203,6 +203,8 @@ class Net_LDAP_Entry extends PEAR
      * Sets the internal attributes array
      *
      * This fetches the values for the attributes from the server.
+     * The attribute Syntax will be checked so binary attributes will be returned
+     * as binary values
      *
      * @access private
      * @param array $attributes
@@ -226,14 +228,12 @@ class Net_LDAP_Entry extends PEAR
                     $attr = @ldap_next_attribute($this->_link, $this->_entry, $ber);
                 }
                 if ($attr) {
-                    $func = 'ldap_get_values'; // function to fetch value
+                    $func = 'ldap_get_values'; // standard function to fetch value
+
+                    // Try to get binary values as binary data
                     if (is_a($schema, 'Net_LDAP_Schema')) {
-                        // try to get binary values as binary data
-                        $attr_s = $schema->get('attribute', $attr);
-                        if (false === Net_LDAP::isError($attr_s)) {
-                            if (false !== strpos($attr_s['syntax'], NET_LDAP_SYNTAX_OCTET_STRING)) {
-                                $func = 'ldap_get_values_len';
-                            }
+                        if ($schema->isBinary($attr)) {
+                             $func = 'ldap_get_values_len';
                         }
                     }
                     // fetch attribute value (needs error checking?)

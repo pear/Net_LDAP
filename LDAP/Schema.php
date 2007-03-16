@@ -24,13 +24,20 @@
 //
 // $Id$
 
-define('NET_LDAP_SYNTAX_BOOLEAN', '1.3.6.1.4.1.1466.115.121.1.7');
-define('NET_LDAP_SYNTAX_DIRECTORY_STRING', '1.3.6.1.4.1.1466.115.121.1.15');
+/**
+* Syntax definitions
+*
+* Please don't forget to add binary attributes to isBinary() below
+* to support proper value fetching from Net_LDAP_Entry
+*/
+define('NET_LDAP_SYNTAX_BOOLEAN',            '1.3.6.1.4.1.1466.115.121.1.7');
+define('NET_LDAP_SYNTAX_DIRECTORY_STRING',   '1.3.6.1.4.1.1466.115.121.1.15');
 define('NET_LDAP_SYNTAX_DISTINGUISHED_NAME', '1.3.6.1.4.1.1466.115.121.1.12');
-define('NET_LDAP_SYNTAX_INTEGER', '1.3.6.1.4.1.1466.115.121.1.27');
-define('NET_LDAP_SYNTAX_NUMERIC_STRING', '1.3.6.1.4.1.1466.115.121.1.36');
-define('NET_LDAP_SYNTAX_OID', '1.3.6.1.4.1.1466.115.121.1.38');
-define('NET_LDAP_SYNTAX_OCTET_STRING', '1.3.6.1.4.1.1466.115.121.1.40');
+define('NET_LDAP_SYNTAX_INTEGER',            '1.3.6.1.4.1.1466.115.121.1.27');
+define('NET_LDAP_SYNTAX_JPEG',               '1.3.6.1.4.1.1466.115.121.1.28');
+define('NET_LDAP_SYNTAX_NUMERIC_STRING',     '1.3.6.1.4.1.1466.115.121.1.36');
+define('NET_LDAP_SYNTAX_OID',                '1.3.6.1.4.1.1466.115.121.1.38');
+define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
 
 /**
  * Load an LDAP Schema and provide information
@@ -359,6 +366,34 @@ define('NET_LDAP_SYNTAX_OCTET_STRING', '1.3.6.1.4.1.1466.115.121.1.40');
         }
         return $tokens;
     }
- }
 
+    /**
+    * Returns wether a attribute syntax is binary or not
+    *
+    * This method gets used by Net_LDAP_Entry to decide which
+    * PHP function needs to be used to fetch the value in the
+    * proper format (e.g. binary or string)
+    *
+    * @param string $attribute   the name of the attribute (eg.: 'sn')
+    * @return boolean
+    */
+    function isBinary($attribute)
+    {
+        // This list contains all syntax that should be treaten as
+        // containing binary values
+        // The Syntax Definitons go into constants at the top of this page
+        $syntax_binary = array(
+                           'NET_LDAP_SYNTAX_OCTET_STRING',
+                           'NET_LDAP_SYNTAX_JPEG'
+                         );
+
+        // Check Syntax (defined in Net_LDAP_Schema)
+        $attr_s = $this->get('attribute', $attribute);
+        if (false === Net_LDAP::isError($attr_s) && in_array($attr_s, $syntax_binary)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+ }
 ?>
