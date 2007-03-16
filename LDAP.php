@@ -361,21 +361,37 @@ define ('NET_LDAP_ERROR', 1000);
             }
 
             //
-            // Attempt an anonymous bind.
+            // Attempt an anonymous bind to see if we can bind to the server
+            // If it fails, we try a privilegued bind since some servers don't
+            // allow anonymous connections at all
             //
             if (! @ldap_bind($this->_link)) {
-                $current_error = PEAR::raiseError("Bind failed: " .
+                // Anonymous bind failed, try privilegued bind if we have credentials
+                if ($this->_config['binddn']) {
+                    $msg = $this->bind($this->_config['binddn'], $this->_config['bindpw']);
+                    if (Net_LDAP::isError($msg)) {
+                        // The privilegued bind failed too, discard link and save error msg
+                        $this->_link = false;
+                        $current_error = $msg;
+                    }
+                } else {
+                    // Failed, so discard the link
+                    // DO NOT attempt to call ldap_close on this connection ID,
+                    // even attempting to do so can be fatal.  Just discard the
+                    // link ID!
+                    $this->_link = false;
+                    $current_error = PEAR::raiseError("Bind failed: " .
                                         @ldap_error($this->_link),
                                         @ldap_errno($this->_link));
+                }
 
-                //
-                // DO NOT attempt to call ldap_close on this connection ID,
-                // even attempting to do so can be fatal.  Just discard the
-                // link ID and record the host as down.
-                //
-                $this->_link = false;
-                $this->_down_host_list[] = $host;
-                continue;
+                // Record the host as down and try next host
+                // if the privelegued bind failed or we don't
+                // had credentials and the anonymous bind failed
+                if ($this->_link == false) {
+                    $this->_down_host_list[] = $host;
+                    continue;
+                }
             }
 
             //
