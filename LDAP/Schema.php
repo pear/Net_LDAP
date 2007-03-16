@@ -383,13 +383,13 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
         // containing binary values
         // The Syntax Definitons go into constants at the top of this page
         $syntax_binary = array(
-                           'NET_LDAP_SYNTAX_OCTET_STRING',
-                           'NET_LDAP_SYNTAX_JPEG'
+                           NET_LDAP_SYNTAX_OCTET_STRING,
+                           NET_LDAP_SYNTAX_JPEG
                          );
 
         // Check Syntax (defined in Net_LDAP_Schema)
         $attr_s = $this->get('attribute', $attribute);
-        if (false === Net_LDAP::isError($attr_s) && in_array($attr_s, $syntax_binary)) {
+        if (false === Net_LDAP::isError($attr_s) && in_array($attr_s['syntax'], $syntax_binary)) {
             return true;
         } else {
             return false;
