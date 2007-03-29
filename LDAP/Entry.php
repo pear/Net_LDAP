@@ -216,7 +216,7 @@ class Net_LDAP_Entry extends PEAR
         {
             // fetch schema
             if (is_a($this->_ldap, 'Net_LDAP')) {
-                $schema = $this->_ldap->schema();
+                $schema =& $this->_ldap->schema();
             }
             // fetch attributes
             $attributes = array();

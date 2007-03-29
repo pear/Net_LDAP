@@ -104,6 +104,8 @@ define ('NET_LDAP_ERROR', 1000);
     /**
      * Net_LDAP_Schema object
      *
+     * This gets set and returned by {@link schema()}
+     *
      * @access private
      * @var object Net_LDAP_Schema
      */
@@ -837,6 +839,7 @@ define ('NET_LDAP_ERROR', 1000);
    /**
     * Get a specific entry based on the dn
     *
+    * @todo Maybe check against the shema should be done to be sure the attribute type exists
     * @param string $dn   DN of the entry that should be fetched
     * @param array  $attr Array of Attributes to select
     * @return Net_LDAP_Entry|Net_LDAP_Error    Reference to a Net_LDAP_Entry object or Net_LDAP_Error object
