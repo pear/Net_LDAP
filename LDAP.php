@@ -839,7 +839,7 @@ define ('NET_LDAP_ERROR', 1000);
     *
     * @param string $dn   DN of the entry that should be fetched
     * @param array  $attr Array of Attributes to select
-    * @return Net_LDAP_Error|true    Reference to Net_LDAP_Error object or true
+    * @return Net_LDAP_Entry|Net_LDAP_Error    Reference to a Net_LDAP_Entry object or Net_LDAP_Error object
     */
    function &getEntry($dn, $attr = array())
    {
