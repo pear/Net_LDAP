@@ -837,7 +837,7 @@ define ('NET_LDAP_ERROR', 1000);
 
 
    /**
-    * Get a specific entry based on the dn
+    * Get a specific entry based on the DN
     *
     * @todo Maybe check against the shema should be done to be sure the attribute type exists
     * @param string $dn   DN of the entry that should be fetched
@@ -853,10 +853,12 @@ define ('NET_LDAP_ERROR', 1000);
                                 array('scope' => 'base', 'attributes' => $attr));
         if (Net_LDAP::isError($result)) {
             return $result;
+        } elseif ($result->count() == 0) {
+            return PEAR::raiseError('Could not fetch entry: no entry found');
         }
         $entry = $result->shiftEntry();
         if (false == $entry) {
-            return PEAR::raiseError('Could not fetch entry');
+            return PEAR::raiseError('Could not fetch entry (error retrieving entry from search result)');
         }
         return $entry;
    }
