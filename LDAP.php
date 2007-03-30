@@ -670,7 +670,11 @@ define ('NET_LDAP_ERROR', 1000);
             PEAR::raiseError("The param attributes must be an array!");
         }
 
-        /* scoping makes searches faster!  */
+        // reorganize the attributes array index keys
+        // sometimes there are problems with not consecutive indexes
+        $attributes = array_values($attributes);
+
+        // scoping makes searches faster!
         $scope = (isset($params['scope']) ? $params['scope'] : $this->_config['scope']);
 
         switch ($scope) {
