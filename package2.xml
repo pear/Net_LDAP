@@ -62,6 +62,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
            The following bugs have been resolved:
               * Connections to LDAP servers that forbid anonymous binds are possible again
               * The JPEG attribute is now properly returned as binary value instead of string
+              * If the array describing selected attributes in searches didn't contain consecutive keys, there was a problem sometimes
     </notes>
 
     <contents>
