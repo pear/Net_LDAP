@@ -295,7 +295,7 @@ class Net_LDAP_Entry extends PEAR
      * 'all': all values including the value count are returned in an
      *               array
      * 'default': in all other cases an attribute value with a single value is
-     *            returned a string, if it has multiple values it is returned
+     *            returned as string, if it has multiple values it is returned
      *            as an array (without value count)
      *
      * @access public
