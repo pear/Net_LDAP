@@ -387,12 +387,14 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
                            NET_LDAP_SYNTAX_JPEG
                          );
 
-        // Check Syntax (defined in Net_LDAP_Schema)
+        // Check Syntax
         $attr_s = $this->get('attribute', $attribute);
-        if (false === Net_LDAP::isError($attr_s) && in_array($attr_s['syntax'], $syntax_binary)) {
-            return true;
+        if (false === Net_LDAP::isError($attr_s) && isset($attr_s['syntax']) && in_array($attr_s['syntax'], $syntax_binary)) {
+            $return = true;
+            return $return;
         } else {
-            return false;
+            $return = false;
+            return $return;
         }
     }
  }

@@ -149,7 +149,8 @@ class Net_LDAP_Search extends PEAR
     function &shiftEntry()
     {
         if ($this->count() == 0 ) {
-            return false;
+            $false = false;
+            return $false;
         }
 
         if (is_null($this->_entry)) {
@@ -157,7 +158,8 @@ class Net_LDAP_Search extends PEAR
             $entry = new Net_LDAP_Entry($this->_ldap, $this->_entry);
         } else {
             if (!$this->_entry = @ldap_next_entry($this->_link, $this->_entry)) {
-                return false;
+                $false = false;
+                return $false;
             }
             $entry = new Net_LDAP_Entry($this->_ldap, $this->_entry);
         }

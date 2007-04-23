@@ -194,7 +194,8 @@ class Net_LDAP_Entry extends PEAR
             } else {
                 $this->_newdn = $dn;
             }
-            return true;
+            $return = true;
+            return $return;
         }
         return (isset($this->_newdn) ? $this->_newdn : $this->_dn);
     }
