@@ -600,7 +600,7 @@ define ('NET_LDAP_ERROR', 1000);
             }
         }
 
-        if (isset($parms['changes'])) {
+        if (is_array($_params['changes'])) {
             foreach ($parms['changes'] as $action => $value) {
                 $msg = $this->modify($entry->dn(), array($action => $value));
                 if (Net_LDAP::isError($msg)) {
@@ -828,15 +828,18 @@ define ('NET_LDAP_ERROR', 1000);
 
         $result = @ldap_list($this->_link, $base, $filter, array(), 1, 1);
         if (ldap_errno($this->_link) == 32) {
-            return false;
+            $return = false;
+            return $return;
         }
         if (ldap_errno($this->_link) != 0) {
             PEAR::raiseError(ldap_error($this->_link), ldap_errno($this->_link));
         }
         if (@ldap_count_entries($this->_link, $result)) {
-            return true;
+            $return = true;
+            return $return;
         }
-        return false;
+        $return = false;
+        return $return;
     }
 
 
