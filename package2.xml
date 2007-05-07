@@ -36,7 +36,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date></date>
+    <date>2007-05-07</date>
     <version>
         <release>0.7.2</release>
         <api>0.7.2</api>
@@ -63,6 +63,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
               * Connections to LDAP servers that forbid anonymous binds are possible again
               * The JPEG attribute is now properly returned as binary value instead of string
               * If the array describing selected attributes in searches didn't contain consecutive keys, there was a problem sometimes
+              * Some PHP5 return issues
     </notes>
 
     <contents>
