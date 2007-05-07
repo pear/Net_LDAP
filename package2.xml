@@ -36,9 +36,9 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date>2007-05-07</date>
+    <date></date>
     <version>
-        <release>0.7.2</release>
+        <release>0.7.3</release>
         <api>0.7.2</api>
     </version>
     <stability>
@@ -46,24 +46,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
         <api>beta</api>
     </stability>
     <license>GPL License</license>
-    <notes>This release features some internal code movements to be more compatible to PERL::Net_LDAP.
-           The movements include:
-              * Removed UTF8 en-/decoding stuff from Net_LDAP_Utils class since this was moved to Net_LDAP class in 0.6.6
-              * Moved Filter encoding from Net_LDAP_Filter to Net_LDAP_Util
-              * Moved ldap_explode_dn_escaped() from Net_LDAP_Entry to Net_LDAP_Util
-              * Added perls functions from Net_LDAP::Util to our Util class, but they still need some work
-           Please note that ldap_explode_dn_escaped() is not available from Net_LDAP_Entry anymore.
-
-           Additionally some new functionality has been introduced:
-              * You can now apply regular expressions directly to a entrys attributes
-                and don't need to fetch the attribute values manually.
-              * Net_LDAP_Schema can check if a attributes syntax is binary
-
-           The following bugs have been resolved:
-              * Connections to LDAP servers that forbid anonymous binds are possible again
-              * The JPEG attribute is now properly returned as binary value instead of string
-              * If the array describing selected attributes in searches didn't contain consecutive keys, there was a problem sometimes
-              * Some PHP5 return issues
+    <notes>
     </notes>
 
     <contents>
@@ -73,8 +56,11 @@ http://pear.php.net/dtd/package-2.0.xsd">
             <file baseinstalldir="Net" name="README.txt" role="doc" />
             <file baseinstalldir="Net" name="RootDSE.txt" role="doc" />
             <file baseinstalldir="Net" name="Schema.txt" role="doc" />
-            <file baseinstalldir="Net" name="STATUS" role="doc" />
             <file baseinstalldir="Net" name="utf8.txt" role="doc" />
+            <file baseinstalldir="Net" name="examples/connecting.php" role="doc" />
+            <file baseinstalldir="Net" name="examples/fetch_entry.php" role="doc" />
+            <file baseinstalldir="Net" name="examples/search_entries.php" role="doc" />
+            <file baseinstalldir="Net" name="examples/add_entry.php" role="doc" />
         </dir> <!-- /doc -->
         <dir name="LDAP">
             <file baseinstalldir="Net" name="Entry.php" role="php" />
@@ -254,6 +240,37 @@ http://pear.php.net/dtd/package-2.0.xsd">
             <notes>This is not just a bugfix release of 0.7.0 but also introduces some internal optimisations:
                    - Fixed a connection bug whith LDAP V3 only servers
                    - clearer sanitizing of the host config parameter
+            </notes>
+        </release>
+        <release>
+            <date>2007-05-07</date>
+            <version>
+                <release>0.7.2</release>
+                <api>0.7.2</api>
+            </version>
+            <stability>
+                <release>beta</release>
+                <api>beta</api>
+            </stability>
+            <license>GPL License</license>
+            <notes>This release features some internal code movements to be more compatible to PERL::Net_LDAP.
+               The movements include:
+                  * Removed UTF8 en-/decoding stuff from Net_LDAP_Utils class since this was moved to Net_LDAP class in 0.6.6
+                  * Moved Filter encoding from Net_LDAP_Filter to Net_LDAP_Util
+                  * Moved ldap_explode_dn_escaped() from Net_LDAP_Entry to Net_LDAP_Util
+                  * Added perls functions from Net_LDAP::Util to our Util class, but they still need some work
+               Please note that ldap_explode_dn_escaped() is not available from Net_LDAP_Entry anymore.
+
+               Additionally some new functionality has been introduced:
+                  * You can now apply regular expressions directly to a entrys attributes
+                    and don't need to fetch the attribute values manually.
+                  * Net_LDAP_Schema can check if a attributes syntax is binary
+
+               The following bugs have been resolved:
+                  * Connections to LDAP servers that forbid anonymous binds are possible again
+                  * The JPEG attribute is now properly returned as binary value instead of string
+                  * If the array describing selected attributes in searches didn't contain consecutive keys, there was a problem sometimes
+                  * Some PHP5 return issues
             </notes>
         </release>
     </changelog>

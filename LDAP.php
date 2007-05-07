@@ -817,6 +817,7 @@ define ('NET_LDAP_ERROR', 1000);
      *
      * @param string $dn  The DN of the object to test
      * @return boolean
+     * @todo exploding is not the safest way - we should work with util class here!
      */
     function dnExists($dn)
     {
