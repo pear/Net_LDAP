@@ -49,6 +49,11 @@ if (Net_LDAP::isError($search)) {
 // Lets see what entries we got and print the names and telephone numbers:
 if ($search->count() > 0) {
 	echo "Found ".$search->count().' entries:<br>';
+	
+	// Note, this is is only one of several ways to fetch entries!
+	// You can also retrieve all entries in an array with
+	// $entries = $search->entries() or the same thing sorted:
+	// $entries = $search->sorted()
 	while ($entry = $search->shiftEntry()) {
 		$surename = $entry->getValue('sn', 'single');
 		if (Net_LDAP::isError($surename)) {

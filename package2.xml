@@ -46,7 +46,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
         <api>beta</api>
     </stability>
     <license>GPL License</license>
-    <notes>
+    <notes>This release introduces some example files showing you in detail how to work with Net_LDAP.
     </notes>
 
     <contents>
@@ -61,6 +61,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
             <file baseinstalldir="Net" name="examples/fetch_entry.php" role="doc" />
             <file baseinstalldir="Net" name="examples/search_entries.php" role="doc" />
             <file baseinstalldir="Net" name="examples/add_entry.php" role="doc" />
+            <file baseinstalldir="Net" name="examples/modify_entry.php" role="doc" />
         </dir> <!-- /doc -->
         <dir name="LDAP">
             <file baseinstalldir="Net" name="Entry.php" role="php" />

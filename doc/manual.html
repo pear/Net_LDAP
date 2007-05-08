@@ -111,7 +111,7 @@ Here they must have the posixAccount objectclass as well.
 <br>Please note, that Net_LDAP provides a filter class for simplier generation and combination of filters.
 You should use that class unless you know how filters work. This will save you a lot of trouble,
 since there are some encoding issues with ldap-filters. If you want to provide the filter yourself,
-you should also have a to the <a href="http://www.ietf.org/rfc/rfc1558.txt">RFC #1558</a> defining LDAP-Filters.
+you should also have a look to <a href="http://www.ietf.org/rfc/rfc1558.txt">RFC #1558</a> defining LDAP-Filters.
 </p>
 
 <p>
@@ -141,7 +141,8 @@ $options = array(
 $search = $ldap->search($searchbase, $filter, $options);
 </pre>
 $search should now be an Net_LDAP_Search object.
-<br>Okay, now we assume that everything was fine. We have several options now.
+<br>Okay, now we assume that everything was fine (in production, test for error!).
+We have several options now.
 We can fetch the found entries at once sorted ($search->sorted()) or unsorted ($search->entries()), or we can read
 the objects one by one inside a loop using $search->shiftEntry(). See the class documentation of Net_LDAP_Search
 for more details.
