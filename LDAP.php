@@ -511,11 +511,11 @@ define ('NET_LDAP_ERROR', 1000);
      *
      * The object may either be a string representing the dn or a Net_LDAP_Entry
      * object. When the boolean paramter recursive is set, all subentries of the
-     * entry will be deleted as well
+     * entry will be deleted as well.
      *
      * @access public
      * @param string|Net_LDAP_Entry $dn DN-string or Net_LDAP_Entry
-     * @param boolean $recursive   Should we recurse?
+     * @param boolean $recursive   Should we delete all children recursive as well?
      * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
     function delete($dn, $recursive = false)
