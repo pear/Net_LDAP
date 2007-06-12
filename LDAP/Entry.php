@@ -162,13 +162,13 @@ class Net_LDAP_Entry extends PEAR
         } elseif (is_resource($ldap)) {
             $this->_link = $ldap;
         } elseif (is_array($ldap)) {
-            $this->_setAttributes($ldap);
+            $this->_setAttributes($ldap);  // setup attrs manually
         }
 
         if (is_resource($this->_entry) && is_resource($this->_link)) {
             $this->_new = false;
             $this->_dn  = @ldap_get_dn($this->_link, $this->_entry);
-            $this->_setAttributes();
+            $this->_setAttributes();  // fetch attributes from server
         }
     }
 
@@ -205,7 +205,10 @@ class Net_LDAP_Entry extends PEAR
      *
      * This fetches the values for the attributes from the server.
      * The attribute Syntax will be checked so binary attributes will be returned
-     * as binary values
+     * as binary values.
+     *
+     * Attributes may be passed directly via the $attributes parameter to setup this
+     * entry manually. This overrides attribute fetching from the server.
      *
      * @access private
      * @param array $attributes
@@ -243,6 +246,7 @@ class Net_LDAP_Entry extends PEAR
             } while ($attr);
         }
 
+        // set attribute data directly, if passed
         if (is_array($attributes) && count($attributes) > 0) {
             if (isset($attributes["count"]) && is_numeric($attributes["count"])) {
                 unset($attributes["count"]);

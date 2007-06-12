@@ -531,9 +531,9 @@ define ('NET_LDAP_ERROR', 1000);
             $result = @ldap_list($this->_link, $dn, '(objectClass=*)', array(null));
             if (@ldap_count_entries($this->_link, $result)) {
                 $subentry = @ldap_first_entry($this->_link, $result);
-                $this->delete(@ldap_get_dn($this->_link, $subentry));
+                $this->delete(@ldap_get_dn($this->_link, $subentry), $recursive);
                 while ($subentry = @ldap_next_entry($this->_link, $subentry)) {
-                    $this->delete(@ldap_get_dn($this->_link, $subentry));
+                    $this->delete(@ldap_get_dn($this->_link, $subentry), $recursive);
                 }
             }
         }
