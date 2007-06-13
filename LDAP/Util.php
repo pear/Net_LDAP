@@ -178,15 +178,15 @@ class Net_LDAP_Util extends PEAR
 
         foreach ($values as $key => $val) {
             // Escaping of filter meta characters
-            $val = str_replace('\\',   '\5c', $val);
-            $val = str_replace(',',    '\2c', $val);
-            $val = str_replace('+',    '\2b', $val);
-            $val = str_replace('"',    '\22', $val);
-            $val = str_replace('<',    '\3c', $val);
-            $val = str_replace('>',    '\3e', $val);
-            $val = str_replace(';',    '\3b', $val);
-            $val = str_replace('#',    '\23', $val);
-            $val = str_replace('=',    '\3d', $val);
+            $val = str_replace('\\',   '\\\\', $val);
+            $val = str_replace(',',    '\,', $val);
+            $val = str_replace('+',    '\+', $val);
+            $val = str_replace('"',    '\"', $val);
+            $val = str_replace('<',    '\<', $val);
+            $val = str_replace('>',    '\>', $val);
+            $val = str_replace(';',    '\;', $val);
+            $val = str_replace('#',    '\#', $val);
+            $val = str_replace('=',    '\=', $val);
 
             // ASCII < 32 escaping
             $val = Net_LDAP_Util::asc2hex32($val);
@@ -229,9 +229,20 @@ class Net_LDAP_Util extends PEAR
             $values = array($values);
         }
 
-        foreach ($values as $key => $value) {
+        foreach ($values as $key => $val) {
+            // strip slashes from special chars
+            $val = str_replace('\\\\', '\\', $val);
+            $val = str_replace('\,',   ',', $val);
+            $val = str_replace('\+',   '+', $val);
+            $val = str_replace('\"',   '"', $val);
+            $val = str_replace('\<',   '<', $val);
+            $val = str_replace('\>',   '>', $val);
+            $val = str_replace('\;',   ';', $val);
+            $val = str_replace('\#',   '#', $val);
+            $val = str_replace('\=',   '=', $val);
+
             // Translate hex code into ascii
-            $values[$key] = Net_LDAP_Util::hex2asc($value);
+            $values[$key] = Net_LDAP_Util::hex2asc($val);
         }
 
         return $values;
@@ -270,6 +281,11 @@ class Net_LDAP_Util extends PEAR
     function canonical_dn($dn, $options = array('casefold' => 'upper'))
     {
         PEAR::raiseError("Not implemented!");
+        // options check
+        $options['mbcescape'] == true ? $options['onlyvalues'] = 1 : $options['onlyvalues'] = 0;
+        !isset($options['reverse']) ? $options['reverse'] = false : $options['reverse'] = true;
+        if (!isset($options['casefold'])) $options['casefold'] = 'upper';
+        if (!isset($options['separator'])) $options['separator'] = ',';
     }
 
     /**
