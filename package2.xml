@@ -46,7 +46,9 @@ http://pear.php.net/dtd/package-2.0.xsd">
         <api>beta</api>
     </stability>
     <license>GPL License</license>
-    <notes>
+    <notes>Again some small Bugfixes, most notably a bug within $ldap->modify() that occured when using the
+		combined 'changes' array.
+		Besides that, $search->pop_entry() has been implemented.
     </notes>
 
     <contents>

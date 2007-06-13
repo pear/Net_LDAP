@@ -127,7 +127,7 @@ class Net_LDAP_Filter extends PEAR
     *    - lessOrEqual:    The attributes value is less or equal than $value
     *    - approx:         One of the attributes values is similar to $value
     *
-    * If $escape is set to true (default) then Wildcards in the value will be escaped
+    * If $escape is set to true (default) then $value will be escaped
     * properly. If it is set to false then $value will be treaten as raw value.
     *
     * Examples:
@@ -288,6 +288,8 @@ class Net_LDAP_Filter extends PEAR
     * what this method does.
     * The method can be called statically, so you can use it outside
     * for your own purposes (eg for escaping only parts of strings)
+    *
+    * In fact, this is just a shorthand to {@link Net_LDAP_Util::escape_filter_value()}.
     *
     * @static
     * @param string $string  Any string who should be escaped

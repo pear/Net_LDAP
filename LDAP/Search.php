@@ -81,7 +81,7 @@ class Net_LDAP_Search extends PEAR
      * @var int
      */
     var $_errorCode = 0; // if not set - sucess!
-    
+
     /**
     * What attributes we searched for
     *
@@ -96,6 +96,16 @@ class Net_LDAP_Search extends PEAR
     * @var array
     */
     var $_searchedAttrs = array();
+
+    /**
+    * Cache variable for storing entries fetched internally
+    *
+    * This currently is only used by {@link pop_entry()}
+    *
+    * @access private
+    * @var array
+    */
+    var $_entry_cache = false;
 
    /**
     * Constructor
@@ -144,6 +154,10 @@ class Net_LDAP_Search extends PEAR
     /**
      * Get the next entry in the searchresult.
      *
+     * This will return a valid Net_LDAP_Entry object or false, so
+     * you can use this method to easily iterate over the entries inside
+     * a while loop.
+     *
      * @return Net_LDAP_Entry|false  Reference to Net_LDAP_Entry object or false
      */
     function &shiftEntry()
@@ -167,7 +181,7 @@ class Net_LDAP_Search extends PEAR
     }
 
     /**
-     * alias function of shiftEntry() for perl-ldap interface
+     * Alias function of shiftEntry() for perl-ldap interface
      *
      * @see shiftEntry()
      */
@@ -178,14 +192,22 @@ class Net_LDAP_Search extends PEAR
     }
 
     /**
-     * Retrieve the last entry of the searchset. NOT IMPLEMENTED
+     * Retrieve the next entry in the searchresult, but starting from last entry
      *
-     * @return Net_LDAP_Error
-     * @todo implement me!
+     * This is the opposite to {@link shiftEntry()} and is also very useful
+     * to be used inside a while loop.
+     *
+     * @return Net_LDAP_Entry|false
      */
     function pop_entry()
     {
-        PEAR::raiseError("Not implemented");
+        if (false === $this->_entry_cache) {
+            // fetch entries into cache if not done so far
+            $this->_entry_cache = $this->entries();
+        }
+
+        $return = array_pop($this->_entry_cache);
+        return (null === $return)? false : $return;
     }
 
     /**
