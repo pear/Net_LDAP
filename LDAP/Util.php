@@ -235,7 +235,6 @@ class Net_LDAP_Util extends PEAR
     * LDAP filters "*", "(", ")", and "\" (the backslash) are converted into the representation of a
     * backslash followed by two hex digits representing the hexadecimal value of the character.
     *
-    * @todo The "ASCII escaping" Part needs some testing
     * @static
     * @param array $values    Array of values to escape
     * @return array           Array $values, but escaped
@@ -267,7 +266,6 @@ class Net_LDAP_Util extends PEAR
             if (null === $val) $val = '\0';  // apply escaped "null" if string is empty
 
             $values[$key] = $val;
-            echo "<br>end=$val";
         }
 
         return $values;
