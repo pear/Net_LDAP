@@ -142,7 +142,7 @@ class Net_LDAP_Util extends PEAR
 
         // Translate hex code into ascii again and apply case folding
         foreach ( $dn_array as $key => $value ) {
-            $value = preg_replace("/\\\([0-9A-Fa-f]{2})/e", "''.chr(hexdec('\\1')).''", $value);
+            $value = Net_LDAP_Util::hex2asc($value);
             if ($options['casefold'] == 'upper') $value = preg_replace("/^(\w+)=/e", "''.strtoupper('\\1').''", $value);
             if ($options['casefold'] == 'lower') $value = preg_replace("/^(\w+)=/e", "''.strtolower('\\1').''", $value);
         }
@@ -165,14 +165,49 @@ class Net_LDAP_Util extends PEAR
     *
     * Returns the converted list in list mode and the first element in scalar mode.
     *
-    * @todo implement me!
     * @static
     * @param array $values    A array containing the DN values that should be escaped
     * @return array           The array $values, but escaped
     */
     function escape_dn_value($values = array())
     {
-        PEAR::raiseError("Not implemented!");
+        // Parameter validation
+        if (!is_array($values)) {
+            $values = array($values);
+        }
+
+        foreach ($values as $key => $val) {
+            // Escaping of filter meta characters
+            $val = str_replace('\\',   '\5c', $val);
+            $val = str_replace(',',    '\2c', $val);
+            $val = str_replace('+',    '\2b', $val);
+            $val = str_replace('"',    '\22', $val);
+            $val = str_replace('<',    '\3c', $val);
+            $val = str_replace('>',    '\3e', $val);
+            $val = str_replace(';',    '\3b', $val);
+            $val = str_replace('#',    '\23', $val);
+            $val = str_replace('=',    '\3d', $val);
+
+            // ASCII < 32 escaping
+            $val = Net_LDAP_Util::asc2hex32($val);
+
+            // Convert all leading and trailing spaces to sequences of \20.
+            if (preg_match('/^(\s*)(.+?)(\s*)$/', $val, $matches)) {
+                $val = $matches[2];
+                for ($i = 0; $i < strlen($matches[1]); $i++) {
+                    $val = '\20'.$val;
+                }
+                for ($i = 0; $i < strlen($matches[3]); $i++) {
+                    $val = $val.'\20';
+                }
+            }
+
+            if (null === $val) $val = '\0';  // apply escaped "null" if string is empty
+
+            $values[$key] = $val;
+        }
+
+        return $values;
     }
 
     /**
@@ -183,14 +218,23 @@ class Net_LDAP_Util extends PEAR
     *
     * Returns the converted list in list mode and the first element in scalar mode.
     *
-    * @todo implement me!
     * @param array $values    Array of DN Values
     * @return array           Same as $values, but unescaped
     * @static
     */
     function unescape_dn_value($values = array())
     {
-        PEAR::raiseError("Not implemented!");
+        // Parameter validation
+        if (!is_array($values)) {
+            $values = array($values);
+        }
+
+        foreach ($values as $key => $value) {
+            // Translate hex code into ascii
+            $values[$key] = Net_LDAP_Util::hex2asc($value);
+        }
+
+        return $values;
     }
 
     /**
@@ -254,14 +298,7 @@ class Net_LDAP_Util extends PEAR
             $val = str_replace(')',    '\29', $val);
 
             // ASCII < 32 escaping
-            for ($i = 0; $i < strlen($val); $i++) {
-                $char = substr($val, $i, 1);
-                if (ord($char) < 32) {
-                    $hex = dechex(ord($char));
-                    if (strlen($hex) == 1) $hex = '0'.$hex;
-                    $val = str_replace($char, '\\'.$hex, $val);
-                }
-            }
+            $val = Net_LDAP_Util::asc2hex32($val);
 
             if (null === $val) $val = '\0';  // apply escaped "null" if string is empty
 
@@ -289,10 +326,43 @@ class Net_LDAP_Util extends PEAR
 
         foreach ($values as $key => $value) {
             // Translate hex code into ascii
-            $values[$key] = preg_replace("/\\\([0-9A-Fa-f]{2})/e", "''.chr(hexdec('\\1')).''", $value);
+            $values[$key] = Net_LDAP_Util::hex2asc($value);
         }
 
         return $values;
+    }
+
+    /**
+    * Converts all ASCII chars < 32 to "\HEX"
+    *
+    * @static
+    * @param string $string      String to convert
+    * @return string
+    */
+    function asc2hex32($string)
+    {
+        for ($i = 0; $i < strlen($string); $i++) {
+            $char = substr($string, $i, 1);
+            if (ord($char) < 32) {
+                $hex = dechex(ord($char));
+                if (strlen($hex) == 1) $hex = '0'.$hex;
+                $string = str_replace($char, '\\'.$hex, $string);
+            }
+        }
+        return $string;
+    }
+
+    /**
+    * Converts all Hex expressions ("\HEX") to their original asc characters
+    *
+    * @static
+    * @param string  $string
+    * @return string
+    */
+    function hex2asc($string)
+    {
+        $string = preg_replace("/\\\([0-9A-Fa-f]{2})/e", "''.chr(hexdec('\\1')).''", $string);
+        return $string;
     }
 
 }
