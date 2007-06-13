@@ -148,7 +148,8 @@ class Net_LDAP_Filter extends PEAR
     {
         $leaf_filter = new Net_LDAP_Filter();
         if ($escape) {
-            $value = Net_LDAP_Filter::escape($value);
+            $array = Net_LDAP_Util::escape_filter_value(array($value));
+            $value = $array[0];
         }
         switch (strtolower($match)) {
             case 'equals':
@@ -294,11 +295,11 @@ class Net_LDAP_Filter extends PEAR
     * @static
     * @param string $string  Any string who should be escaped
     * @return string         The string $string, but escaped
+    * @deprecated  Do not use this method anymore, instead use Net_LDAP_Util::escape_filter_value()
     */
     function escape($string)
     {
-        $array = Net_LDAP_Util::escape_filter_value(array($string));
-        return $array[0];
+        return PEAR::raiseError("PLEASE DO NOT USE Net_LDAP_Filter anymore! use Net_LDAP_Util::escape_filter_value() instead!");
     }
 
     /**

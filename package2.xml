@@ -48,7 +48,9 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <license>GPL License</license>
     <notes>Again some small Bugfixes, most notably a bug within $ldap->modify() that occured when using the
 		combined 'changes' array.
-		Besides that, $search->pop_entry() has been implemented.
+		Besides that, $search->popEntry() and the corresponding alias pop_entry() has been implemented.
+		Net_LDAP_Util::unescape_filter_value() is available too now and Net_LDAP_Util::escape_filter_value()
+		can handle ASCII chars smaller than 32.
     </notes>
 
     <contents>

@@ -140,7 +140,7 @@ class Net_LDAP_Util extends PEAR
             unset($dn_array["count"]);
         }
 
-        //translate hex code into ascii again and apply case folding
+        // Translate hex code into ascii again and apply case folding
         foreach ( $dn_array as $key => $value ) {
             $value = preg_replace("/\\\([0-9A-Fa-f]{2})/e", "''.chr(hexdec('\\1')).''", $value);
             if ($options['casefold'] == 'upper') $value = preg_replace("/^(\w+)=/e", "''.strtoupper('\\1').''", $value);
@@ -235,32 +235,42 @@ class Net_LDAP_Util extends PEAR
     * LDAP filters "*", "(", ")", and "\" (the backslash) are converted into the representation of a
     * backslash followed by two hex digits representing the hexadecimal value of the character.
     *
-    * @todo NULL escaping seems to never apply
-    * @todo The "ASCII escaping" Part needs some work
+    * @todo The "ASCII escaping" Part needs some testing
     * @static
     * @param array $values    Array of values to escape
     * @return array           Array $values, but escaped
     */
     function escape_filter_value($values = array())
     {
-        $escaped = array();
-        foreach ($values as $val) {
-            // ASCII < 32 escaping
-            // [TODO]
-
-            // Escaping of meta characters
-            $val = str_replace('*', '\0x2a', $val);
-            $val = str_replace('(', '\0x28', $val);
-            $val = str_replace(')', '\0x29', $val);
-            $val = str_replace('\\', '\0x5c', $val);
-            $val = str_replace(null, '\0x2a', $val); // null escaping seems to never apply. This probably needs some work!
-
-            if ($val === null) $val = '\0x2a';  // apply escaped "null" if string is empty
-
-            array_push($escaped, $val);
+        // Parameter validation
+        if (!is_array($values)) {
+            $values = array($values);
         }
 
-        return $escaped;
+        foreach ($values as $key => $val) {
+            // Escaping of filter meta characters
+            $val = str_replace('\\',   '\5c', $val);
+            $val = str_replace('*',    '\2a', $val);
+            $val = str_replace('(',    '\28', $val);
+            $val = str_replace(')',    '\29', $val);
+
+            // ASCII < 32 escaping
+            for ($i = 0; $i < strlen($val); $i++) {
+                $char = substr($val, $i, 1);
+                if (ord($char) < 32) {
+                    $hex = dechex(ord($char));
+                    if (strlen($hex) == 1) $hex = '0'.$hex;
+                    $val = str_replace($char, '\\'.$hex, $val);
+                }
+            }
+
+            if (null === $val) $val = '\0';  // apply escaped "null" if string is empty
+
+            $values[$key] = $val;
+            echo "<br>end=$val";
+        }
+
+        return $values;
     }
 
     /**
@@ -268,16 +278,23 @@ class Net_LDAP_Util extends PEAR
     *
     * Converts any sequences of a backslash followed by two hex digits into the corresponding character.
     *
-    * Returns the converted list in list mode and the first element in scalar mode.
-    *
-    * @todo implement me!
     * @static
     * @param array $values    Array of values to escape
     * @return array           Array $values, but unescaped
     */
     function unescape_filter_value($values = array())
     {
-        PEAR::raiseError("Not implemented!");
+        // Parameter validation
+        if (!is_array($values)) {
+            $values = array($values);
+        }
+
+        foreach ($values as $key => $value) {
+            // Translate hex code into ascii
+            $values[$key] = preg_replace("/\\\([0-9A-Fa-f]{2})/e", "''.chr(hexdec('\\1')).''", $value);
+        }
+
+        return $values;
     }
 
 }
