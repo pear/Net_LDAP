@@ -306,7 +306,7 @@ define ('NET_LDAP_ERROR', 1000);
         //
         // Default error message in case all connection attempts fail but no message is set
         //
-        $current_error = PEAR::raiseError('Unknown connection error');
+        $current_error =& new PEAR_Error('Unknown connection error');
 
         //
         // Catch empty $_host_list arrays.
