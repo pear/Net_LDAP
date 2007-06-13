@@ -59,11 +59,11 @@ if ($search->count() > 0) {
 		if (Net_LDAP::isError($surename)) {
 			die('Unable to get surename: '.$surename->getMessage());
 		}
-		$givenname = $entry->getValue('sn', 'single');
+		$givenname = $entry->getValue('gn', 'single');
 		if (Net_LDAP::isError($givenname)) {
 			die('Unable to get givenname: '.$givenname->getMessage());
 		}
-		$phone = $entry->getValue('sn', 'single');
+		$phone = $entry->getValue('telephonenumber', 'single');
 		if (Net_LDAP::isError($phone)) {
 			die('Unable to get phone number: '.$phone->getMessage());
 		}

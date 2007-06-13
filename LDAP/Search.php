@@ -199,7 +199,7 @@ class Net_LDAP_Search extends PEAR
      *
      * @return Net_LDAP_Entry|false
      */
-    function pop_entry()
+    function popEntry()
     {
         if (false === $this->_entry_cache) {
             // fetch entries into cache if not done so far
@@ -208,6 +208,17 @@ class Net_LDAP_Search extends PEAR
 
         $return = array_pop($this->_entry_cache);
         return (null === $return)? false : $return;
+    }
+
+    /**
+     * Alias function of popEntry() for perl-ldap interface
+     *
+     * @see popEntry()
+     */
+    function pop_entry()
+    {
+        $args = func_get_args();
+        return call_user_func_array(array( &$this, 'popEntry' ), $args);
     }
 
     /**
