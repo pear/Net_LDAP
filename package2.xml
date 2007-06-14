@@ -51,6 +51,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
 		Besides that, $search->popEntry() and the corresponding alias pop_entry() has been implemented.
 		Net_LDAP_Util::unescape_filter_value() is available too now and Net_LDAP_Util::escape_filter_value()
 		can handle ASCII chars smaller than 32.
+		A new method createFresh() was added to Net_LDAP_Entry, so creation of initial entries is more
+		standardized and clearer.
     </notes>
 
     <contents>

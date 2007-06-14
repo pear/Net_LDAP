@@ -553,7 +553,7 @@ define ('NET_LDAP_ERROR', 1000);
     /**
      * Modify an ldapentry
      *
-     * This one takes the dn or a Net_LDAP_Entry object and an array of actions.
+     * This one takes the DN or a Net_LDAP_Entry object and an array of actions.
      * This array should be something like this:
      *
      * array('add' => array('attribute1' => array('val1', 'val2'),
@@ -568,6 +568,9 @@ define ('NET_LDAP_ERROR', 1000);
      * (the operations are done in order of appearance).
      * The function calls the corresponding functions of an Net_LDAP_Entry
      * object. A detailed description of array structures can be found there.
+     *
+     * Unlike the modification methods provided by the Net_LDAP_Entry object,
+     * this method will instantly carry out an update() after each operation.
      *
      * @access public
      * @param string|Net_LDAP_Entry $entry DN-string or Net_LDAP_Entry

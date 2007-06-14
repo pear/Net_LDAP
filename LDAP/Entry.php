@@ -136,14 +136,15 @@ class Net_LDAP_Entry extends PEAR
                           "replace" => array()
                           );
     /**
-     * Constructor
+     * Internal Constructor
      *
      * Constructor of the entry. Sets up the distinguished name and the entries
      * attributes.
+     * You should not call this method manually! Use {@link Net_LDAP_Entry::createFresh()} instead!
      *
      * @access protected
      * @param Net_LDAP|ressource|array $ldap   Net_LDAP object, ldap-link ressource or array of attributes
-     * @param string|ressource         $entry  Either a DN or a LDAP-Entry
+     * @param string|ressource         $entry  Either a DN or a LDAP-Entry ressource
      * @return none
      */
     function Net_LDAP_Entry(&$ldap, $entry = null)
@@ -170,6 +171,34 @@ class Net_LDAP_Entry extends PEAR
             $this->_dn  = @ldap_get_dn($this->_link, $this->_entry);
             $this->_setAttributes();  // fetch attributes from server
         }
+    }
+
+    /**
+    * Creates a fresh entry that may be added to the directory later on
+    *
+    * The method should be called statically: $entry = Net_LDAP_Entry::createFresh();
+    *
+    * Use this method, if you want to initialize a fresh entry.
+    * The attributes parameter is as following:
+    * <code>
+    * $attrs = array( 'attribute1' => array('value1', 'value2'),
+    *                 'attribute2' => 'single value'
+    *          );
+    * </code>
+    *
+    * @static
+    * @param string $dn     DN of the Entry
+    * @param array  $attrs  Attributes of the entry
+    * @return Net_LDAP_Entry
+    */
+    function createFresh($dn, $attrs = array())
+    {
+        if (!is_array($attrs)) {
+            return PEAR::raiseError("Unable to create fresh entry: Parameter \$attrs needs to be an array!");
+        }
+
+        $entry = new Net_LDAP_Entry($attrs, $dn);
+        return $entry;
     }
 
     /**
@@ -525,7 +554,7 @@ class Net_LDAP_Entry extends PEAR
      *
      * @access public
      * @param Net_LDAP $ldap (optional) If you provide a Net_LDAP object, be sure to PASS IT VIA REFERENCE!
-     * @return mixed
+     * @return true|Net_LDAP_Error
      */
     function update($ldap=false)
     {
@@ -533,18 +562,31 @@ class Net_LDAP_Entry extends PEAR
             $ldap =& $this->_ldap;
         } else {
             if (!is_a($ldap, 'Net_LDAP')) {
-                return PEAR::raiseError("Need a Net_LDAP object as parameter");
+                $ldap = false; // throw error
+            } else {
+                // store the provided ldap object internally, if we haven't got one already
+                if (!$this->_ldap) $this->_ldap =& $ldap;
             }
+        }
+
+        // ensure we have a valid LDAP object
+        if (!is_a($ldap, 'Net_LDAP')) {
+           return PEAR::raiseError("Need a Net_LDAP object as parameter");
         }
 
         $link = $ldap->getLink();
 
-        // Delete the entry
-        if ($this->_delete === true) {
+        /*
+        * Delete the entry
+        */
+        if (true === $this->_delete) {
             return $ldap->delete($this);
         }
-        // New entry
-        if ($this->_new === true) {
+
+        /*
+        * New entry
+        */
+        if (true === $this->_new) {
             $msg = $ldap->add($this);
             if (Net_LDAP::isError($msg)) {
                 return $msg;
@@ -554,9 +596,14 @@ class Net_LDAP_Entry extends PEAR
             $this->_changes['delete'] = array();
             $this->_changes['replace'] = array();
             $this->_original = $this->_attributes;
-            return;
+
+            $return = true;
+            return $return;
         }
-        // Rename/move entry
+
+        /*
+        * Rename/move entry
+        */
         if (false == is_null($this->_newdn)) {
             if ($ldap->getLDAPVersion() !== 3) {
                 return PEAR::raiseError("Renaming/Moving an entry is only supported in LDAPv3");
@@ -578,7 +625,11 @@ class Net_LDAP_Entry extends PEAR
             $this->_dn = $this->_newdn;
             $this->_newdn = null;
         }
-        // Modified entry
+
+        /*
+        * Carry out modifications to the entry
+        */
+        // ADD
         foreach ($this->_changes["add"] as $attr => $value) {
             // if attribute exists, add new values
             if ($this->exists($attr)) {
@@ -595,8 +646,9 @@ class Net_LDAP_Entry extends PEAR
             }
             // all went well here, I guess
             unset($this->_changes["add"][$attr]);
-        } // add
+        }
 
+        // DELETE
         foreach ($this->_changes["delete"] as $attr => $value) {
             // In LDAPv3 you need to specify the old values for deleting
             if (is_null($value) && $ldap->getLDAPVersion() === 3) {
@@ -607,18 +659,22 @@ class Net_LDAP_Entry extends PEAR
                                         @ldap_error($link), @ldap_errno($link));
             }
             unset($this->_changes["delete"][$attr]);
-        } // delete
+        }
 
+        // REPLACE
         foreach ($this->_changes["replace"] as $attr => $value) {
             if (false === @ldap_modify($link, $this->dn(), array($attr => $value))) {
                 return PEAR::raiseError("Could not replace attribute $attr values: " .
                                         @ldap_error($link), @ldap_errno($link));
             }
             unset($this->_changes["replace"][$attr]);
-        } // replace
+        }
 
         // all went well, so _original (server) becomes _attributes (local copy)
         $this->_original = $this->_attributes;
+
+        $return = true;
+        return $return;
     }
 
     /**
