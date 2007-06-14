@@ -54,6 +54,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
 		A new method createFresh() was added to Net_LDAP_Entry, so creation of initial entries is more
 		standardized and clearer.
 		A new example is available, describing the $ldap->modify() method.
+		The add_entry.php example was updated, it shows the use of Net_LDAP_Entry::createFresh().
+		$ldap->add() links unlinked entries now to the connection used for the add.
     </notes>
 
     <contents>
