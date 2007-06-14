@@ -28,14 +28,13 @@ if ($ldap->dnExists($dn)) {
 // But first, we must construct the entry.
 // This is, because Net_LDAP was build to make changes only
 // locally (in your script), not directly on the server.
-$new_entry = new Net_LDAP_Entry(&$ldap, $dn);
-
-// We add some basic attributes:
-$new_entry->add( array(
+$attributes = array(
 	'sn'             => 'Foo',
 	'gn'             => 'Bar',
+	'mail'           => array('foo@example.org', 'bar@example2.org'),
 	'employeeNumber' => 123456
-));
+);
+$new_entry = Net_LDAP_Entry::createFresh($dn, $attributes);
 
 // Finally add the entry in the server:
 $result = $ldap->add($new_entry);
@@ -44,4 +43,11 @@ if (Net_LDAP::isError($result)) {
 }
 
 // The entry is now present in the directory server.
+// Additionally, it is linked to the $ldap connection used for the add(),
+// so you may call $entry->modify() (and friends) and $entry->update()
+// without the need for passing an $ldap object.
+// This is only the case if the entry was not linked to an Net_LDAP object
+// before, so if the entry object would be fetched from a $ldap object
+// and then added to $ldap_2, the link of the entry remains to $ldap,
+// thus any update() will be performed on directory1 ($ldap).
 ?>

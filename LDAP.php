@@ -488,16 +488,23 @@ define ('NET_LDAP_ERROR', 1000);
      * Add a new entryobject to a directory.
      *
      * Use add to add a new Net_LDAP_Entry object to the directory.
+     * This also links the entry to the connection used for the add,
+     * if it was a fresh entry ({@link Net_LDAP_Entry::createFresh()})
      *
      * @param Net_LDAP_Entry $entry   Net_LDAP_Entry
      * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
-    function add($entry)
+    function add(&$entry)
     {
         if (false === is_a($entry, 'Net_LDAP_Entry')) {
             return PEAR::raiseError('Parameter to Net_LDAP::add() must be a Net_LDAP_Entry object.');
         }
         if (@ldap_add($this->_link, $entry->dn(), $entry->getValues())) {
+             // entry successfully added, we should update its $ldap reference
+             // in case it is not set so far (fresh entry)
+             if (!$entry->_ldap) {
+                 $entry->_ldap =& $this;
+             }
              return true;
         } else {
              return PEAR::raiseError("Could not add entry " . $entry->dn() . " " .
