@@ -244,7 +244,9 @@ class Net_LDAP_Entry extends PEAR
      */
     function _setAttributes($attributes = null)
     {
-        // fetch attributes from the server
+        /*
+        * fetch attributes from the server
+        */
         if (is_null($attributes) && is_resource($this->_entry) && is_resource($this->_link))
         {
             // fetch schema
@@ -275,7 +277,9 @@ class Net_LDAP_Entry extends PEAR
             } while ($attr);
         }
 
-        // set attribute data directly, if passed
+        /*
+        * set attribute data directly, if passed
+        */
         if (is_array($attributes) && count($attributes) > 0) {
             if (isset($attributes["count"]) && is_numeric($attributes["count"])) {
                 unset($attributes["count"]);
@@ -298,9 +302,11 @@ class Net_LDAP_Entry extends PEAR
                 $this->_attributes[$k] = $v;
             }
         }
+
         // save a copy for later use
         $this->_original = $this->_attributes;
     }
+
     /**
      * Get the values of all attributes in a hash
      *
@@ -406,6 +412,7 @@ class Net_LDAP_Entry extends PEAR
      *
      * @access public
      * @param array $attr
+     * @return true|Net_LDAP_Error
      */
     function add($attr = array())
     {
@@ -435,6 +442,8 @@ class Net_LDAP_Entry extends PEAR
             }
             $this->_changes["add"][$k] = array_merge($this->_changes["add"][$k], $v);
         }
+        $return = true;
+        return $return;
     }
 
     /**
@@ -459,12 +468,14 @@ class Net_LDAP_Entry extends PEAR
      *
      * @access public
      * @param string|array $attr
+     * @return true
      */
     function delete($attr = null)
     {
         if (is_null($attr)) {
             $this->_delete = true;
-            return;
+            $return = true;
+            return $return;
         }
         if (is_string($attr)) {
             $attr = array($attr);
@@ -505,6 +516,8 @@ class Net_LDAP_Entry extends PEAR
                 }
             }
         }
+        $return = true;
+        return $return;
     }
 
     /**
@@ -521,6 +534,7 @@ class Net_LDAP_Entry extends PEAR
      *
      * @access public
      * @param array $attr
+     * @return true|Net_LDAP_Error
      */
     function replace($attr = array())
     {
@@ -547,6 +561,8 @@ class Net_LDAP_Entry extends PEAR
                 $this->add(array($k => $v));
             }
         }
+        $return = true;
+        return $return;
     }
 
     /**
