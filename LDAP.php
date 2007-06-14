@@ -602,7 +602,7 @@ define ('NET_LDAP_ERROR', 1000);
             }
         }
 
-        if (is_array($parms['changes'])) {
+        if (isset($parms['changes']) && is_array($parms['changes'])) {
             foreach ($parms['changes'] as $action => $value) {
                 $msg = $this->modify($entry->dn(), array($action => $value));
                 if (Net_LDAP::isError($msg)) {
