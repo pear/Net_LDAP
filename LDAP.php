@@ -551,7 +551,7 @@ define ('NET_LDAP_ERROR', 1000);
     }
 
     /**
-     * Modify an ldapentry
+     * Modify an ldapentry directly on the server
      *
      * This one takes the DN or a Net_LDAP_Entry object and an array of actions.
      * This array should be something like this:
@@ -561,16 +561,24 @@ define ('NET_LDAP_ERROR', 1000);
      *       'delete' => array('attribute1'),
      *       'replace' => array('attribute1' => array('val1')),
      *       'changes' => array('add' => ...,
-     *                          'delete' => array('attribute1', 'attribute2' => array('val1')),
-     *                          'replace' => ...))
+     *                          'replace' => ...,
+     *                          'delete' => array('attribute1', 'attribute2' => array('val1')))
      *
      * The changes array is there so the order of operations can be influenced
      * (the operations are done in order of appearance).
+     * The order of execution is as following:
+     *   1. adds from 'add' array
+     *   2. deletes from 'delete' array
+     *   3. replaces from 'replace' array
+     *   4. changes (add, replace, delete) in order of appearance
+     * All subarrays (add, replace, delete, changes) may be given at the same time.
+     *
      * The function calls the corresponding functions of an Net_LDAP_Entry
      * object. A detailed description of array structures can be found there.
      *
      * Unlike the modification methods provided by the Net_LDAP_Entry object,
-     * this method will instantly carry out an update() after each operation.
+     * this method will instantly carry out an update() after each operation,
+     * thus modifying "directly" on the server.
      *
      * @access public
      * @param string|Net_LDAP_Entry $entry DN-string or Net_LDAP_Entry

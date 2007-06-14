@@ -2,6 +2,9 @@
 /**
 * This is a short example on how to modify a specific entry in the
 * directory using Net_LDAP.
+*
+* There is an alternative way of doing this; please have a look at
+* examples/modify_entry2.php
 */
 
 // We use the fetch_entry.php example to get the LDAP-Entry

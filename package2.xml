@@ -53,6 +53,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
 		can handle ASCII chars smaller than 32.
 		A new method createFresh() was added to Net_LDAP_Entry, so creation of initial entries is more
 		standardized and clearer.
+		A new example is available, describing the $ldap->modify() method.
     </notes>
 
     <contents>
@@ -68,6 +69,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
             <file baseinstalldir="Net" name="examples/search_entries.php" role="doc" />
             <file baseinstalldir="Net" name="examples/add_entry.php" role="doc" />
             <file baseinstalldir="Net" name="examples/modify_entry.php" role="doc" />
+            <file baseinstalldir="Net" name="examples/modify_entry2.php" role="doc" />
         </dir> <!-- /doc -->
         <dir name="LDAP">
             <file baseinstalldir="Net" name="Entry.php" role="php" />
