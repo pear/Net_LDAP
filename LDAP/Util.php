@@ -99,10 +99,10 @@ class Net_LDAP_Util extends PEAR
     * the actual values, e.g. '1.3.6.1.4.1.1466.0=#04024869,DC=example,DC=com' is exploded to:
     * [ { '1.3.6.1.4.1.1466.0' => "\004\002Hi" }, { 'DC' => 'example' }, { 'DC' => 'com' } ];
     *
-    * [NOT IMPLEMENTED] It also performs the following operations on the given DN:
+    *  It also performs the following operations on the given DN:
     *   - Unescape "\" followed by ",", "+", """, "\", "<", ">", ";", "#", "=", " ", or a hexpair
     *     and and strings beginning with "#".
-    *   - Removes the leading 'OID.' characters if the type is an OID instead of a name.
+    *   [NOT IMPLEMENTED] - Removes the leading 'OID.' characters if the type is an OID instead of a name.
     *
     * OPTIONS is a list of name/value pairs, valid options are:
     *   casefold    Controls case folding of attribute types names.
@@ -142,7 +142,7 @@ class Net_LDAP_Util extends PEAR
 
         // Translate hex code into ascii again and apply case folding
         foreach ( $dn_array as $key => $value ) {
-            $value = Net_LDAP_Util::hex2asc($value);
+            $value = Net_LDAP_Util::unescape_dn_value($value);
             if ($options['casefold'] == 'upper') $value = preg_replace("/^(\w+)=/e", "''.strtoupper('\\1').''", $value);
             if ($options['casefold'] == 'lower') $value = preg_replace("/^(\w+)=/e", "''.strtolower('\\1').''", $value);
         }
@@ -273,9 +273,11 @@ class Net_LDAP_Util extends PEAR
     *     separator   Separator to use between RDNs. Defaults to comma (',').
     *
     * @static
-    * @param string $dn      The DN
+    * @param array|string $dn      The DN
     * @param array  $option  Options to use
     * @return string    The canonical DN
+    * @todo implement option mbcescape
+    * @todo deal with multidimensional RDNS from ldap_explode_dn
     */
     function canonical_dn($dn, $options = array('casefold' => 'upper'))
     {
@@ -299,24 +301,28 @@ class Net_LDAP_Util extends PEAR
 
         // Escaping and casefolding
         foreach ($dn as $pos => $dnval) {
-            $dn_comp = explode('=', $dnval, 1);
+            $dn_comp = explode('=', $dnval, 2);
             $ocl = $dn_comp[0];
             $val = $dn_comp[1];
 
             // strip OCL., otherwise apply casefolding and escaping
-            if (substr(strtolower($ocl), 0, 4) == 'ocl.') {
+            if (substr(strtolower($ocl), 0, 4) == 'oid.') {
                 $ocl = substr($ocl, 4);
             } else {
                 if ($options['casefold'] == 'upper') $ocl = strtoupper($ocl);
                 if ($options['casefold'] == 'lower') $ocl = strtolower($ocl);
-                $ocl = $this->escape_dn_value(array($ocl));
+                $ocl = Net_LDAP_Util::escape_dn_value(array($ocl));
+                $ocl = $ocl[0];
             }
 
             // escaping of dn-value
-            $val = $this->escape_dn_value(array($val));
+            $val = Net_LDAP_Util::escape_dn_value(array($val));
+            $val = $val[0];
+
+            $dn[$pos] = $ocl.'='.$val;
         }
 
-        if ($options['reverse']) array_reverse($dn);
+        if ($options['reverse']) $dn = array_reverse($dn);
         return implode($options['separator'], $dn);
     }
 
