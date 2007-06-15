@@ -91,13 +91,14 @@ class Net_LDAP_Util extends PEAR
     * are sets of Attributes. For each RDN a array is constructed where the RDN part is stored.
     *
     * For example, the DN 'OU=Sales+CN=J. Smith,DC=example,DC=net' is exploded to:
-    * <kbd>array( [0] => 'OU=Sales', [1] => 'CN=J. Smith', [2] => 'DC=example', [3] => 'DC=net' )</kbd>
+    * <kbd>array( [0] => array([0] => 'OU=Sales', [1] => 'CN=J. Smith'), [2] => 'DC=example', [3] => 'DC=net' )</kbd>
     *
     * [NOT IMPLEMENTED] DNs might also contain values, which are the bytes of the BER encoding of
     * the X.500 AttributeValue rather than some LDAP string syntax. These values are hex-encoded
     * and prefixed with a #. To distinguish such BER values, ldap_explode_dn uses references to
     * the actual values, e.g. '1.3.6.1.4.1.1466.0=#04024869,DC=example,DC=com' is exploded to:
     * [ { '1.3.6.1.4.1.1466.0' => "\004\002Hi" }, { 'DC' => 'example' }, { 'DC' => 'com' } ];
+    * See {@link http://www.vijaymukhi.com/vmis/berldap.htm} for more information on BER.
     *
     *  It also performs the following operations on the given DN:
     *   - Unescape "\" followed by ",", "+", """, "\", "<", ">", ";", "#", "=", " ", or a hexpair
@@ -254,6 +255,8 @@ class Net_LDAP_Util extends PEAR
     * Returns false if DN is not a valid Distinguished Name.
     * Note: The empty string "" is a valid DN. DN can either be a string or an array
     * as returned by ldap_explode_dn, which is useful when constructing a DN.
+    * The DN array may have be indexed (each array value is a OCL=VALUE pair)
+    * or associative (array key is OCL and value is VALUE).
     *
     * It performs the following operations on the given DN:
     *     - Removes the leading 'OID.' characters if the type is an OID instead of a name.
@@ -275,9 +278,8 @@ class Net_LDAP_Util extends PEAR
     * @static
     * @param array|string $dn      The DN
     * @param array  $option  Options to use
-    * @return string    The canonical DN
+    * @return false|string   The canonical DN
     * @todo implement option mbcescape
-    * @todo deal with multidimensional RDNS from ldap_explode_dn
     */
     function canonical_dn($dn, $options = array('casefold' => 'upper'))
     {
@@ -296,30 +298,93 @@ class Net_LDAP_Util extends PEAR
         if (!is_array($dn)) {
             $dn = explode($options['separator'], $dn);
         } else {
-            $dn = array_values($dn); // redo array keys
+            // Is array, check, if the array is of special "BER"
+            // form returned from ldap_explode_dn (array keys are numeric)
+            $ber = false;
+            foreach ($dn as $dn_key => $dn_part) {
+                if (!is_int($dn_key)) {
+                    $ber = true;
+                }
+            }
+            // convert, if BER detected
+            if ($ber) {
+                $newdn = array();
+                foreach ($dn as $dn_key => $dn_part) {
+                    if (is_array($dn_part)) {
+                        $newdn[] = $dn_part;  // copy array as-is, so we can resolve it later
+                    } else {
+                        $newdn[] = $dn_key.'='.$dn_part;
+                    }
+                }
+                $dn =& $newdn;
+            }
         }
 
         // Escaping and casefolding
         foreach ($dn as $pos => $dnval) {
-            $dn_comp = explode('=', $dnval, 2);
-            $ocl = $dn_comp[0];
-            $val = $dn_comp[1];
-
-            // strip OCL., otherwise apply casefolding and escaping
-            if (substr(strtolower($ocl), 0, 4) == 'oid.') {
-                $ocl = substr($ocl, 4);
+            if (is_array($dnval)) {
+                // subarray detected, this means very surely, that we had
+                // a multivalued dn part, which must be resolved
+                $dnval_new = '';
+                foreach ($dnval as $subkey => $subval) {
+                    // build RDN part
+                    if (!is_int($subkey)) {
+                        $subval = $subkey.'='.$subval;
+                    }
+                    $subval_processed = Net_LDAP_Util::canonical_dn($subval);
+                    if (false === $subval_processed) return false;
+                    $dnval_new .= $subval_processed.'+';
+                }
+                $dn[$pos] = substr($dnval_new, 0, -1); // store RDN part, strip last plus
             } else {
-                if ($options['casefold'] == 'upper') $ocl = strtoupper($ocl);
-                if ($options['casefold'] == 'lower') $ocl = strtolower($ocl);
-                $ocl = Net_LDAP_Util::escape_dn_value(array($ocl));
-                $ocl = $ocl[0];
+                if (preg_match('/.+?=.+?\+.+?=.+?/', $dnval)) {
+                    // multivalued RDN detected!
+                    // try to extract each RDN part and correct splitting result
+                    $rdns = preg_split('/\+(.+?=.+?)/', $dnval, -1, PREG_SPLIT_DELIM_CAPTURE+PREG_SPLIT_NO_EMPTY);
+                    foreach ($rdns as $key => $rdn) {
+                        if (preg_match('/^(.*)\+(.*?=.+)$/', $rdn, $matches)) {
+                            // there are pluses inside the attr name - this is very unusual;
+                            // so we strip them and add them to the attribute value of the preceding pair
+                            if ($key > 0) {
+                                $rdns[$key-1] .= '+'.$matches[1];
+                                $rdns[$key] = $matches[2];
+                            }
+                        }
+                    }
+
+                    // Ok, the RDN array should be okay now. It's time to build the DN!
+                    $rdn_string = '';
+                    foreach ($rdns as $key => $rdn) {
+                        $subval_processed = Net_LDAP_Util::canonical_dn($rdn);
+                        if (false === $subval_processed) return false;
+                        $rdn_string .= $subval_processed.'+';
+                    }
+
+                    $dn[$pos] = substr($rdn_string, 0, -1); // store RDN part, strip last plus
+
+                } else {
+                    // no multivalued RDN!
+                    $dn_comp = explode('=', $dnval);
+                    $ocl = ltrim($dn_comp[0]);  // trim left whitespaces 'cause of "cn=foo, l=bar" syntax (whitespace after comma)
+                    $val = $dn_comp[1];
+
+                    // strip OCL., otherwise apply casefolding and escaping
+                    if (substr(strtolower($ocl), 0, 4) == 'oid.') {
+                        $ocl = substr($ocl, 4);
+                    } else {
+                        if ($options['casefold'] == 'upper') $ocl = strtoupper($ocl);
+                        if ($options['casefold'] == 'lower') $ocl = strtolower($ocl);
+                        $ocl = Net_LDAP_Util::escape_dn_value(array($ocl));
+                        $ocl = $ocl[0];
+                    }
+
+                    // escaping of dn-value
+                    $val = Net_LDAP_Util::escape_dn_value(array($val));
+                    $val = $val[0];
+
+                    $dn[$pos] = $ocl.'='.$val;
+                }
             }
-
-            // escaping of dn-value
-            $val = Net_LDAP_Util::escape_dn_value(array($val));
-            $val = $val[0];
-
-            $dn[$pos] = $ocl.'='.$val;
         }
 
         if ($options['reverse']) $dn = array_reverse($dn);
