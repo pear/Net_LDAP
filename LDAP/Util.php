@@ -251,15 +251,15 @@ class Net_LDAP_Util extends PEAR
     /**
     * Returns the given DN in a canonical form
     *
-    * Returns undef if DN is not a valid Distinguished Name.
-    * Note: The empty string "" is a valid DN.) DN can either be a string or reference to an array of
-    * hashes as returned by ldap_explode_dn, which is useful when constructing a DN.
+    * Returns false if DN is not a valid Distinguished Name.
+    * Note: The empty string "" is a valid DN. DN can either be a string or an array
+    * as returned by ldap_explode_dn, which is useful when constructing a DN.
     *
     * It performs the following operations on the given DN:
     *     - Removes the leading 'OID.' characters if the type is an OID instead of a name.
     *     - Escapes all RFC 2253 special characters (",", "+", """, "\", "<", ">", ";", "#", "=", " "), slashes ("/"), and any other character where the ASCII code is < 32 as \hexpair.
     *     - Converts all leading and trailing spaces in values to be \20.
-    *     - If an RDN contains multiple parts, the parts are re-ordered so that the attribute type names are in alphabetical order.
+    *     [NOT IMPLEMENTED] - If an RDN contains multiple parts, the parts are re-ordered so that the attribute type names are in alphabetical order.
     *
     * OPTIONS is a list of name/value pairs, valid options are:
     *     casefold    Controls case folding of attribute type names.
@@ -268,11 +268,10 @@ class Net_LDAP_Util extends PEAR
     *                 lower        Lowercase attribute type names.
     *                 upper        Uppercase attribute type names. This is the default.
     *                 none         Do not change attribute type names.
-    *     mbcescape   If TRUE, characters that are encoded as a multi-octet UTF-8 sequence will be escaped as \(hexpair){2,*}.
+    *     [NOT IMPLEMENTED] mbcescape   If TRUE, characters that are encoded as a multi-octet UTF-8 sequence will be escaped as \(hexpair){2,*}.
     *     reverse     If TRUE, the RDN sequence is reversed.
     *     separator   Separator to use between RDNs. Defaults to comma (',').
     *
-    * @todo implement me!
     * @static
     * @param string $dn      The DN
     * @param array  $option  Options to use
@@ -280,12 +279,45 @@ class Net_LDAP_Util extends PEAR
     */
     function canonical_dn($dn, $options = array('casefold' => 'upper'))
     {
-        PEAR::raiseError("Not implemented!");
+        if ($dn === '') return $dn;  // empty DN is valid!
+
         // options check
-        $options['mbcescape'] == true ? $options['onlyvalues'] = 1 : $options['onlyvalues'] = 0;
-        !isset($options['reverse']) ? $options['reverse'] = false : $options['reverse'] = true;
-        if (!isset($options['casefold'])) $options['casefold'] = 'upper';
+        if (!isset($options['reverse'])) {
+            $options['reverse'] = false;
+        } else {
+            $options['reverse'] = true;
+        }
+        if (!isset($options['casefold']))  $options['casefold'] = 'upper';
         if (!isset($options['separator'])) $options['separator'] = ',';
+
+
+        if (!is_array($dn)) {
+            $dn = explode($options['separator'], $dn);
+        } else {
+            $dn = array_values($dn); // redo array keys
+        }
+
+        // Escaping and casefolding
+        foreach ($dn as $pos => $dnval) {
+            $dn_comp = explode('=', $dnval, 1);
+            $ocl = $dn_comp[0];
+            $val = $dn_comp[1];
+
+            // strip OCL., otherwise apply casefolding and escaping
+            if (substr(strtolower($ocl), 0, 4) == 'ocl.') {
+                $ocl = substr($ocl, 4);
+            } else {
+                if ($options['casefold'] == 'upper') $ocl = strtoupper($ocl);
+                if ($options['casefold'] == 'lower') $ocl = strtolower($ocl);
+                $ocl = $this->escape_dn_value(array($ocl));
+            }
+
+            // escaping of dn-value
+            $val = $this->escape_dn_value(array($val));
+        }
+
+        if ($options['reverse']) array_reverse($dn);
+        return implode($options['separator'], $dn);
     }
 
     /**
