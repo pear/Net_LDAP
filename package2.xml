@@ -6,9 +6,10 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <name>Net_LDAP</name>
     <channel>pear.php.net</channel>
     <summary>OO interface for searching and manipulating LDAP-entries</summary>
-    <description>Net Ldap is a clone of Perls Net::LDAP object interface to
-                 ldapservers. It does not contain all of Net::LDAPs features,
-                 but has:
+    <description>Net_LDAP is a clone of Perls Net::LDAP object interface to
+                 directory servers. It does contain most of Net::LDAPs features,
+                 but features some own too.
+                 It features:
                  * A simple OO-interface to connections, searches entries and filters.
                  * Support for tls and ldap v3.
                  * Simple modification, deletion and creation of ldapentries.
