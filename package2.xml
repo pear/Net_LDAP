@@ -50,12 +50,15 @@ http://pear.php.net/dtd/package-2.0.xsd">
 		combined 'changes' array.
 		Besides that, $search->popEntry() and the corresponding alias pop_entry() has been implemented.
 		Net_LDAP_Util::unescape_filter_value() is available too now and Net_LDAP_Util::escape_filter_value()
-		can handle ASCII chars smaller than 32.
+		can handle ASCII chars smaller than 32. Above that, Net_LDAP_Util::canonical_dn() has been fully implemented.
 		A new method createFresh() was added to Net_LDAP_Entry, so creation of initial entries is more
 		standardized and clearer.
 		A new example is available, describing the $ldap->modify() method.
 		The add_entry.php example was updated, it shows the use of Net_LDAP_Entry::createFresh().
 		$ldap->add() links unlinked entries now to the connection used for the add.
+		Some new additional utility functions are available in Net_LDAP_Util to assist you in handling attributes and dns.
+		The LDAP-Rename command now uses this functions to deal with DN escaping issues.
+		Please note that ldap_explode_dn_escaped() is not available from Net_LDAP_Util anymore; it got superseeded by Net_LDAP_Util::ldap_explode_dn().
     </notes>
 
     <contents>

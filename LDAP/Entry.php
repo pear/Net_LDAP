@@ -571,6 +571,7 @@ class Net_LDAP_Entry extends PEAR
      * @access public
      * @param Net_LDAP $ldap (optional) If you provide a Net_LDAP object, be sure to PASS IT VIA REFERENCE!
      * @return true|Net_LDAP_Error
+     * @todo Entry rename with a DN containing special characters needs testing!
      */
     function update($ldap=false)
     {
@@ -625,13 +626,18 @@ class Net_LDAP_Entry extends PEAR
                 return PEAR::raiseError("Renaming/Moving an entry is only supported in LDAPv3");
             }
             // make dn relative to parent (needed for ldap rename)
-            $parent = Net_LDAP_Util::ldap_explode_dn_escaped($this->_newdn, 0);
-            //NEW CODE: $parent = Net_LDAP_Util::ldap_explode_dn($this->_newdn, array('casefolding' => 'none', 'reverse' => false, 'onlyvalues' => false))
+            $parent = Net_LDAP_Util::ldap_explode_dn($this->_newdn, array('casefolding' => 'none', 'reverse' => false, 'onlyvalues' => false));
             if (Net_LDAP::isError($parent)) {
                 return $parent;
             }
             $child = array_shift($parent);
-            $parent = join(",", $parent);
+            // maybe the dn consist of a multivalued RDN, we must build the dn in this case
+            // because the $child-RDN is an array!
+            if (is_array($child)) {
+                $child = Net_LDAP_Util::canonical_dn($child);
+            }
+            $parent = Net_LDAP_Util::canonical_dn($parent);
+
             // rename
             if (false == @ldap_rename($link, $this->_dn, $child, $parent, true)) {
                 return PEAR::raiseError("Entry not renamed: " .
