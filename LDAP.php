@@ -640,11 +640,11 @@ define ('NET_LDAP_ERROR', 1000);
      *        base - Just one entry
      *        sub  - The whole tree
      *        one  - Immediately below $base
-     * sizelimit: Limit the number of entries returned (default: 0),
-     * timelimit: Limit the time spent for searching (default: 0),
+     * sizelimit: Limit the number of entries returned (default: 0 = unlimited),
+     * timelimit: Limit the time spent for searching (default: 0 = unlimited),
      * attrsonly: If true, the search will only return the attribute names,
      * attributes: Array of attribute names, which the entry should contain.
-     *             It is good practice to limit this to just the ones you need
+     *             It is good practice to limit this to just the ones you need.
      * [NOT IMPLEMENTED]
      * deref: By default aliases are dereferenced to locate the base object for the search, but not when
      *        searching subordinates of the base object. This may be changed by specifying one of the
@@ -834,15 +834,21 @@ define ('NET_LDAP_ERROR', 1000);
      *
      * @param string $dn  The DN of the object to test
      * @return boolean
-     * @todo exploding is not the safest way - we should work with util class here!
      */
     function dnExists($dn)
     {
-        $dns = explode(",",$dn);
-        $filter = array_shift($dns);
-        $base= implode($dns,',');
-        //$base = $dn;
-        //$filter = '(objectclass=*)';
+        // make dn relative to parent
+        $base = Net_LDAP_Util::ldap_explode_dn($this->_newdn, array('casefolding' => 'none', 'reverse' => false, 'onlyvalues' => false));
+        if (Net_LDAP::isError($base)) {
+           return $base;
+        }
+        $filter = array_shift($base);
+        // maybe the dn consist of a multivalued RDN, we must build the dn in this case
+        // because the $child-RDN is an array!
+        if (is_array($filter)) {
+            $filter = Net_LDAP_Util::canonical_dn($filter);
+        }
+        $base = Net_LDAP_Util::canonical_dn($base);
 
         $result = @ldap_list($this->_link, $base, $filter, array(), 1, 1);
         if (ldap_errno($this->_link) == 32) {
