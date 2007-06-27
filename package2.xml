@@ -47,7 +47,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
         <api>beta</api>
     </stability>
     <license>GPL License</license>
-    <notes>
+    <notes>Net_LDAP->dnExists() uses the Util class now, which makes it safer.
+           A new move() method is available from Net_LDAP.
     </notes>
 
     <contents>

@@ -894,6 +894,26 @@ define ('NET_LDAP_ERROR', 1000);
         return $entry;
    }
 
+   /**
+   * Rename or move the entry
+   *
+   * @param string|Net_LDAP_Entry $entry   Entry DN or Entry object
+   * @param string $newdn                  New location
+   * @return Net_LDAP_Error|true
+   */
+   function move(&$entry, $newdn)
+   {
+       if (!is_string($entry)) {
+           $entry = new Net_LDAP_Entry($this, $entry);
+       }
+       if (!is_a($entry, 'Net_LDAP_Entry')) {
+           return PEAR::raiseError('Parameter $entry is expected to be a Net_LDAP_Entry object! (If DN was passed, conversion failed)');
+       }
+
+       $entry->dn($newdn);
+       return $entry->update($this);
+   }
+
 
     /**
      * Returns the string for an ldap errorcode.
