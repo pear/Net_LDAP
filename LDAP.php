@@ -895,7 +895,10 @@ define ('NET_LDAP_ERROR', 1000);
    }
 
    /**
-   * Rename or move the entry
+   * Rename or move an entry
+   *
+   * This method will instantly carry out an update() after the move,
+   * so the entry is moved instantly.
    *
    * @param string|Net_LDAP_Entry $entry   Entry DN or Entry object
    * @param string $newdn                  New location
@@ -912,6 +915,36 @@ define ('NET_LDAP_ERROR', 1000);
 
        $entry->dn($newdn);
        return $entry->update($this);
+   }
+
+   /**
+   * Copy an entry to a new location
+   *
+   * The entry will be immediately copied.
+   * If you pass an Net_LDAP_Entry object, the source entry is not required to be existent on this
+   * LDAP server, which can be used to copy between directory servers.
+   *
+   * @param string|Net_LDAP_Entry $entry   Entry DN or Entry object
+   * @param string $newdn                  New location
+   * @return Net_LDAP_Error|Net_LDAP_Entry Error Message or reference to the copied entry
+   */
+   function &copy(&$entry, $newdn)
+   {
+       if (!is_string($entry)) {
+           $entry = new Net_LDAP_Entry($this, $entry);
+       }
+       if (!is_a($entry, 'Net_LDAP_Entry')) {
+           return PEAR::raiseError('Parameter $entry is expected to be a Net_LDAP_Entry object! (If DN was passed, conversion failed)');
+       }
+
+       $newentry = Net_LDAP_Entry::createFresh($newdn, $entry->getValues());
+       $result = $this->add($newentry);
+
+       if (is_a($result, 'Net_LDAP_Error')) {
+           return $result;
+       } else {
+           return $newentry;
+       }
    }
 
 

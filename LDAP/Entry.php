@@ -716,44 +716,6 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Copy the current entry to another place in the directory
-     *
-     * @access public
-     * @param Net_LDAP $ldap       Net_LDAP
-     * @param string   $dn         New distinguished name
-     * @param boolean  $relative   Is the new name relative to current parent
-     * @return Net_LDAP_Entry|Net_LDAP_Error   Reference to the copied Net_LDAP_Entry or Net_LDAP_Error
-     */
-    function &copy(&$ldap, $dn, $relative = false)
-    {
-        if ($relative == true) {
-            $dn = "$dn," . $this->dn();
-        }
-        // get the attribute which makes up the rdn
-        $parts = @ldap_explode_dn($this->dn(), 0);
-        list($attr, $value) = explode('=', $parts[0]);
-
-        // remove it from the entry (not valid in copy)
-        $old_e = $this; // backup
-        $old_e->delete(array($attr => $value));
-
-        // get the attribute which makes up the new rdn
-        $parts = @ldap_explode_dn($dn, 0);
-        list($attr, $value) = explode('=', $parts[0]);
-
-        $old_e->add(array($attr => $value));
-
-        $entry = new Net_LDAP_Entry(null, $dn);
-
-        $entry->add($old_e->getValues());
-        $msg = $entry->update($ldap);
-        if (Net_LDAP::isError($msg)) {
-            return $msg;
-        }
-        return $entry;
-    }
-
-    /**
      * Returns a reference to the LDAP-Object of this entry
      *
      * @access public
