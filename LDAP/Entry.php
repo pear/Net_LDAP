@@ -447,7 +447,7 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Deletes an attribute or a value
+     * Deletes an whole attribute or a value or the whole entry
      *
      * The parameter can be one of the following:
      *

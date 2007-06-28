@@ -905,7 +905,7 @@ define ('NET_LDAP_ERROR', 1000);
    *
    * @param string|Net_LDAP_Entry $entry   Entry DN or Entry object
    * @param string $newdn                  New location
-   * @param Net_LDAP $target_ldap          (optional) Target directory for cross server move
+   * @param Net_LDAP $target_ldap          (optional) Target directory for cross server move; should be passed via reference
    * @return Net_LDAP_Error|true
    */
    function move(&$entry, $newdn, $target_ldap = null)
@@ -931,7 +931,7 @@ define ('NET_LDAP_ERROR', 1000);
            }
            $res = $this->delete();
            if (Net_LDAP::isError($res)) {
-               $res2 = $target_ldap->delete($entry); // undo add
+               $res2 = $target_ldap->delete($entry, true); // undo add
                if (Net_LDAP::isError($res2)) {
                    $add_error_string = 'Additionally, the deletion of $entry in target directory failed.';
                }
