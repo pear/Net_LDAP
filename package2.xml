@@ -47,10 +47,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
         <api>beta</api>
     </stability>
     <license>GPL License</license>
-    <notes>Net_LDAP->dnExists() uses the Util class now, which makes it safer.
-           A new move() method is available from Net_LDAP.
-           Please note, that the copy() method was removed from the Net_LDAP_Entry class.
-           Instead use the more failsafer copy() from Net_LDAP.
+    <notes>
+		CHANGE STABILITY ABOVE FOR FINAL RELEASE!
     </notes>
 
     <contents>
@@ -320,6 +318,24 @@ http://pear.php.net/dtd/package-2.0.xsd">
 					The LDAP-Rename command now uses this functions to deal with DN escaping issues.
 					Please note that ldap_explode_dn_escaped() is not available from Net_LDAP_Util anymore; it got superseeded by Net_LDAP_Util::ldap_explode_dn().
 				</notes>
+		 </release>
+		 <release>
+			 <date>2007-06-28</date>
+			<version>
+				<release>1.0.0RC2</release>
+				<api>1.0.0RC2</api>
+			</version>
+			<stability>
+				<release>beta</release>
+				<api>beta</api>
+			</stability>
+			<license>GPL License</license>
+			<notes>Net_LDAP->dnExists() uses the Util class now, which makes it safer.
+				A new move() method is available from Net_LDAP.
+				Please note, that the copy() method was removed from the Net_LDAP_Entry class since
+				people would expect attribute moving because of the overall API of Net_LDAP.
+				Instead use the more failsafer copy() from Net_LDAP.
+			</notes>
 		 </release>
     </changelog>
 </package>
