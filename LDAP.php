@@ -34,6 +34,11 @@ require_once('LDAP/Filter.php');
 define ('NET_LDAP_ERROR', 1000);
 
 /**
+* Net_LDAP Version
+*/
+define ('NET_LDAP_VERSION', '1.0.0');
+
+/**
  * Net_LDAP - manipulate LDAP servers the right way!
  *
  * @category    Net
@@ -128,7 +133,7 @@ define ('NET_LDAP_ERROR', 1000);
      */
     function getVersion()
     {
-        return '0.7.2';
+        return NET_LDAP_VERSION;
     }
 
     /**
