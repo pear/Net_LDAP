@@ -835,7 +835,7 @@ define ('NET_LDAP_VERSION', '1.0.0');
 
 
     /**
-     * Tell if a dn already exists
+     * Tell if a DN does exist in the directory
      *
      * @param string $dn  The DN of the object to test
      * @return boolean
@@ -843,22 +843,21 @@ define ('NET_LDAP_VERSION', '1.0.0');
     function dnExists($dn)
     {
         // make dn relative to parent
-        $base = Net_LDAP_Util::ldap_explode_dn($this->_newdn, array('casefolding' => 'none', 'reverse' => false, 'onlyvalues' => false));
+        $base = Net_LDAP_Util::ldap_explode_dn($dn, array('casefold' => 'none', 'reverse' => false, 'onlyvalues' => false));
         if (Net_LDAP::isError($base)) {
            return $base;
         }
-        $filter = array_shift($base);
+        $filter_dn = array_shift($base);
         // maybe the dn consist of a multivalued RDN, we must build the dn in this case
         // because the $child-RDN is an array!
-        if (is_array($filter)) {
-            $filter = Net_LDAP_Util::canonical_dn($filter);
+        if (is_array($filter_dn)) {
+            $filter_dn = Net_LDAP_Util::canonical_dn($filter_dn);
         }
         $base = Net_LDAP_Util::canonical_dn($base);
 
-        $result = @ldap_list($this->_link, $base, $filter, array(), 1, 1);
+        $result = @ldap_list($this->_link, $base, $filter_dn, array(), 1, 1);
         if (ldap_errno($this->_link) == 32) {
-            $return = false;
-            return $return;
+            return false;
         }
         if (ldap_errno($this->_link) != 0) {
             PEAR::raiseError(ldap_error($this->_link), ldap_errno($this->_link));
@@ -867,8 +866,7 @@ define ('NET_LDAP_VERSION', '1.0.0');
             $return = true;
             return $return;
         }
-        $return = false;
-        return $return;
+        return false;
     }
 
 

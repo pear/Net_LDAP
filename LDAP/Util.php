@@ -92,9 +92,9 @@ class Net_LDAP_Util extends PEAR
     */
     function ldap_explode_dn($dn, $options = array('casefold' => 'upper'))
     {
-        $options['onlyvalues'] == true ? $options['onlyvalues'] = 1 : $options['onlyvalues'] = 0;
-        !isset($options['reverse']) ? $options['reverse'] = false : $options['reverse'] = true;
-        if (!isset($options['casefold'])) $options['casefold'] = 'upper';
+        $options['onlyvalues'] == true ? $options['onlyvalues'] = 1     : $options['onlyvalues'] = 0;
+        $options['reverse'] == true    ? $options['reverse']    = false : $options['reverse']    = true;
+        if (!isset($options['casefold'])) $options['casefold']  = 'upper';
 
         // Escaping of DN and stripping of "OID."
         $dn = Net_LDAP_Util::canonical_dn($dn);
