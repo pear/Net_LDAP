@@ -356,7 +356,7 @@ class Net_LDAP_Test extends PHPUnit_TestCase
             $entry->replace(array($attr => $original->getValue($attr, 'all')));
         }
 
-        $msg = $entry->update($this->ldap);
+        $msg = $entry->update();
         if (Net_LDAP::isError($msg)) {
             $this->fail($msg->getMessage());
             return false;
@@ -397,7 +397,7 @@ class Net_LDAP_Test extends PHPUnit_TestCase
             $entry->replace(array($attr => $original->getValue($attr, 'all')));
         }
 
-        $msg = $entry->update($this->ldap);
+        $msg = $entry->update();
         if (Net_LDAP::isError($msg)) {
             $this->fail($msg->getMessage());
             return false;

@@ -597,7 +597,7 @@ define ('NET_LDAP_VERSION', '1.0.0');
      * @param array $params Array of changes
      * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
      */
-    function modify($entry , $parms = array())
+    function modify(&$entry , $parms = array())
     {
         if (is_string($entry)) {
             $entry = $this->getEntry($entry);
@@ -615,9 +615,10 @@ define ('NET_LDAP_VERSION', '1.0.0');
                 if (Net_LDAP::isError($msg)) {
                     return $msg;
                 }
-                $msg = $entry->update($this);
+                $entry->setLDAP($this);
+                $msg = $entry->update();
                 if (Net_LDAP::isError($msg)) {
-                    return $msg;
+                    return PEAR::raiseError("Could not modify entry: ".$msg->getMessage());
                 }
             }
         }
@@ -944,7 +945,8 @@ define ('NET_LDAP_VERSION', '1.0.0');
        } else {
            // local move
            $entry->dn($newdn);
-           return $entry->update($this);
+           $entry->setLDAP($this);
+           return $entry->update();
        }
    }
 

@@ -569,26 +569,22 @@ class Net_LDAP_Entry extends PEAR
      * Update the entry on the directory server
      *
      * @access public
-     * @param Net_LDAP $ldap (optional) If you provide a Net_LDAP object, be sure to PASS IT VIA REFERENCE!
+     * @param Net_LDAP $ldap DEPRECIATED since RC3, use setLDAP() instead!
      * @return true|Net_LDAP_Error
      * @todo Entry rename with a DN containing special characters needs testing!
+     * @todo remove depreciated $ldap parameter somewhere in the next future
      */
-    function update($ldap=false)
+    function update($ldap = null)
     {
-        if (!$ldap) {  // If object is not provided, then use this entrys ldap object
-            $ldap =& $this->_ldap;
-        } else {
-            if (!is_a($ldap, 'Net_LDAP')) {
-                $ldap = false; // throw error
-            } else {
-                // store the provided ldap object internally, if we haven't got one already
-                if (!$this->_ldap) $this->_ldap =& $ldap;
-            }
+        if (null !== $ldap) {
+            return PEAR::raiseError("Passing an Net_LDAP object to update() is depreciated since 1.0.0-RC3! Please set the LDAP object using setLDAP() prior update.");
         }
 
+
         // ensure we have a valid LDAP object
+        $ldap =& $this->getLDAP();
         if (!is_a($ldap, 'Net_LDAP')) {
-           return PEAR::raiseError("Need a Net_LDAP object as parameter");
+           return PEAR::raiseError("The entries LDAP object is not valid");
         }
 
         $link = $ldap->getLink();
@@ -727,6 +723,22 @@ class Net_LDAP_Entry extends PEAR
             return PEAR::raiseError("LDAP is not a valid Net_LDAP object");
         } else {
             return $this->_ldap;
+        }
+    }
+
+    /**
+    * Sets  a reference to the LDAP-Object of this entry
+    *
+    * @access public
+    * @return true|Net_LDAP_Error
+    */
+    function setLDAP(&$ldap)
+    {
+        if (!is_a($ldap, 'Net_LDAP')) {
+            return PEAR::raiseError("LDAP is not a valid Net_LDAP object");
+        } else {
+            $this->_ldap =& $ldap;
+            return true;
         }
     }
 

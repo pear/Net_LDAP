@@ -104,15 +104,12 @@ if ($tests['new']) {
 
     $at = $param['newentry'];
     // note:: There is no link to the ldap-server in this object
-    $newentry = new ldap_entry;
-    // adding attributes
-    $newentry->add($at);
-    // the dn function may set the dn or retrieve it.
-    $newentry->dn ($param['newentrydn']);
+    $newentry = Net_LDAP_Entry::createFresh($param['newentrydn'], $at);
     
     print "<br> New entry dn: " . $newentry->dn();
-    // By getting a pointer the main ldap object you give the object the connection it needs to work.
-    $msg = $newentry->update(&$ldap);
+    
+    // by adding the entry, it gets the LDAP object internally set
+    $msg = $ldap->add($newentry);
     
     if (Net_Ldap::isError($msg)) {
        print $msg->getMessage();
