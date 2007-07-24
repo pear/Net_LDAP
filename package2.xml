@@ -39,8 +39,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <!-- Information for this release -->
     <date></date>
     <version>
-        <release>1.0.0-RC3</release>
-        <api>1.0.0-RC3</api>
+        <release>1.0.0</release>
+        <api>1.0.0</api>
     </version>
     <stability>
         <release>beta</release>
@@ -48,10 +48,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </stability>
     <license>GPL License</license>
     <notes>
-		Fixed a bug with dnExists() that was caused mainly by bad behavior of Net_LDAP_UTIL::ldap_explode_dn().
-		Fixed a bug with call time pass-by-reference if calling $entry->update(); however this inflicted a API change:
-		The parameter $ldap is not available anymore, you need to use $entry->setLDAP() prior update now if you want to change the LDAP
-		object. This brought us a more logical API now, since Entry operations should be performed by the Net_LDAP object.
+		CHANGE STABILITY FOR FINAL RELEASE!
     </notes>
 
     <contents>
@@ -338,6 +335,24 @@ http://pear.php.net/dtd/package-2.0.xsd">
 				Please note, that the copy() method was removed from the Net_LDAP_Entry class since
 				people would expect attribute moving because of the overall API of Net_LDAP.
 				Instead use the more failsafer copy() from Net_LDAP.
+			</notes>
+		 </release>
+		 <release>
+			<date>2007-07-24</date>
+			<version>
+				<release>1.0.0RC3</release>
+				<api>1.0.0RC3</api>
+			</version>
+			<stability>
+				<release>beta</release>
+				<api>beta</api>
+			</stability>
+			<license>GPL License</license>
+			<notes>
+				Fixed a bug with dnExists() that was caused mainly by bad behavior of Net_LDAP_UTIL::ldap_explode_dn().
+				Fixed a bug with call time pass-by-reference if calling $entry->update(); however this inflicted a API change:
+				The parameter $ldap is not available anymore, you need to use $entry->setLDAP() prior update now if you want to change the LDAP
+				object. This brought us a more logical API now, since Entry operations should be performed by the Net_LDAP object.
 			</notes>
 		 </release>
     </changelog>
