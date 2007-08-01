@@ -236,8 +236,8 @@ class Net_LDAP_Search extends PEAR
     *   $entries = $search->sorted_as_struct(array('locality','sn'), SORT_DESC);
     * </code>
     *
-    * @param array      $attrs Array of attribute names to sort; order from left to right.
-    * @param int        $order Ordering direction, either constant SORT_ASC or SORT_DESC
+    * @param array  $attrs  Array of attribute names to sort; order from left to right.
+    * @param int    $order  Ordering direction, either constant SORT_ASC or SORT_DESC
     * @return array|Net_LDAP_Error   Array with sorted entries or error
     */
     function sorted_as_struct($attrs = array('cn'), $order = SORT_ASC)
@@ -311,12 +311,15 @@ class Net_LDAP_Search extends PEAR
             }
         }
 
-        // sort the colums with array_multisort
-        $sort_params = '';
-        foreach ($attrs as $attr_name) {
-            $sort_params .= '$columns[\''.$attr_name.'\'], '.$order.', ';
+        // sort the colums with array_multisort, if there is something
+        // to sort and if we have requested sort columns
+        if (!empty($to_sort) && !empty($columns)) {
+            $sort_params = '';
+            foreach ($attrs as $attr_name) {
+                $sort_params .= '$columns[\''.$attr_name.'\'], '.$order.', ';
+            }
+            eval("array_multisort($sort_params \$to_sort);"); // perform sorting
         }
-        eval("array_multisort($sort_params \$to_sort);"); // perform sorting
 
         return $to_sort;
     }

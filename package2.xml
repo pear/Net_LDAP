@@ -49,6 +49,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <license>GPL License</license>
     <notes>
 		CHANGE STABILITY FOR FINAL RELEASE!
+		Fixed some minor bugs of RC3
     </notes>
 
     <contents>
