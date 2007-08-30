@@ -569,17 +569,18 @@ class Net_LDAP_Entry extends PEAR
      * Update the entry on the directory server
      *
      * @access public
-     * @param Net_LDAP $ldap DEPRECIATED since RC3, use setLDAP() instead!
+     * @param Net_LDAP $ldap If passed, a call to setLDAP() is issued prior update, thus switching the LDAP-server. This is for perl-ldap interface compliance
      * @return true|Net_LDAP_Error
      * @todo Entry rename with a DN containing special characters needs testing!
-     * @todo remove depreciated $ldap parameter somewhere in the next future
      */
     function update($ldap = null)
     {
-        if (null !== $ldap) {
-            return PEAR::raiseError("Passing an Net_LDAP object to update() is depreciated since 1.0.0-RC3! Please set the LDAP object using setLDAP() prior update.");
+        if ($ldap) {
+            $msg = $this->setLDAP($ldap);
+            if (Net_LDAP::isError($msg)) {
+               return PEAR::raiseError('You passed an invalid $ldap variable to update()');
+            }
         }
-
 
         // ensure we have a valid LDAP object
         $ldap =& $this->getLDAP();
