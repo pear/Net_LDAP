@@ -48,7 +48,8 @@ class Net_LDAP_Util extends PEAR
          // We do nothing here, since all methods can be called statically.
          // In Net_LDAP <= 0.7, we needed a instance of Util, because
          // it was possible to do utf8 encoding and decoding, but this
-         // has been moved to the LDAP class.
+         // has been moved to the LDAP class. The constructor remains only
+         // here to document the downward compatibility of creating a instance.
     }
 
     /**
@@ -92,12 +93,12 @@ class Net_LDAP_Util extends PEAR
     */
     function ldap_explode_dn($dn, $options = array('casefold' => 'upper'))
     {
-        $options['onlyvalues'] == true ? $options['onlyvalues'] = 1     : $options['onlyvalues'] = 0;
-        $options['reverse'] == true    ? $options['reverse']    = false : $options['reverse']    = true;
+        $options['onlyvalues'] = ($options['onlyvalues']) ? true : false;
+        $options['reverse'] = ($options['reverse']) ? true : false;
         if (!isset($options['casefold'])) $options['casefold']  = 'upper';
 
         // Escaping of DN and stripping of "OID."
-        $dn = Net_LDAP_Util::canonical_dn($dn);
+        $dn = Net_LDAP_Util::canonical_dn($dn, array('casefold' => $options['casefold']));
 
         // splitting the DN
         $dn_array = preg_split('/(?<=[^\\\\]),/', $dn);
