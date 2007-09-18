@@ -21,13 +21,13 @@ http://pear.php.net/dtd/package-2.0.xsd">
         <name>Tarjei Huse</name>
         <user>tarjei</user>
         <email>tarjei@nu.no</email>
-        <active>yes</active>
+        <active>no</active>
     </lead>
     <lead>
         <name>Jan Wagner</name>
         <user>jw</user>
         <email>wagner@netsols.de</email>
-        <active>yes</active>
+        <active>no</active>
     </lead>
     <lead>
         <name>Benedikt Hallinger</name>
@@ -37,10 +37,10 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date></date>
+    <date>2007-09-18</date>
     <version>
-        <release>1.0.0</release>
-        <api>1.0.0</api>
+        <release>1.0.0RC4</release>
+        <api>1.0.0RC4</api>
     </version>
     <stability>
         <release>beta</release>
@@ -48,8 +48,9 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </stability>
     <license>GPL License</license>
     <notes>
-		CHANGE STABILITY FOR FINAL RELEASE!
-		Fixed some minor bugs of RC3
+		- Fixed some minor bugs of RC3
+		- Reintroduced $ldap parameter for $entry->update(), but it is not prefferred to use this way.
+		  The Parameter is there for perl interface compatibility
     </notes>
 
     <contents>
