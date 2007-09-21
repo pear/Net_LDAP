@@ -99,15 +99,25 @@ class Net_LDAP_Filter extends PEAR
     var $_filter;
 
     /**
-    * Private, empty constructor
+    * Create a new Net_LDAP_Filter object and parse $filter.
     *
+    * This is currently not implemented.
     * Construction of Net_LDAP_Filter objects occours through either
     * {@link create()} or {@link combine()}
     *
-    * @access private
+    * @param string $filter      LDAP filter string
+    * @todo implement perl interface
     */
-    function Net_LDAP_Filter()
+    function Net_LDAP_Filter($filter = false)
     {
+        // The optional parameter must remain here, because otherwise create() crashes
+        if (false !== $filter) {
+            PEAR::raiseError('Net_LDAP_Filter() perl compatible interface not implemented yet. Use create()');
+            // This code should work once parse() is implemented
+            $filters = Net_LDAP_Filter->parse($filter);
+            $this->_subfilters = $filters;
+            $this->_match = '';
+        }
     }
 
     /**
@@ -246,6 +256,19 @@ class Net_LDAP_Filter extends PEAR
         $combined_filter->_subfilters = $filters;
         $combined_filter->_match = $log_op;
         return $combined_filter;
+    }
+
+    /**
+    * Parse FILTER
+    *
+    * This parses an filter string into Net_LDAP_Filter objects
+    *
+    * @param string $FILTER     The filter string
+    * @return Net_LDAP_Filter|Net_LDAP_Error
+    */
+    function parse($FILTER)
+    {
+        return PEAR::raiseError("parse() is not implemented yet.");
     }
 
     /**
