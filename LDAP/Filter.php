@@ -131,18 +131,19 @@ class Net_LDAP_Filter extends PEAR
     * properly. If it is set to false then $value will be treaten as raw value.
     *
     * Examples:
-    * $filter = new Net_LDAP_Filter('sn', 'ends', 'foobar');
-    * -> This will find entries that contain a attribute "sn" that ends with "foobar".
-    * $filter = new Net_LDAP_Filter('sn', 'any');
-    * -> This will find entries that contain a attribute "sn" that has any value set.
+    * <code>
+    *   // This will find entries that contain an attribute "sn" that ends with "foobar":
+    *   $filter = new Net_LDAP_Filter('sn', 'ends', 'foobar');
+    *
+    *   // This will find entries that contain an attribute "sn" that has any value set:
+    *   $filter = new Net_LDAP_Filter('sn', 'any');
+    * </code>
     *
     * @param string  $attr_name       Name of the attribute the filter should apply to
     * @param string  $match           Matching rule (equals, begins, ends, contains, greater, less, greaterOrEqual, lessOrEqual, approx, any)
     * @param string  $value           (optional) if given, then this is used as a filter
-    * @param boolean $escape          Should the whole $value be escaped? (default: yes, see {@link escape()} for detailed information)
+    * @param boolean $escape          Should $value be escaped? (default: yes, see {@link Net_LDAP_Util::escape_filter_value()} for detailed information)
     * @return Net_LDAP_Filter|Net_LDAP_Error
-    * @see escape()
-    * @todo implement greaterOrEqual, lessOrEqual, approx
     */
     function &create($attr_name, $match, $value = '', $escape = true)
     {
@@ -156,7 +157,7 @@ class Net_LDAP_Filter extends PEAR
                 $leaf_filter->_filter = '(' . $attr_name . '=' . $value . ')';
             break;
             case 'begins':
-            $leaf_filter->_filter = '(' . $attr_name . '=' . $value . '*)';
+                $leaf_filter->_filter = '(' . $attr_name . '=' . $value . '*)';
             break;
             case 'ends':
                 $leaf_filter->_filter = '(' . $attr_name . '=*' . $value . ')';
@@ -285,21 +286,24 @@ class Net_LDAP_Filter extends PEAR
     * This can be used to escape a string to provide a valid LDAP-Filter.
     *
     * LDAP will only recognise certain characters as the
-    * character istself if it is properly escaped. This is
+    * character istself if they are properly escaped. This is
     * what this method does.
     * The method can be called statically, so you can use it outside
     * for your own purposes (eg for escaping only parts of strings)
     *
     * In fact, this is just a shorthand to {@link Net_LDAP_Util::escape_filter_value()}.
+    * For upward compatibiliy reasons you are strongly encouraged to use the escape
+    * methods provided by the Net_LDAP_Util class.
     *
     * @static
     * @param string $string  Any string who should be escaped
     * @return string         The string $string, but escaped
-    * @deprecated  Do not use this method anymore, instead use Net_LDAP_Util::escape_filter_value()
+    * @deprecated  Do not use this method anymore, instead use Net_LDAP_Util::escape_filter_value() directly
     */
     function escape($string)
     {
-        return PEAR::raiseError("PLEASE DO NOT USE Net_LDAP_Filter anymore! use Net_LDAP_Util::escape_filter_value() instead!");
+        $return = Net_LDAP_Util::escape_filter_value(array($value));
+        return $return[0];
     }
 
     /**
