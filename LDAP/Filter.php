@@ -283,6 +283,27 @@ class Net_LDAP_Filter extends PEAR
     }
 
     /**
+    * Print the text representation of the filter to FH, or the currently selected output handle if FH is not given
+    *
+    * This method is onlay for compatibility to the perl interface.
+    *
+    * @param resource $FH   (optional) A filehandle resource
+    * @return true|Net_LDAP_Error
+    */
+    function print($FH = false)
+    {
+        if (!is_resource($FH)) {
+            print($this->asString());
+        } else {
+            $res = fwrite($FH, $this->asString());
+            if (false === $res) {
+                PEAR::raiseError("Unable to write filter string to filehandle \$FH!");
+            }
+        }
+        return true;
+    }
+
+    /**
     * This can be used to escape a string to provide a valid LDAP-Filter.
     *
     * LDAP will only recognise certain characters as the
