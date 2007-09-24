@@ -101,22 +101,22 @@ class Net_LDAP_Filter extends PEAR
     /**
     * Create a new Net_LDAP_Filter object and parse $filter.
     *
-    * This is currently not implemented.
+    * This is currently not fully implemented (filter will be used as-provided).
     * Construction of Net_LDAP_Filter objects occours through either
     * {@link create()} or {@link combine()}
     *
     * @param string $filter      LDAP filter string
-    * @todo implement perl interface
+    * @todo This is just for perl interface compatibility and not fully implemented. Use Net_LDAP_Filter::create()
     */
     function Net_LDAP_Filter($filter = false)
     {
         // The optional parameter must remain here, because otherwise create() crashes
         if (false !== $filter) {
-            $filters = Net_LDAP_Filter::parse($filter);
-            if (!PEAR::isError($filters)) {
-               $this->_filter = $filters->toString();
+            $filter_o = Net_LDAP_Filter::parse($filter);
+            if (!PEAR::isError($filter_o)) {
+               $this->_filter = $filter_o->asString();
             } else {
-               $this->_filter = 'Net_LDAP_Filter error: '.$filters->getMessage();
+               $this->_filter = 'Net_LDAP_Filter error: '.$filter_o->getMessage();
             }
         }
     }
@@ -260,18 +260,61 @@ class Net_LDAP_Filter extends PEAR
     }
 
     /**
-    * Parse FILTER
+    * Parse FILTER into a Net_LDAP_Filter object
     *
     * This parses an filter string into Net_LDAP_Filter objects
     *
+    * @access static
     * @param string $FILTER     The filter string
     * @return Net_LDAP_Filter|Net_LDAP_Error
+    * @todo this is just for perl interface compatibility and not fully implemented. Use Net_LDAP_Filter::create()
     */
     function parse($FILTER)
     {
-        return PEAR::raiseError("parse() is not implemented yet. Use Net_LDAP_Filter::create() instead!");
-        // This could be achieved by splitting the filter and then calling create() and combine()
-        // to build up filter objects and ensuring LDAP confromance and correct escaping
+        $leaf_filter = new Net_LDAP_Filter();
+        $leaf_filter->_filter = $FILTER;
+        return $leaf_filter;
+
+        /* THIS CODE IS NOT FULLY IMPLEMENTED YET!
+           Maybe a better idea is to just detect if a leaf filter component is proccesed or if there are
+           combinations. Then we might call create() or combine() or a mix of those.
+           Leaf Filters containing more than one leaf are illegal and must be combined using an logical operator
+        $return = false;
+        if (preg_match('/^\((\w+)(>|<|>=|<=|=|=~|=\*)(.+)\)$/', $FILTER, $matches)) {
+            // leaf filter component
+            $leaf_filter = new Net_LDAP_Filter();
+
+//          $value = Net_LDAP_Util::escape_filter_value(array($matches[3]));
+            $value[0] = $matches[3];
+
+            $leaf_filter->_filter = '('.$matches[1].$matches[2].$value[0].')';
+            return $leaf_filter;
+        } elseif (preg_match('/^\((&|!|\|)(.+)\)$/', $FILTER, $matches)) {
+            // filter contains subfilters, parse each component
+            print_r($matches);
+            $remaining_filter = $matches[2];
+            while (strlen($remaining_filter) > 0) {
+                // fetch next component and parse
+                if (preg_match('/^(\(.+?\))(.+)?/', $remaining_filter, $submatches)){ // [TODO] lookbehind for escaped brackets
+                    $parsed_subfilter_cur = Net_LDAP_Filter::parse($submatches[1]);
+                    if (PEAR::isError($parsed_subfilter_cur)) {
+                        return PEAR::raiseError("Unable to parse subfilter: ".$parsed_subfilter_cur->getMessage());
+                    }
+                    echo "PARSED: ".$submatches[1]."\n";
+                    $remaining_filter = $submatches[2];
+                } else {
+                    return PEAR::raiseError("Unable to parse subfilter: $remaining_filter");
+                }
+            }
+
+            $return = new Net_LDAP_Filter();
+        }
+
+        if (false === $return && strlen($FILTER) > 0) { //TODO Problem if no filter passed
+            $return = PEAR::raiseError("Unable to parse filter: $FILTER");
+        }
+        return $return;
+        */
     }
 
     /**
@@ -318,7 +361,7 @@ class Net_LDAP_Filter extends PEAR
     * @param resource $FH   (optional) A filehandle resource
     * @return true|Net_LDAP_Error
     */
-    function printMe($FH = false,$x='',$y='')
+    function printMe($FH = false)
     {
         if (!is_resource($FH)) {
             print($this->asString());
