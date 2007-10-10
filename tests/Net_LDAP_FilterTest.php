@@ -15,6 +15,11 @@ require_once 'Net/LDAP/Filter.php';
  */
 class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
     /**
+    * @var string   default filter string to test with
+    */
+    var $filter_str = '(&(cn=foo)(ou=bar))';
+
+    /**
      * Runs the test methods of this class.
      *
      * @access public
@@ -46,83 +51,130 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testCreate().
+     * This tests the perl compatible creation of filters through parsing of an filter string
      */
-    public function testCreate() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
+    public function testCreatePerlCompatible() {
+        $filter_o = new Net_LDAP_Filter($this->filter_str);
+
+        $this->assertType('Net_LDAP_Filter', $filter_o);
+        $this->assertEquals($this->filter_str, $filter_o->asString());
     }
 
     /**
-     * @todo Implement testCombine().
-     */
-    public function testCombine() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
-
-    /**
-     * @todo Implement testParse().
+     * Test correct parsing of filter strings through parse()
+     *
+     * @todo Currently, parsing is not fully implemented, so we just test that the filter string is inserted correctly
      */
     public function testParse() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
+       $parsed = Net_LDAP_Filter::parse($this->filter_str);
+
+       $this->assertType('Net_LDAP_Filter', $parsed);
+       $this->assertEquals($this->filter_str, $parsed->asString());
+
+       $this->markTestIncomplete("Not fully implemented, because the parse() method isn't itself. Only the current behavior (\$filter_str == \$parsed->asString()) was tested.");
     }
 
+
     /**
-     * @todo Implement testAsString().
+     * This tests the basic create() method of creating filters
      */
-    public function testAsString() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
+    public function testCreate() {
+        // Test values and an array containing the filter
+        // creating methods and an regex to test the resulting filter
+        $testattr = 'testattr';
+        $testval  = 'testval';
+        $combinations = array(
+            'equals'         => "/\($testattr=$testval\)/",
+            'begins'         => "/\($testattr=$testval\*\)/",
+            'ends'           => "/\($testattr=\*$testval\)/",
+            'contains'       => "/\($testattr=\*$testval\*\)/",
+            'greater'        => "/\($testattr>$testval\)/",
+            'less'           => "/\($testattr<$testval\)/",
+            'greaterorequal' => "/\($testattr>=$testval\)/",
+            'lessorequal'    => "/\($testattr<=$testval\)/",
+            'approx'         => "/\($testattr=~$testval\)/",
+            'any'            => "/\($testattr=\*\)/"
         );
+
+        foreach ($combinations as $match => $regex) {
+            // escaping is tested in util class
+            $filter = Net_LDAP_Filter::create($testattr, $match, $testval, false);
+
+            $this->assertType('Net_LDAP_Filter', $filter);
+            $this->assertRegExp($regex, $filter->asString(), "Filter generation failed for MatchType: $match");
+        }
     }
 
     /**
-     * @todo Implement testAs_string().
-     */
-    public function testAs_string() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
-
-    /**
-     * @todo Implement testPrintMe().
-     */
-    public function testPrintMe() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
-
-    /**
-     * @todo Implement testEscape().
-     */
-    public function testEscape() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
-
-    /**
-     * @todo Implement test_isLeaf().
+     * Tests, if _isLeaf() works
      */
     public function test_isLeaf() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
+        $leaf   = Net_LDAP_Filter::create('foo', 'equals', 'bar');
+        $noleaf = Net_LDAP_Filter::combine('not', $leaf);
+        $this->assertType('Net_LDAP_Filter', $leaf);
+        $this->assertType('Net_LDAP_Filter', $noleaf);
+        $this->assertTrue($leaf->_isLeaf());
+        $this->assertFalse($noleaf->_isLeaf());
+    }
+
+    /**
+     * Tests, if asString() works
+     */
+    public function testAsString() {
+        $filter = Net_LDAP_Filter::create('foo', 'equals', 'bar');
+        $this->assertType('Net_LDAP_Filter', $filter);
+        $this->assertEquals('(foo=bar)', $filter->asString());
+    }
+
+    /**
+     * This tests the basic cobination of filters
+     */
+    public function testCombine() {
+        $filter0 = Net_LDAP_Filter::create('foo', 'equals', 'bar');
+        $filter1 = Net_LDAP_Filter::create('bar', 'equals', 'foo');
+        $filter2 = Net_LDAP_Filter::create('you', 'equals', 'me');
+        $filter3 = new Net_LDAP_Filter('(perlinterface=used)');
+
+        $this->assertType('Net_LDAP_Filter', $filter0);
+        $this->assertType('Net_LDAP_Filter', $filter1);
+        $this->assertType('Net_LDAP_Filter', $filter2);
+
+        // Negation test
+        $filter_not1 = Net_LDAP_Filter::combine('not', $filter0);
+        $filter_not2 = Net_LDAP_Filter::combine('!', $filter0);
+        $this->assertType('Net_LDAP_Filter', $filter_not1, 'Negation failed for literal NOT');
+        $this->assertType('Net_LDAP_Filter', $filter_not2, 'Negation failed for logical NOT');
+        $this->assertEquals('(!(foo=bar))', $filter_not1->asString());
+        $this->assertEquals('(!(foo=bar))', $filter_not2->asString());
+
+        // Combination test: OR
+        $filter_comb_or1 = Net_LDAP_Filter::combine('or', array($filter1, $filter2));
+        $filter_comb_or2 = Net_LDAP_Filter::combine('|', array($filter1, $filter2));
+        $this->assertType('Net_LDAP_Filter', $filter_comb_or1, 'Combination failed for literal OR');
+        $this->assertType('Net_LDAP_Filter', $filter_comb_or2, 'combination failed for logical OR');
+        $this->assertEquals('(|(bar=foo)(you=me))', $filter_comb_or1->asString());
+        $this->assertEquals('(|(bar=foo)(you=me))', $filter_comb_or2->asString());
+
+        // Combination test: AND
+        $filter_comb_and1 = Net_LDAP_Filter::combine('and', array($filter1, $filter2));
+        $filter_comb_and2 = Net_LDAP_Filter::combine('&', array($filter1, $filter2));
+        $this->assertType('Net_LDAP_Filter', $filter_comb_and1, 'Combination failed for literal AND');
+        $this->assertType('Net_LDAP_Filter', $filter_comb_and2, 'combination failed for logical AND');
+        $this->assertEquals('(&(bar=foo)(you=me))', $filter_comb_and1->asString());
+        $this->assertEquals('(&(bar=foo)(you=me))', $filter_comb_and2->asString());
+
+        // Combination test: using filter created with perl interface
+        $filter_comb_perl1 = Net_LDAP_Filter::combine('and', array($filter1, $filter3));
+        $filter_comb_perl2 = Net_LDAP_Filter::combine('&', array($filter1, $filter3));
+        $this->assertType('Net_LDAP_Filter', $filter_comb_perl1, 'Combination failed for literal AND');
+        $this->assertType('Net_LDAP_Filter', $filter_comb_perl2, 'combination failed for logical AND');
+        $this->assertEquals('(&(bar=foo)(perlinterface=used))', $filter_comb_perl1->asString());
+        $this->assertEquals('(&(bar=foo)(perlinterface=used))', $filter_comb_perl2->asString());
+
+        // Combination test: deep combination
+        $filter_comp_deep = Net_LDAP_Filter::combine('and',array($filter2, $filter_not1, $filter_comb_or1, $filter_comb_perl1));
+        $this->assertType('Net_LDAP_Filter', $filter_comp_deep, 'Deep combination failed!');
+        $this->assertEquals('(&(you=me)(!(foo=bar))(|(bar=foo)(you=me))(&(bar=foo)(perlinterface=used)))', $filter_comp_deep->AsString());
     }
 }
 
