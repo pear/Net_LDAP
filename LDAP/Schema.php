@@ -24,6 +24,8 @@
 //
 // $Id$
 
+require_once("PEAR.php");
+
 /**
 * Syntax definitions
 *

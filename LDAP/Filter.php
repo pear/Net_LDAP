@@ -354,7 +354,7 @@ class Net_LDAP_Filter extends PEAR
     /**
     * Print the text representation of the filter to FH, or the currently selected output handle if FH is not given
     *
-    * This method is onlay for compatibility to the perl interface.
+    * This method is only for compatibility to the perl interface.
     * However, the original method was called "print" but due to PHP language restrictions,
     * we can't have a print() method.
     *
