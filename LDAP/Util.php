@@ -484,29 +484,33 @@ class Net_LDAP_Util extends PEAR
     * For example, the multivalued RDN 'OU=Sales+CN=J. Smith' is exploded to:
     * <kbd>array([0] => 'OU=Sales', [1] => 'CN=J. Smith')</kbd>
     *
+    * The method trys to be smart if it encounters unescaped "+" characters, but may fail,
+    * so ensure escaped "+"es in attr names and attr values.
+    *
     * @static
-    * @param string $rdn   Part of a (multivalued) RDN (ou=foo OR ou=foo+ou=bar)
-    * @return array        Array with the components of the multivalued RDN
+    * @param string $rdn   Part of an (multivalued) escaped RDN (eg. ou=foo OR ou=foo+cn=bar)
+    * @return array        Array with the components of the multivalued RDN or Error
     */
     function split_rdn_multival($rdn)
     {
-        if (preg_match('/.+?=.+?\+.+?=.+?/', $rdn)) {
-            $rdns = preg_split('/\+(.+?=.+?)/', $rdn, -1, PREG_SPLIT_DELIM_CAPTURE+PREG_SPLIT_NO_EMPTY);
-            // correct stripping
-            foreach ($rdns as $key => $rdn_value) {
-                if (preg_match('/^(.*)\+(.*?=.+)$/', $rdn_value, $matches)) {
-                    // there are pluses inside the attr name - this is very unusual;
-                    // so we strip them and add them to the attribute value of the preceding pair
-                    if ($key > 0) {
-                        $rdns[$key-1] .= '+'.$matches[1];
-                        $rdns[$key] = $matches[2];
-                    }
+        $rdns = preg_split('/(?<!\\\\)\+/',$rdn);
+
+        // process rdn parts
+        foreach ($rdns as $key => $rdn_value) {
+            $rdn_value = $rdns[$key]; // refresh value (foreach caches!)
+            // if the rdn_value is not in attr=value format, then we had an
+            // unescaped plus character inside the attr name or the value.
+            // We assume, that it was the attibute value.
+            if (!preg_match('/.+=.+/', $rdn_value)) {
+                unset($rdns[$key]);
+                if (array_key_exists($key-1, $rdns)) {
+                    $rdns[$key-1] = $rdns[$key-1].$rdn_value; // append to previous attr value
+                } else {
+                    $rdns[$key+1] = $rdn_value.$rdns[$key+1]; // first element: prepend to next attr name
                 }
             }
-        } else {
-            $rdns = array($rdn);
         }
-        return $rdns;
+        return array_values($rdns);
     }
 
     /**
