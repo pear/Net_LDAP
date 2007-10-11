@@ -75,15 +75,18 @@ class Net_LDAP_UtilTest extends PHPUnit_Framework_TestCase {
 
 
         $dn_exploded_cnone   = Net_LDAP_Util::ldap_explode_dn($dn, array('casefold' => 'none'));
-        $dn_exploded_cupper  = Net_LDAP_Util::ldap_explode_dn($dn, array('casefold' => 'upper'));
-        $dn_exploded_clower  = Net_LDAP_Util::ldap_explode_dn($dn, array('casefold' => 'lower'));
-        $dn_exploded_onlyval = Net_LDAP_Util::ldap_explode_dn($dn, array('onlyvalues' => true));
-        $dn_exploded_reverse = Net_LDAP_Util::ldap_explode_dn($dn, array('reverse' => true));
-
         $this->assertEquals($expected_casefold_none,  $dn_exploded_cnone,   'Option casefold none failed');
+
+        $dn_exploded_cupper  = Net_LDAP_Util::ldap_explode_dn($dn, array('casefold' => 'upper'));
         $this->assertEquals($expected_casefold_upper, $dn_exploded_cupper,  'Option casefold upper failed');
+
+        $dn_exploded_clower  = Net_LDAP_Util::ldap_explode_dn($dn, array('casefold' => 'lower'));
         $this->assertEquals($expected_casefold_lower, $dn_exploded_clower,  'Option casefold lower failed');
+
+        $dn_exploded_onlyval = Net_LDAP_Util::ldap_explode_dn($dn, array('onlyvalues' => true));
         $this->assertEquals($expected_onlyvalues,     $dn_exploded_onlyval, 'Option onlyval failed');
+
+        $dn_exploded_reverse = Net_LDAP_Util::ldap_explode_dn($dn, array('reverse' => true));
         $this->assertEquals($expected_reverse,        $dn_exploded_reverse, 'Option reverse failed');
     }
 

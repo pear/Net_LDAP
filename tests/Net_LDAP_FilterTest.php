@@ -110,10 +110,11 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
      */
     public function test_isLeaf() {
         $leaf   = Net_LDAP_Filter::create('foo', 'equals', 'bar');
-        $noleaf = Net_LDAP_Filter::combine('not', $leaf);
         $this->assertType('Net_LDAP_Filter', $leaf);
-        $this->assertType('Net_LDAP_Filter', $noleaf);
         $this->assertTrue($leaf->_isLeaf());
+
+        $noleaf = Net_LDAP_Filter::combine('not', $leaf);
+        $this->assertType('Net_LDAP_Filter', $noleaf);
         $this->assertFalse($noleaf->_isLeaf());
     }
 
@@ -130,46 +131,58 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
      * This tests the basic cobination of filters
      */
     public function testCombine() {
+        // Setup
         $filter0 = Net_LDAP_Filter::create('foo', 'equals', 'bar');
-        $filter1 = Net_LDAP_Filter::create('bar', 'equals', 'foo');
-        $filter2 = Net_LDAP_Filter::create('you', 'equals', 'me');
-        $filter3 = new Net_LDAP_Filter('(perlinterface=used)');
-
         $this->assertType('Net_LDAP_Filter', $filter0);
+
+        $filter1 = Net_LDAP_Filter::create('bar', 'equals', 'foo');
         $this->assertType('Net_LDAP_Filter', $filter1);
+
+        $filter2 = Net_LDAP_Filter::create('you', 'equals', 'me');
         $this->assertType('Net_LDAP_Filter', $filter2);
+
+        $filter3 = new Net_LDAP_Filter('(perlinterface=used)');
+        $this->assertType('Net_LDAP_Filter', $filter3);
 
         // Negation test
         $filter_not1 = Net_LDAP_Filter::combine('not', $filter0);
-        $filter_not2 = Net_LDAP_Filter::combine('!', $filter0);
         $this->assertType('Net_LDAP_Filter', $filter_not1, 'Negation failed for literal NOT');
-        $this->assertType('Net_LDAP_Filter', $filter_not2, 'Negation failed for logical NOT');
         $this->assertEquals('(!(foo=bar))', $filter_not1->asString());
+
+        $filter_not2 = Net_LDAP_Filter::combine('!', $filter0);
+        $this->assertType('Net_LDAP_Filter', $filter_not2, 'Negation failed for logical NOT');
         $this->assertEquals('(!(foo=bar))', $filter_not2->asString());
+
 
         // Combination test: OR
         $filter_comb_or1 = Net_LDAP_Filter::combine('or', array($filter1, $filter2));
-        $filter_comb_or2 = Net_LDAP_Filter::combine('|', array($filter1, $filter2));
         $this->assertType('Net_LDAP_Filter', $filter_comb_or1, 'Combination failed for literal OR');
-        $this->assertType('Net_LDAP_Filter', $filter_comb_or2, 'combination failed for logical OR');
         $this->assertEquals('(|(bar=foo)(you=me))', $filter_comb_or1->asString());
+
+        $filter_comb_or2 = Net_LDAP_Filter::combine('|', array($filter1, $filter2));
+        $this->assertType('Net_LDAP_Filter', $filter_comb_or2, 'combination failed for logical OR');
         $this->assertEquals('(|(bar=foo)(you=me))', $filter_comb_or2->asString());
+
 
         // Combination test: AND
         $filter_comb_and1 = Net_LDAP_Filter::combine('and', array($filter1, $filter2));
-        $filter_comb_and2 = Net_LDAP_Filter::combine('&', array($filter1, $filter2));
         $this->assertType('Net_LDAP_Filter', $filter_comb_and1, 'Combination failed for literal AND');
-        $this->assertType('Net_LDAP_Filter', $filter_comb_and2, 'combination failed for logical AND');
         $this->assertEquals('(&(bar=foo)(you=me))', $filter_comb_and1->asString());
+
+        $filter_comb_and2 = Net_LDAP_Filter::combine('&', array($filter1, $filter2));
+        $this->assertType('Net_LDAP_Filter', $filter_comb_and2, 'combination failed for logical AND');
         $this->assertEquals('(&(bar=foo)(you=me))', $filter_comb_and2->asString());
+
 
         // Combination test: using filter created with perl interface
         $filter_comb_perl1 = Net_LDAP_Filter::combine('and', array($filter1, $filter3));
-        $filter_comb_perl2 = Net_LDAP_Filter::combine('&', array($filter1, $filter3));
         $this->assertType('Net_LDAP_Filter', $filter_comb_perl1, 'Combination failed for literal AND');
-        $this->assertType('Net_LDAP_Filter', $filter_comb_perl2, 'combination failed for logical AND');
         $this->assertEquals('(&(bar=foo)(perlinterface=used))', $filter_comb_perl1->asString());
+
+        $filter_comb_perl2 = Net_LDAP_Filter::combine('&', array($filter1, $filter3));
+        $this->assertType('Net_LDAP_Filter', $filter_comb_perl2, 'combination failed for logical AND');
         $this->assertEquals('(&(bar=foo)(perlinterface=used))', $filter_comb_perl2->asString());
+
 
         // Combination test: deep combination
         $filter_comp_deep = Net_LDAP_Filter::combine('and',array($filter2, $filter_not1, $filter_comb_or1, $filter_comb_perl1));
