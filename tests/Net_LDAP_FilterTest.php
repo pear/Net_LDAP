@@ -58,6 +58,9 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
 
         $this->assertType('Net_LDAP_Filter', $filter_o);
         $this->assertEquals($this->filter_str, $filter_o->asString());
+
+        $filter_o_err = new Net_LDAP_Filter('some bad filter');
+        $this->assertType('PEAR_Error', $filter_o_err->_filter);
     }
 
     /**
@@ -103,6 +106,10 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
             $this->assertType('Net_LDAP_Filter', $filter);
             $this->assertRegExp($regex, $filter->asString(), "Filter generation failed for MatchType: $match");
         }
+
+        // test creating failure
+        $filter = Net_LDAP_Filter::create($testattr, 'test_undefined_matchingrule', $testval);
+        $this->assertType('PEAR_Error', $filter);
     }
 
     /**
@@ -125,6 +132,44 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
         $filter = Net_LDAP_Filter::create('foo', 'equals', 'bar');
         $this->assertType('Net_LDAP_Filter', $filter);
         $this->assertEquals('(foo=bar)', $filter->asString());
+        $this->assertEquals('(foo=bar)', $filter->as_string());
+    }
+
+    /**
+     * Tests, if printMe() works
+     *
+     * The non-file resource mode is skipped because we can assume, PHPs print() works.
+     */
+    public function testPrintMe() {
+        $testfile      = '/tmp/Net_LDAP_Filter_printMe-Testfile';
+        $filter = Net_LDAP_Filter::create('testPrintMe', 'equals', 'ok');
+        $this->assertType('Net_LDAP_Filter', $filter);
+
+        // print success:
+        ob_start();
+        $this->assertTrue($filter->printMe());
+        ob_clean();
+
+        // write success:
+        $file = fopen($testfile, 'w');
+        if (!$file) $this->markSkipped("$testfile could not be opened, skipping write test");
+        $this->assertTrue($filter->printMe($file));
+        fclose($file);
+
+        // PrintMe if Filehandle is an error (e.g. if some PEAR-File db is used):
+        $err = new PEAR_Error();
+        $this->assertType('PEAR_Error', $filter->printMe($err));
+
+        //PrintMe if filter is damaged
+        $filter_dmg = new Net_LDAP_Filter('damaged_filter_string');
+        $this->assertType('PEAR_Error', $filter_dmg->printMe($file));
+
+        // write failure:
+        $file = fopen($testfile, 'r');
+        if (!$file) $this->markSkipped("$testfile could not be opened, skipping failing write test");
+        $this->assertType('PEAR_Error', $filter->printMe($file));
+        fclose($file);
+        unlink($testfile);
     }
 
     /**
@@ -152,6 +197,10 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
         $filter_not2 = Net_LDAP_Filter::combine('!', $filter0);
         $this->assertType('Net_LDAP_Filter', $filter_not2, 'Negation failed for logical NOT');
         $this->assertEquals('(!(foo=bar))', $filter_not2->asString());
+
+        $filter_not3 = Net_LDAP_Filter::combine('!', $filter0->asString());
+        $this->assertType('Net_LDAP_Filter', $filter_not3, 'Negation failed for logical NOT');
+        $this->assertEquals('(!'.$filter0->asString().')', $filter_not3->asString());
 
 
         // Combination test: OR
@@ -184,10 +233,53 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('(&(bar=foo)(perlinterface=used))', $filter_comb_perl2->asString());
 
 
+        // Combination test: using filter_str instead of object
+        $filter_comb_fstr1 = Net_LDAP_Filter::combine('and', array($filter1, '(filter_str=foo)'));
+        $this->assertType('Net_LDAP_Filter', $filter_comb_fstr1, 'Combination failed for literal AND using filter_str');
+        $this->assertEquals('(&(bar=foo)(filter_str=foo))', $filter_comb_fstr1->asString());
+
+
         // Combination test: deep combination
         $filter_comp_deep = Net_LDAP_Filter::combine('and',array($filter2, $filter_not1, $filter_comb_or1, $filter_comb_perl1));
         $this->assertType('Net_LDAP_Filter', $filter_comp_deep, 'Deep combination failed!');
         $this->assertEquals('(&(you=me)(!(foo=bar))(|(bar=foo)(you=me))(&(bar=foo)(perlinterface=used)))', $filter_comp_deep->AsString());
+
+
+        // Test failure in combination
+        $damaged_filter  = Net_LDAP_Filter::create($testattr, 'test_undefined_matchingrule', $testval);
+        $this->assertType('PEAR_Error', $damaged_filter);
+        $filter_not_dmg0 = Net_LDAP_Filter::combine('not', $damaged_filter);
+        $this->assertType('PEAR_Error', $filter_not_dmg0);
+
+        $filter_not_dmg0s = Net_LDAP_Filter::combine('not', 'damaged_filter_str');
+        $this->assertType('PEAR_Error', $filter_not_dmg0s);
+
+        $filter_not_dmg1 = Net_LDAP_Filter::combine('not', null);
+        $this->assertType('PEAR_Error', $filter_not_dmg1);
+
+        $filter_not_dmg2 = Net_LDAP_Filter::combine('and', $filter_not1);
+        $this->assertType('PEAR_Error', $filter_not_dmg2);
+
+        $filter_not_dmg3 = Net_LDAP_Filter::combine('and', array($filter_not1));
+        $this->assertType('PEAR_Error', $filter_not_dmg3);
+
+        $filter_not_dmg4 = Net_LDAP_Filter::combine('and', $filter_not1);
+        $this->assertType('PEAR_Error', $filter_not_dmg4);
+
+        $filter_not_dmg5 = Net_LDAP_Filter::combine('or', array($filter_not1));
+        $this->assertType('PEAR_Error', $filter_not_dmg5);
+
+        $filter_not_dmg5 = Net_LDAP_Filter::combine('some_unknown_method', array($filter_not1));
+        $this->assertType('PEAR_Error', $filter_not_dmg5);
+
+        $filter_not_dmg6 = Net_LDAP_Filter::combine('and', array($filter_not1, 'some_invalid_filterstring'));
+        $this->assertType('PEAR_Error', $filter_not_dmg6);
+
+        $filter_not_dmg7 = Net_LDAP_Filter::combine('and', array($filter_not1, $damaged_filter));
+        $this->assertType('PEAR_Error', $filter_not_dmg7);
+
+        $filter_not_dmg8 = Net_LDAP_Filter::combine('and', array($filter_not1, null));
+        $this->assertType('PEAR_Error', $filter_not_dmg8);
     }
 }
 
