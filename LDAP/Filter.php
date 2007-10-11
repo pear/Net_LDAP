@@ -102,7 +102,9 @@ class Net_LDAP_Filter extends PEAR
     * Create a new Net_LDAP_Filter object and parse $filter.
     *
     * This is currently not fully implemented (filter will be used as-provided).
-    * Construction of Net_LDAP_Filter objects occours through either
+    * This may change in future versions.
+    *
+    * /!\ Construction of Net_LDAP_Filter objects should happen through either
     * {@link create()} or {@link combine()}
     *
     * @param string $filter      LDAP filter string

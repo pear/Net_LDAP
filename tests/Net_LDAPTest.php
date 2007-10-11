@@ -46,14 +46,8 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     protected function tearDown() {
     }
 
-    /**
-     * @todo Implement testGetVersion().
-     */
     public function testGetVersion() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
+            $this->assertNotEquals('', strlen(Net_LDAP::getVersion()));
     }
 
     /**

@@ -46,13 +46,45 @@ class Net_LDAP_UtilTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testLdap_explode_dn().
+     * Tests Ldap_explode_dn()
      */
     public function testLdap_explode_dn() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
+        $dn = 'OU=Sales+CN=J. Smith,dc=example,dc=net';
+        $expected_casefold_none = array(
+            array('CN=J. Smith', 'OU=Sales'),
+            'dc=example',
+            'dc=net'
         );
+        $expected_casefold_upper = array(
+            array('CN=J. Smith', 'OU=Sales'),
+            'DC=example',
+            'DC=net'
+        );
+        $expected_casefold_lower = array(
+            array('cn=J. Smith', 'ou=Sales'),
+            'dc=example',
+            'dc=net'
+        );
+
+        $expected_onlyvalues = array(
+            array( 'J. Smith', 'Sales'),
+            'example',
+            'net'
+        );
+        $expected_reverse = array_reverse($expected_casefold_upper);
+
+
+        $dn_exploded_cnone   = Net_LDAP_Util::ldap_explode_dn($dn, array('casefold' => 'none'));
+        $dn_exploded_cupper  = Net_LDAP_Util::ldap_explode_dn($dn, array('casefold' => 'upper'));
+        $dn_exploded_clower  = Net_LDAP_Util::ldap_explode_dn($dn, array('casefold' => 'lower'));
+        $dn_exploded_onlyval = Net_LDAP_Util::ldap_explode_dn($dn, array('onlyvalues' => true));
+        $dn_exploded_reverse = Net_LDAP_Util::ldap_explode_dn($dn, array('reverse' => true));
+
+        $this->assertEquals($expected_casefold_none,  $dn_exploded_cnone,   'Option casefold none failed');
+        $this->assertEquals($expected_casefold_upper, $dn_exploded_cupper,  'Option casefold upper failed');
+        $this->assertEquals($expected_casefold_lower, $dn_exploded_clower,  'Option casefold lower failed');
+        $this->assertEquals($expected_onlyvalues,     $dn_exploded_onlyval, 'Option onlyval failed');
+        $this->assertEquals($expected_reverse,        $dn_exploded_reverse, 'Option reverse failed');
     }
 
     /**
@@ -76,7 +108,7 @@ class Net_LDAP_UtilTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testCanonical_dn().
+     * Tests if canonical_dn() works
      */
     public function testCanonical_dn() {
         // Remove the following line when you implement this test.
@@ -126,13 +158,14 @@ class Net_LDAP_UtilTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testSplit_rdn_multival().
+     * Tests split_rdn_multival()
      */
     public function testSplit_rdn_multival() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
+        $rdn = 'OU=Sales+CN=J. Smith';
+        $expected = array('OU=Sales', 'CN=J. Smith');
+
+        $split = Net_LDAP_Util::split_rdn_multival($rdn);
+        $this->assertEquals($expected,  $split);
     }
 
     /**

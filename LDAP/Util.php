@@ -73,6 +73,7 @@ class Net_LDAP_Util extends PEAR
     *   - Unescape "\" followed by ",", "+", """, "\", "<", ">", ";", "#", "=", " ", or a hexpair
     *     and strings beginning with "#".
     *   - Removes the leading 'OID.' characters if the type is an OID instead of a name.
+    *   - If an RDN contains multiple parts, the parts are re-ordered so that the attribute type names are in alphabetical order.
     *
     * OPTIONS is a list of name/value pairs, valid options are:
     *   casefold    Controls case folding of attribute types names.
