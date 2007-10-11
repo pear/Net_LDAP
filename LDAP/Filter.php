@@ -115,10 +115,10 @@ class Net_LDAP_Filter extends PEAR
         // The optional parameter must remain here, because otherwise create() crashes
         if (false !== $filter) {
             $filter_o = Net_LDAP_Filter::parse($filter);
-            if (!PEAR::isError($filter_o)) {
-               $this->_filter = $filter_o->asString();
+            if (PEAR::isError($filter_o)) {
+                $this->_filter = $filter_o; // assign error, so asString() can report it
             } else {
-               $this->_filter = $filter_o;
+                $this->_filter = $filter_o->asString();
             }
         }
     }
