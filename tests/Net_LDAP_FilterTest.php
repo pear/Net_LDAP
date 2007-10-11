@@ -74,6 +74,9 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
        $this->assertType('Net_LDAP_Filter', $parsed);
        $this->assertEquals($this->filter_str, $parsed->asString());
 
+       $parsed_dmg = Net_LDAP_Filter::parse('some_damaged_filter_str');
+       $this->assertType('PEAR_Error', $parsed_dmg);
+
        $this->markTestIncomplete("Not fully implemented, because the parse() method isn't itself. Only the current behavior (\$filter_str == \$parsed->asString()) was tested.");
     }
 
