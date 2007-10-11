@@ -118,7 +118,7 @@ class Net_LDAP_Filter extends PEAR
             if (!PEAR::isError($filter_o)) {
                $this->_filter = $filter_o->asString();
             } else {
-               $this->_filter = 'Net_LDAP_Filter error: '.$filter_o->getMessage();
+               $this->_filter = $filter_o;
             }
         }
     }
@@ -208,6 +208,7 @@ class Net_LDAP_Filter extends PEAR
     * This static method combines two or more filter objects and returns one single
     * filter object that contains all the others.
     * Call this method statically: $filter =& Net_LDAP_Filter('or', array($filter1, $filter2))
+    * If the array contains filter strings instead of filter objects, we will try to parse them.
     *
     * @param string $log_op         The locicall operator. May be "and", "or", "not" or the subsequent logical equivalents "&", "|", "!"
     * @param array|Net_LDAP_Filter  $filters     array with Net_LDAP_Filter objects
@@ -227,16 +228,24 @@ class Net_LDAP_Filter extends PEAR
 
         // tests for sane operation
         if ($log_op == '!') {
-            // Not-combination, here we also accept one filter object
+            // Not-combination, here we also accept one filter object or filter string
             if (!is_array($filters) && is_a($filters, 'Net_LDAP_Filter')) {
                 $filters = array($filters); // force array
+            } elseif (is_string($filters)) {
+                $filter_o = Net_LDAP_Filter::parse($filters);
+                if (PEAR::isError($filter_o)) {
+                    $err = PEAR::raiseError('Net_LDAP_Filter combine error: '.$filter_o->getMessage());
+                    return $err;
+                } else {
+                    $filters = array($filter_o);
+                }
             } else {
-                $err = PEAR::raiseError('Net_LDAP_Filter combine error: operator is "not" but $filter is not a valid Net_LDAP_Filter nor an array!');
+                $err = PEAR::raiseError('Net_LDAP_Filter combine error: operator is "not" but $filter is not a valid Net_LDAP_Filter nor an array nor a filter string!');
                 return $err;
             }
         } elseif ($log_op == '&' || $log_op == '|') {
             if (!is_array($filters) || count($filters) < 2) {
-                $err = PEAR::raiseError('Net_LDAP_Filter combine error: Parameter $filters is not a array or contains less than two Net_LDAP_Filter objects!');
+                $err = PEAR::raiseError('Net_LDAP_Filter combine error: parameter $filters is not an array or contains less than two Net_LDAP_Filter objects!');
                 return $err;
             }
         } else {
@@ -244,15 +253,21 @@ class Net_LDAP_Filter extends PEAR
             return $err;
         }
 
-
-        if ($log_op != '&' && $log_op != '|' && $log_op != '!') {
-            return PEAR::raiseError('Net_LDAP_Filter combine error: Logical operator "' . $log_op . '" not known!');
-        }
-
         $combined_filter = new Net_LDAP_Filter();
-        foreach ($filters as $testfilter) {     // check for errors
-            if (is_a($testfilter, 'Net_LDAP_Error')) {
+        foreach ($filters as $key => $testfilter) {     // check for errors
+            if (PEAR::isError($testfilter)) {
                 return $testfilter;
+            } elseif (is_string($testfilter)) {
+                // string found, try to parse into an filter object
+                $filter_o = Net_LDAP_Filter::parse($testfilter);
+                if (PEAR::isError($filter_o)) {
+                    return $filter_o;
+                } else {
+                    $filters[$key] = $filter_o;
+                }
+            } elseif (!is_a($testfilter, 'Net_LDAP_Filter')) {
+                $err = PEAR::raiseError('Net_LDAP_Filter combine error: invalid object passed in array $filters!');
+                return $err;
             }
         }
 
@@ -264,7 +279,12 @@ class Net_LDAP_Filter extends PEAR
     /**
     * Parse FILTER into a Net_LDAP_Filter object
     *
-    * This parses an filter string into Net_LDAP_Filter objects
+    * This parses an filter string into Net_LDAP_Filter objects.
+    * Currently, this only initializes a new Net_LDAP_Filter and passes the
+    * $FILTER directly to the object, enabling you to provide a custom filter string.
+    * Basic filter syntax checks are in place, but they are basic.
+    *
+    * Use this method only if you know what you are doing, or risk filter errors.
     *
     * @access static
     * @param string $FILTER     The filter string
@@ -273,9 +293,13 @@ class Net_LDAP_Filter extends PEAR
     */
     function parse($FILTER)
     {
-        $leaf_filter = new Net_LDAP_Filter();
-        $leaf_filter->_filter = $FILTER;
-        return $leaf_filter;
+        if (preg_match('/\(.+=.+\)/', $FILTER)) {    // very basic syntax check
+            $leaf_filter = new Net_LDAP_Filter();
+            $leaf_filter->_filter = $FILTER;
+            return $leaf_filter;
+        } else {
+            return PEAR::raiseError("Filter parsing error: invalid filter syntax");
+        }
 
         /* THIS CODE IS NOT FULLY IMPLEMENTED YET!
            Maybe a better idea is to just detect if a leaf filter component is proccesed or if there are
@@ -327,7 +351,7 @@ class Net_LDAP_Filter extends PEAR
     * filter object is a leaf filter, then it will return
     * the string representation of this filter.
     *
-    * @return string
+    * @return string|Net_LDAP_Error
     */
     function asString()
     {
@@ -366,11 +390,19 @@ class Net_LDAP_Filter extends PEAR
     function printMe($FH = false)
     {
         if (!is_resource($FH)) {
-            print($this->asString());
+            if (PEAR::isError($FH)) {
+                return $FH;
+            }
+            $filter_str = $this->asString();
+            if (PEAR::isError($filter_str)) {
+                return $filter_str;
+            } else {
+                print($filter_str);
+            }
         } else {
             $res = fwrite($FH, $this->asString());
-            if (false === $res) {
-                PEAR::raiseError("Unable to write filter string to filehandle \$FH!");
+            if ($res == false) {
+               return PEAR::raiseError("Unable to write filter string to filehandle \$FH!");
             }
         }
         return true;
