@@ -151,7 +151,7 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
         // print success:
         ob_start();
         $this->assertTrue($filter->printMe());
-        ob_clean();
+        ob_end_clean();
 
         // write success:
         $file = fopen($testfile, 'w');
