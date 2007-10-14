@@ -8,7 +8,7 @@ require_once 'PHPUnit/Framework/TestSuite.php';
 require_once 'PHPUnit/TextUI/TestRunner.php';
 
 // Net_LDAP test suites includes
-chdir(dirname(__FILE__));
+chdir(dirname(__FILE__) . '/../');
 require_once 'Net_LDAP_FilterTest.php';
 require_once 'Net_LDAP_UtilTest.php';
 require_once 'Net_LDAPTest.php';
