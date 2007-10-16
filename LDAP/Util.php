@@ -502,6 +502,8 @@ class Net_LDAP_Util extends PEAR
             // if the rdn_value is not in attr=value format, then we had an
             // unescaped plus character inside the attr name or the value.
             // We assume, that it was the attibute value.
+            // [TODO] To solve this, we might ask the schema. Keep in mind, that UTIL class
+            //        must remain independent from the other classes or connections.
             if (!preg_match('/.+=.+/', $rdn_value)) {
                 unset($rdns[$key]);
                 if (array_key_exists($key-1, $rdns)) {

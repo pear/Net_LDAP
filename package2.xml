@@ -50,6 +50,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <notes>
         - Final Release 1.0.0
         - Fixed some minor bugs of RC4
+        - Fixed several bugs in Net_LDAP_Util
         - Improved Net_LDAP_Filter and Net_LDAP_Util error handling and code smartness
     </notes>
 

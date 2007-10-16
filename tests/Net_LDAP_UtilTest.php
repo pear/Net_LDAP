@@ -164,9 +164,55 @@ class Net_LDAP_UtilTest extends PHPUnit_Framework_TestCase {
      * Tests split_rdn_multival()
      */
     public function testSplit_rdn_multival() {
+        // One value
+        $rdn = 'CN=J. Smith';
+        $expected = array('CN=J. Smith');
+        $split = Net_LDAP_Util::split_rdn_multival($rdn);
+        $this->assertEquals($expected,  $split);
+
+        // Two values
         $rdn = 'OU=Sales+CN=J. Smith';
         $expected = array('OU=Sales', 'CN=J. Smith');
+        $split = Net_LDAP_Util::split_rdn_multival($rdn);
+        $this->assertEquals($expected,  $split);
 
+        // Several multivals
+        $rdn = 'OU=Sales+CN=J. Smith+L=London+C=England';
+        $expected = array('OU=Sales', 'CN=J. Smith');
+        $expected = array('OU=Sales', 'CN=J. Smith', 'L=London', 'C=England');
+        $split = Net_LDAP_Util::split_rdn_multival($rdn);
+        $this->assertEquals($expected,  $split);
+
+        // Unescaped "+" in value
+        $rdn = 'OU=Sa+les+CN=J. Smith';
+        $expected = array('OU=Sales', 'CN=J. Smith');
+        $split = Net_LDAP_Util::split_rdn_multival($rdn);
+        $this->assertEquals($expected,  $split);
+
+        // Unescaped "+" in attr name
+        $rdn = 'O+U=Sales+CN=J. Smith';
+        $expected = array('OU=Sales', 'CN=J. Smith');
+        $split = Net_LDAP_Util::split_rdn_multival($rdn);
+        $this->assertEquals($expected,  $split);
+
+        // Unescaped "+" in attr name + value
+        $rdn = 'O+U=Sales+CN=J. Sm+ith';
+        $expected = array('OU=Sales', 'CN=J. Smith');
+        $split = Net_LDAP_Util::split_rdn_multival($rdn);
+        $this->assertEquals($expected,  $split);
+
+        // Unescaped "+" in attr name, but not first attr
+        // this documents a known bug. However, unfortunately  we cant
+        // know wether the "C" belongs to value "Sales" or attribute "CN".
+        // To solve this, we must ask the schema which we do not right now.
+        $rdn = 'OU=Sales+C+N=J. Smith';
+        $expected = array('OU=SalesC', 'N=J. Smith');     // The "C" is treaten as value of "OU"
+        $split = Net_LDAP_Util::split_rdn_multival($rdn);
+        $this->assertEquals($expected,  $split);
+
+        // Escaped "+" in attr name and value
+        $rdn = 'O\+U=Sales+CN=J. Sm\+ith';
+        $expected = array('O\+U=Sales', 'CN=J. Sm\+ith');
         $split = Net_LDAP_Util::split_rdn_multival($rdn);
         $this->assertEquals($expected,  $split);
     }
@@ -175,10 +221,24 @@ class Net_LDAP_UtilTest extends PHPUnit_Framework_TestCase {
      * @todo Implement testSplit_attribute_string().
      */
     public function testSplit_attribute_string() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
+        $attr_str = "foo=bar";
+
+        // properly
+        $expected = array('foo', 'bar');
+        $split = Net_LDAP_Util::split_attribute_string($attr_str);
+        $this->assertEquals($expected,  $split);
+
+        // escaped "="
+        $attr_str = "fo\=o=b\=ar";
+        $expected = array('fo\=o', 'b\=ar');
+        $split = Net_LDAP_Util::split_attribute_string($attr_str);
+        $this->assertEquals($expected,  $split);
+
+        // escaped "=" and unescaped = later on
+        $attr_str = "fo\=o=b=ar";
+        $expected = array('fo\=o', 'b=ar');
+        $split = Net_LDAP_Util::split_attribute_string($attr_str);
+        $this->assertEquals($expected,  $split);
     }
 }
 
