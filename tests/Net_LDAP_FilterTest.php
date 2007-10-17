@@ -249,7 +249,7 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
 
 
         // Test failure in combination
-        $damaged_filter  = Net_LDAP_Filter::create($testattr, 'test_undefined_matchingrule', $testval);
+        $damaged_filter  = Net_LDAP_Filter::create('foo', 'test_undefined_matchingrule', 'bar');
         $this->assertType('PEAR_Error', $damaged_filter);
         $filter_not_dmg0 = Net_LDAP_Filter::combine('not', $damaged_filter);
         $this->assertType('PEAR_Error', $filter_not_dmg0);
