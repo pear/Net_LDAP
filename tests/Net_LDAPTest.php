@@ -47,7 +47,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testGetVersion() {
-            $this->assertNotEquals('', strlen(Net_LDAP::getVersion()));
+            $this->assertNotEquals(0, strlen(Net_LDAP::getVersion()));
     }
 
     /**

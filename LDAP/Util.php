@@ -215,8 +215,6 @@ class Net_LDAP_Util extends PEAR
     * Any escape sequence starting with a baskslash - hexpair or special character -
     * will be transformed back to the corresponding character.
     *
-    * Returns the converted list in list mode and the first element in scalar mode.
-    *
     * @param array $values    Array of DN Values
     * @return array           Same as $values, but unescaped
     * @static
@@ -251,14 +249,14 @@ class Net_LDAP_Util extends PEAR
     * Returns the given DN in a canonical form
     *
     * Returns false if DN is not a valid Distinguished Name.
-    * Note: The empty string "" is a valid DN. DN can either be a string or an array
+    * DN can either be a string or an array
     * as returned by ldap_explode_dn, which is useful when constructing a DN.
     * The DN array may have be indexed (each array value is a OCL=VALUE pair)
     * or associative (array key is OCL and value is VALUE).
     *
     * It performs the following operations on the given DN:
     *     - Removes the leading 'OID.' characters if the type is an OID instead of a name.
-    *     - Escapes all RFC 2253 special characters (",", "+", """, "\", "<", ">", ";", "#", "=", " "), slashes ("/"), and any other character where the ASCII code is < 32 as \hexpair.
+    *     - Escapes all RFC 2253 special characters (",", "+", """, "\", "<", ">", ";", "#", "="), slashes ("/"), and any other character where the ASCII code is < 32 as \hexpair.
     *     - Converts all leading and trailing spaces in values to be \20.
     *     - If an RDN contains multiple parts, the parts are re-ordered so that the attribute type names are in alphabetical order.
     *
@@ -273,13 +271,16 @@ class Net_LDAP_Util extends PEAR
     *     reverse     If TRUE, the RDN sequence is reversed.
     *     separator   Separator to use between RDNs. Defaults to comma (',').
     *
+    * Note: The empty string "" is a valid DN, so be sure not to do a "$can_dn == false" test,
+    *       because an empty string evaluates to false. Use the "===" operator instead.
+    *
     * @static
     * @param array|string $dn      The DN
     * @param array  $option  Options to use
-    * @return false|string   The canonical DN
+    * @return false|string   The canonical DN or FALSE
     * @todo implement option mbcescape
     */
-    function canonical_dn($dn, $options = array('casefold' => 'upper'))
+    function canonical_dn($dn, $options = array('casefold' => 'upper', 'separator' => ','))
     {
         if ($dn === '') return $dn;  // empty DN is valid!
 
@@ -294,7 +295,12 @@ class Net_LDAP_Util extends PEAR
 
 
         if (!is_array($dn)) {
-            $dn = explode($options['separator'], $dn);
+            // It is not clear to me if the perl implementation splits by the user defined
+            // separator or if it just uses this separator to construct the new DN
+            $dn = preg_split('/(?<=[^\\\\])'.$options['separator'].'/', $dn);
+
+            // clear wrong splitting (possibly we have split too much)
+            $dn = Net_LDAP_Util::_correct_dn_splitting($dn, $options['separator']);
         } else {
             // Is array, check, if the array is indexed or associative
             $assoc = false;
@@ -303,11 +309,12 @@ class Net_LDAP_Util extends PEAR
                     $assoc = true;
                 }
             }
-            // convert to inexed, if associative array detected
+            // convert to indexed, if associative array detected
             if ($assoc) {
                 $newdn = array();
                 foreach ($dn as $dn_key => $dn_part) {
                     if (is_array($dn_part)) {
+                        ksort($dn_part, SORT_STRING); // we assume here, that the rdn parts are also associative
                         $newdn[] = $dn_part;  // copy array as-is, so we can resolve it later
                     } else {
                         $newdn[] = $dn_key.'='.$dn_part;
@@ -352,11 +359,12 @@ class Net_LDAP_Util extends PEAR
 
                 } else {
                     // no multivalued RDN!
-                    $dn_comp = explode('=', $rdns[0]);
+                    // split at first unescaped "="
+                    $dn_comp = preg_split('/(?<=[^\\\\])=/', $rdns[0], 2);
                     $ocl = ltrim($dn_comp[0]);  // trim left whitespaces 'cause of "cn=foo, l=bar" syntax (whitespace after comma)
                     $val = $dn_comp[1];
 
-                    // strip OCL., otherwise apply casefolding and escaping
+                    // strip 'OID.', otherwise apply casefolding and escaping
                     if (substr(strtolower($ocl), 0, 4) == 'oid.') {
                         $ocl = substr($ocl, 4);
                     } else {
@@ -368,7 +376,7 @@ class Net_LDAP_Util extends PEAR
 
                     // escaping of dn-value
                     $val = Net_LDAP_Util::escape_dn_value(array($val));
-                    $val = $val[0];
+                    $val = str_replace('/', '\/', $val[0]);
 
                     $dn[$pos] = $ocl.'='.$val;
                 }
@@ -488,6 +496,15 @@ class Net_LDAP_Util extends PEAR
     * The method trys to be smart if it encounters unescaped "+" characters, but may fail,
     * so ensure escaped "+"es in attr names and attr values.
     *
+    * [BUG] If you use string mode and have a multivalued RDN with unescaped plus characters
+    *       and there is a unescaped plus sign at the end of an value followed by an
+    *       attribute name containing an unescaped plus, then you will get wrong splitting:
+    *         $rdn = 'OU=Sales+C+N=J. Smith';
+    *       returns:
+    *         array('OU=Sales+C', 'N=J. Smith');
+    *       The "C+" is treaten as value of the first pair instead as attr name of the second pair.
+    *       To prevent this, escape correctly.
+    *
     * @static
     * @param string $rdn   Part of an (multivalued) escaped RDN (eg. ou=foo OR ou=foo+cn=bar)
     * @return array        Array with the components of the multivalued RDN or Error
@@ -495,24 +512,7 @@ class Net_LDAP_Util extends PEAR
     function split_rdn_multival($rdn)
     {
         $rdns = preg_split('/(?<!\\\\)\+/',$rdn);
-
-        // process rdn parts
-        foreach ($rdns as $key => $rdn_value) {
-            $rdn_value = $rdns[$key]; // refresh value (foreach caches!)
-            // if the rdn_value is not in attr=value format, then we had an
-            // unescaped plus character inside the attr name or the value.
-            // We assume, that it was the attibute value.
-            // [TODO] To solve this, we might ask the schema. Keep in mind, that UTIL class
-            //        must remain independent from the other classes or connections.
-            if (!preg_match('/.+=.+/', $rdn_value)) {
-                unset($rdns[$key]);
-                if (array_key_exists($key-1, $rdns)) {
-                    $rdns[$key-1] = $rdns[$key-1].$rdn_value; // append to previous attr value
-                } else {
-                    $rdns[$key+1] = $rdn_value.$rdns[$key+1]; // first element: prepend to next attr name
-                }
-            }
-        }
+        $rdns = Net_LDAP_Util::_correct_dn_splitting($rdns, '+');
         return array_values($rdns);
     }
 
@@ -527,6 +527,34 @@ class Net_LDAP_Util extends PEAR
     function split_attribute_string($attr)
     {
         return preg_split('/(?<!\\\\)=/', $attr, 2);
+    }
+
+    /**
+    * Corrects splitting of dn parts
+    *
+    * @param array $dn   Raw DN array
+    * @return array      corrected array
+    * @access private
+    */
+    function _correct_dn_splitting($dn = array(), $separator = ',')
+    {
+        foreach ($dn as $key => $dn_value) {
+            $dn_value = $dn[$key]; // refresh value (foreach caches!)
+            // if the dn_value is not in attr=value format, then we had an
+            // unescaped separator character inside the attr name or the value.
+            // We assume, that it was the attribute value.
+            // [TODO] To solve this, we might ask the schema. Keep in mind, that UTIL class
+            //        must remain independent from the other classes or connections.
+            if (!preg_match('/.+(?<!\\\\)=.+/', $dn_value)) {
+                unset($dn[$key]);
+                if (array_key_exists($key-1, $dn)) {
+                    $dn[$key-1] = $dn[$key-1].$separator.$dn_value; // append to previous attr value
+                } else {
+                    $dn[$key+1] = $dn_value.$separator.$dn[$key+1]; // first element: prepend to next attr name
+                }
+            }
+        }
+        return array_values($dn);
     }
 }
 
