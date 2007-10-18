@@ -1152,9 +1152,9 @@ define ('NET_LDAP_VERSION', '1.0.0RC4');
             }
 
             //
-            // Support for buggy LDAP servers (e.g. Siemens) that incorrectly
+            // Support for buggy LDAP servers (e.g. Siemens DirX 6.x) that incorrectly
             // call this entry subSchemaSubentry instead of subschemaSubentry.
-            // Note the correce case/spelling as per RFC 2251.
+            // Note the correct case/spelling as per RFC 2251.
             //
             if (is_null($dn)) {
                 // get the subschema entry via root dse

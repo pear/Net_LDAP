@@ -43,15 +43,16 @@ http://pear.php.net/dtd/package-2.0.xsd">
         <api>1.0.0</api>
     </version>
     <stability>
-        <release>beta</release>
-        <api>beta</api>
+        <release>stable</release>
+        <api>stable</api>
     </stability>
     <license>GPL License</license>
     <notes>
-        - Final Release 1.0.0
-        - Fixed some minor bugs of RC4
+        - First stable release 1.0.0
+        - Fixed some minor bugs of RC4 (including the schema loading error-generation)
         - Fixed several bugs in Net_LDAP_Util
-        - Improved Net_LDAP_Filter and Net_LDAP_Util error handling and code smartness
+        - Improved Net_LDAP_Filter and Net_LDAP_Util error handling and code clearness
+	- Improved several doc comments and fixed some spelling errors
     </notes>
 
     <contents>

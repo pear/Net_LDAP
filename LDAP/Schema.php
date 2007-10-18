@@ -95,6 +95,16 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
     var $_oids = array();
 
     /**
+    * Tells if the schema is initialized
+    *
+    * @access private
+    * @var boolean
+    * @see parse(), get()
+    */
+    var $_initialized = false;
+
+
+    /**
      * constructor of the class
      *
      * @access protected
@@ -154,7 +164,15 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
         } elseif(key_exists($name, $this->_oids) && $this->_oids[$name]['type'] == $type) {
             return $this->_oids[$name];
         } else {
-            return PEAR::raiseError("Could not find $type $name");
+            // only drop an error if the schema has been initialized.
+            // this is neccessary because otherwise the schema entry will
+            // try to fetch the schema itself, which must fail.
+            if ($this->_initialized) {
+                return PEAR::raiseError("Could not find $type $name");
+            } else {
+                $return = null;
+                return $return;
+            }
         }
      }
 
@@ -229,39 +247,39 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
      */
     function parse(&$entry)
     {
-        foreach ($this->types as $type => $attr)
-        {
+        foreach ($this->types as $type => $attr) {
             // initialize map type to entry
             $type_var = '_' . $attr;
             $this->{$type_var} = array();
 
             // get values for this type
-            $values = $entry->get_value($attr);
+            if ($entry->exists($attr)) {
+                $values = $entry->getValue($attr);
+                if (is_array($values)) {
+                    foreach ($values as $value) {
 
-            if (is_array($values))
-            {
-                foreach ($values as $value) {
+                        unset($schema_entry); // this was a real mess without it
 
-                    unset($schema_entry); // this was a real mess without it
+                        // get the schema entry
+                        $schema_entry = $this->_parse_entry($value);
 
-                    // get the schema entry
-                    $schema_entry = $this->_parse_entry($value);
+                        // set the type
+                        $schema_entry['type'] = $type;
 
-                    // set the type
-                    $schema_entry['type'] = $type;
+                        // save a ref in $_oids
+                        $this->_oids[$schema_entry['oid']] = &$schema_entry;
 
-                    // save a ref in $_oids
-                    $this->_oids[$schema_entry['oid']] = &$schema_entry;
-
-                    // save refs for all names in type map
-                    $names = $schema_entry['aliases'];
-                    array_push($names, $schema_entry['name']);
-                    foreach ($names as $name) {
-                        $this->{$type_var}[strtolower($name)] = &$schema_entry;
+                        // save refs for all names in type map
+                        $names = $schema_entry['aliases'];
+                        array_push($names, $schema_entry['name']);
+                        foreach ($names as $name) {
+                            $this->{$type_var}[strtolower($name)] = &$schema_entry;
+                        }
                     }
                 }
             }
         }
+        $this->_initialized = true;
     }
 
     /**
