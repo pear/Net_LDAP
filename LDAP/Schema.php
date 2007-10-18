@@ -151,28 +151,25 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
      */
      function &get($type, $name)
      {
-        $type = strtolower($type);
-        if (false == key_exists($type, $this->types)) {
-            return PEAR::raiseError("No such type $type");
-        }
-
-        $name = strtolower($name);
-        $type_var = &$this->{'_' . $this->types[$type]};
-
-        if( key_exists($name, $type_var)) {
-            return $type_var[$name];
-        } elseif(key_exists($name, $this->_oids) && $this->_oids[$name]['type'] == $type) {
-            return $this->_oids[$name];
-        } else {
-            // only drop an error if the schema has been initialized.
-            // this is neccessary because otherwise the schema entry will
-            // try to fetch the schema itself, which must fail.
-            if ($this->_initialized) {
-                return PEAR::raiseError("Could not find $type $name");
-            } else {
-                $return = null;
-                return $return;
+        if ($this->_initialized) {
+            $type = strtolower($type);
+            if (false == key_exists($type, $this->types)) {
+                return PEAR::raiseError("No such type $type");
             }
+
+            $name = strtolower($name);
+            $type_var = &$this->{'_' . $this->types[$type]};
+
+            if( key_exists($name, $type_var)) {
+                return $type_var[$name];
+            } elseif(key_exists($name, $this->_oids) && $this->_oids[$name]['type'] == $type) {
+                return $this->_oids[$name];
+            } else {
+                return PEAR::raiseError("Could not find $type $name");
+            }
+        } else {
+            $return = null;
+            return $return;
         }
      }
 
