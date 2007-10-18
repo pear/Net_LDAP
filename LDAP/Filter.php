@@ -1,31 +1,8 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +--------------------------------------------------------------------------+
-// | Net_LDAP                                                                 |
-// +--------------------------------------------------------------------------+
-// | Copyright (c) 1997-2007 The PHP Group                                    |
-// +--------------------------------------------------------------------------+
-// | This library is free software; you can redistribute it and/or            |
-// | modify it under the terms of the GNU Lesser General Public               |
-// | License as published by the Free Software Foundation; either             |
-// | version 2.1 of the License, or (at your option) any later version.       |
-// |                                                                          |
-// | This library is distributed in the hope that it will be useful,          |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU        |
-// | Lesser General Public License for more details.                          |
-// |                                                                          |
-// | You should have received a copy of the GNU Lesser General Public         |
-// | License along with this library; if not, write to the Free Software      |
-// | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA |
-// +--------------------------------------------------------------------------+
-// | Authors: Benedikt Hallinger                                              |
-// +--------------------------------------------------------------------------+
-//
-// $Id$
 
-require_once("PEAR.php");
-require_once('Util.php');
+require_once 'PEAR.php';
+require_once 'Util.php';
 
 /**
 * Object representation of a part of a LDAP filter.
@@ -57,11 +34,13 @@ require_once('Util.php');
 * // The stars in $filter0 are treaten as real stars unless you disable escaping.
 * </code>
 *
-* @package Net_LDAP
-* @author Benedikt Hallinger <beni@php.net>
-* @version $Revision$
+* @category Net
+* @package  Net_LDAP
+* @author   Benedikt Hallinger <beni@php.net>
+* @license  http://www.gnu.org/copyleft/lesser.html LGPL
+* @version  $Revision$
+* @link     http://pear.php.net/package/Net_LDAP/
 */
-
 class Net_LDAP_Filter extends PEAR
 {
     /**
@@ -107,7 +86,8 @@ class Net_LDAP_Filter extends PEAR
     * /!\ Construction of Net_LDAP_Filter objects should happen through either
     * {@link create()} or {@link combine()}
     *
-    * @param string $filter      LDAP filter string
+    * @param string $filter LDAP filter string
+    *
     * @todo This is just for perl interface compatibility and not fully implemented. Use Net_LDAP_Filter::create()
     */
     function Net_LDAP_Filter($filter = false)
@@ -152,10 +132,11 @@ class Net_LDAP_Filter extends PEAR
     *   $filter = new Net_LDAP_Filter('sn', 'any');
     * </code>
     *
-    * @param string  $attr_name       Name of the attribute the filter should apply to
-    * @param string  $match           Matching rule (equals, begins, ends, contains, greater, less, greaterOrEqual, lessOrEqual, approx, any)
-    * @param string  $value           (optional) if given, then this is used as a filter
-    * @param boolean $escape          Should $value be escaped? (default: yes, see {@link Net_LDAP_Util::escape_filter_value()} for detailed information)
+    * @param string  $attr_name Name of the attribute the filter should apply to
+    * @param string  $match     Matching rule (equals, begins, ends, contains, greater, less, greaterOrEqual, lessOrEqual, approx, any)
+    * @param string  $value     (optional) if given, then this is used as a filter
+    * @param boolean $escape    Should $value be escaped? (default: yes, see {@link Net_LDAP_Util::escape_filter_value()} for detailed information)
+    *
     * @return Net_LDAP_Filter|Net_LDAP_Error
     */
     function &create($attr_name, $match, $value = '', $escape = true)
@@ -166,38 +147,38 @@ class Net_LDAP_Filter extends PEAR
             $value = $array[0];
         }
         switch (strtolower($match)) {
-            case 'equals':
-                $leaf_filter->_filter = '(' . $attr_name . '=' . $value . ')';
+        case 'equals':
+            $leaf_filter->_filter = '(' . $attr_name . '=' . $value . ')';
             break;
-            case 'begins':
-                $leaf_filter->_filter = '(' . $attr_name . '=' . $value . '*)';
+        case 'begins':
+            $leaf_filter->_filter = '(' . $attr_name . '=' . $value . '*)';
             break;
-            case 'ends':
-                $leaf_filter->_filter = '(' . $attr_name . '=*' . $value . ')';
+        case 'ends':
+            $leaf_filter->_filter = '(' . $attr_name . '=*' . $value . ')';
             break;
-            case 'contains':
-                $leaf_filter->_filter = '(' . $attr_name . '=*' . $value . '*)';
+        case 'contains':
+            $leaf_filter->_filter = '(' . $attr_name . '=*' . $value . '*)';
             break;
-            case 'greater':
-                $leaf_filter->_filter = '(' . $attr_name . '>' . $value . ')';
+        case 'greater':
+            $leaf_filter->_filter = '(' . $attr_name . '>' . $value . ')';
             break;
-            case 'less':
-                $leaf_filter->_filter = '(' . $attr_name . '<' . $value . ')';
+        case 'less':
+            $leaf_filter->_filter = '(' . $attr_name . '<' . $value . ')';
             break;
-            case 'greaterorequal':
-                $leaf_filter->_filter = '(' . $attr_name . '>=' . $value . ')';
+        case 'greaterorequal':
+            $leaf_filter->_filter = '(' . $attr_name . '>=' . $value . ')';
             break;
-            case 'lessorequal':
-                $leaf_filter->_filter = '(' . $attr_name . '<=' . $value . ')';
+        case 'lessorequal':
+            $leaf_filter->_filter = '(' . $attr_name . '<=' . $value . ')';
             break;
-            case 'approx':
-                $leaf_filter->_filter = '(' . $attr_name . '=~' . $value . ')';
+        case 'approx':
+            $leaf_filter->_filter = '(' . $attr_name . '=~' . $value . ')';
             break;
-            case 'any':
-                $leaf_filter->_filter = '(' . $attr_name . '=*)';
+        case 'any':
+            $leaf_filter->_filter = '(' . $attr_name . '=*)';
             break;
-            default:
-                return PEAR::raiseError('Net_LDAP_Filter create error: matching rule "' . $match . '" not known!');
+        default:
+            return PEAR::raiseError('Net_LDAP_Filter create error: matching rule "' . $match . '" not known!');
         }
         return $leaf_filter;
     }
@@ -210,8 +191,9 @@ class Net_LDAP_Filter extends PEAR
     * Call this method statically: $filter =& Net_LDAP_Filter('or', array($filter1, $filter2))
     * If the array contains filter strings instead of filter objects, we will try to parse them.
     *
-    * @param string $log_op         The locicall operator. May be "and", "or", "not" or the subsequent logical equivalents "&", "|", "!"
-    * @param array|Net_LDAP_Filter  $filters     array with Net_LDAP_Filter objects
+    * @param string                $log_op  The locicall operator. May be "and", "or", "not" or the subsequent logical equivalents "&", "|", "!"
+    * @param array|Net_LDAP_Filter $filters array with Net_LDAP_Filter objects
+    *
     * @return Net_LDAP_Filter|Net_LDAP_Error
     * @static
     */
@@ -286,8 +268,9 @@ class Net_LDAP_Filter extends PEAR
     *
     * Use this method only if you know what you are doing, or risk filter errors.
     *
+    * @param string $FILTER The filter string
+    *
     * @access static
-    * @param string $FILTER     The filter string
     * @return Net_LDAP_Filter|Net_LDAP_Error
     * @todo this is just for perl interface compatibility and not fully implemented. Use Net_LDAP_Filter::create()
     */
@@ -310,7 +293,7 @@ class Net_LDAP_Filter extends PEAR
             // leaf filter component
             $leaf_filter = new Net_LDAP_Filter();
 
-//          $value = Net_LDAP_Util::escape_filter_value(array($matches[3]));
+            //$value = Net_LDAP_Util::escape_filter_value(array($matches[3]));
             $value[0] = $matches[3];
 
             $leaf_filter->_filter = '('.$matches[1].$matches[2].$value[0].')';
@@ -384,7 +367,8 @@ class Net_LDAP_Filter extends PEAR
     * However, the original method was called "print" but due to PHP language restrictions,
     * we can't have a print() method.
     *
-    * @param resource $FH   (optional) A filehandle resource
+    * @param resource $FH (optional) A filehandle resource
+    *
     * @return true|Net_LDAP_Error
     */
     function printMe($FH = false)
@@ -402,7 +386,7 @@ class Net_LDAP_Filter extends PEAR
         } else {
             $res = fwrite($FH, $this->asString());
             if ($res == false) {
-               return PEAR::raiseError("Unable to write filter string to filehandle \$FH!");
+                return PEAR::raiseError("Unable to write filter string to filehandle \$FH!");
             }
         }
         return true;
@@ -421,8 +405,9 @@ class Net_LDAP_Filter extends PEAR
     * For upward compatibiliy reasons you are strongly encouraged to use the escape
     * methods provided by the Net_LDAP_Util class.
     *
+    * @param string $string Any string who should be escaped
+    *
     * @static
-    * @param string $string  Any string who should be escaped
     * @return string         The string $string, but escaped
     * @deprecated  Do not use this method anymore, instead use Net_LDAP_Util::escape_filter_value() directly
     */

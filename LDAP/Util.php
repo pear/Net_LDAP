@@ -1,48 +1,28 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +--------------------------------------------------------------------------+
-// | Net_LDAP                                                                 |
-// +--------------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                    |
-// +--------------------------------------------------------------------------+
-// | This library is free software; you can redistribute it and/or            |
-// | modify it under the terms of the GNU Lesser General Public               |
-// | License as published by the Free Software Foundation; either             |
-// | version 2.1 of the License, or (at your option) any later version.       |
-// |                                                                          |
-// | This library is distributed in the hope that it will be useful,          |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU        |
-// | Lesser General Public License for more details.                          |
-// |                                                                          |
-// | You should have received a copy of the GNU Lesser General Public         |
-// | License along with this library; if not, write to the Free Software      |
-// | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA |
-// +--------------------------------------------------------------------------+
-// | Authors: Benedikt Hallinger                                              |
-// +--------------------------------------------------------------------------+
-//
-// $Id$
-require_once "PEAR.php";
 
+require_once 'PEAR.php';
 
 /**
- * Utility Class for Net_LDAP
- *
- * This class servers some functionality to the other classes of Net_LDAP but most of
- * the methods can be used separately as well.
- *
- * @package Net_LDAP
- * @author Benedikt Hallinger <beni@php.net>
- * @version $Revision$
- */
+* Utility Class for Net_LDAP
+*
+* This class servers some functionality to the other classes of Net_LDAP but most of
+* the methods can be used separately as well.
+*
+* @category Net
+* @package  Net_LDAP
+* @author   Benedikt Hallinger <beni@php.net>
+* @license  http://www.gnu.org/copyleft/lesser.html LGPL
+* @version  $Revision$
+* @link     http://pear.php.net/package/Net_LDAP/
+*/
 class Net_LDAP_Util extends PEAR
 {
     /**
-     * Private empty Constructur
-     *
-     * @access private
-     */
+    * Private empty Constructur
+    *
+    * @access private
+    */
     function Net_LDAP_Util()
     {
          // We do nothing here, since all methods can be called statically.
@@ -85,11 +65,12 @@ class Net_LDAP_Util extends PEAR
     *   reverse     If TRUE, the RDN sequence is reversed.
     *   onlyvalues  If TRUE, then only attributes values are returned ('foo' instead of 'cn=foo')
     *
-    * @static
-    * @author beni@php.net
+
     * @param string $dn      The DN that should be exploded
-    * @param array  $options  Options to use
-    * @return array    Parts of the exploded DN
+    * @param array  $options Options to use
+    *
+    * @static
+    * @return array   Parts of the exploded DN
     * @todo implement BER
     */
     function ldap_explode_dn($dn, $options = array('casefold' => 'upper'))
@@ -164,9 +145,10 @@ class Net_LDAP_Util extends PEAR
     * are preceeded by ba backslash. Control characters with an ASCII code < 32 are represented as \hexpair.
     * Finally all leading and trailing spaces are converted to sequences of \20.
     *
+    * @param array $values An array containing the DN values that should be escaped
+    *
     * @static
-    * @param array $values    A array containing the DN values that should be escaped
-    * @return array           The array $values, but escaped
+    * @return array The array $values, but escaped
     */
     function escape_dn_value($values = array())
     {
@@ -177,7 +159,7 @@ class Net_LDAP_Util extends PEAR
 
         foreach ($values as $key => $val) {
             // Escaping of filter meta characters
-            $val = str_replace('\\',   '\\\\', $val);
+            $val = str_replace('\\', '\\\\', $val);
             $val = str_replace(',',    '\,', $val);
             $val = str_replace('+',    '\+', $val);
             $val = str_replace('"',    '\"', $val);
@@ -215,8 +197,9 @@ class Net_LDAP_Util extends PEAR
     * Any escape sequence starting with a baskslash - hexpair or special character -
     * will be transformed back to the corresponding character.
     *
-    * @param array $values    Array of DN Values
-    * @return array           Same as $values, but unescaped
+    * @param array $values Array of DN Values
+    *
+    * @return array Same as $values, but unescaped
     * @static
     */
     function unescape_dn_value($values = array())
@@ -229,14 +212,14 @@ class Net_LDAP_Util extends PEAR
         foreach ($values as $key => $val) {
             // strip slashes from special chars
             $val = str_replace('\\\\', '\\', $val);
-            $val = str_replace('\,',   ',', $val);
-            $val = str_replace('\+',   '+', $val);
-            $val = str_replace('\"',   '"', $val);
-            $val = str_replace('\<',   '<', $val);
-            $val = str_replace('\>',   '>', $val);
-            $val = str_replace('\;',   ';', $val);
-            $val = str_replace('\#',   '#', $val);
-            $val = str_replace('\=',   '=', $val);
+            $val = str_replace('\,',    ',', $val);
+            $val = str_replace('\+',    '+', $val);
+            $val = str_replace('\"',    '"', $val);
+            $val = str_replace('\<',    '<', $val);
+            $val = str_replace('\>',    '>', $val);
+            $val = str_replace('\;',    ';', $val);
+            $val = str_replace('\#',    '#', $val);
+            $val = str_replace('\=',    '=', $val);
 
             // Translate hex code into ascii
             $values[$key] = Net_LDAP_Util::hex2asc($val);
@@ -274,10 +257,11 @@ class Net_LDAP_Util extends PEAR
     * Note: The empty string "" is a valid DN, so be sure not to do a "$can_dn == false" test,
     *       because an empty string evaluates to false. Use the "===" operator instead.
     *
-    * @static
     * @param array|string $dn      The DN
-    * @param array  $option  Options to use
-    * @return false|string   The canonical DN or FALSE
+    * @param array        $options Options to use
+    *
+    * @static
+    * @return false|string The canonical DN or FALSE
     * @todo implement option mbcescape
     */
     function canonical_dn($dn, $options = array('casefold' => 'upper', 'separator' => ','))
@@ -394,9 +378,10 @@ class Net_LDAP_Util extends PEAR
     * LDAP filters "*", "(", ")", and "\" (the backslash) are converted into the representation of a
     * backslash followed by two hex digits representing the hexadecimal value of the character.
     *
+    * @param array $values Array of values to escape
+    *
     * @static
-    * @param array $values    Array of values to escape
-    * @return array           Array $values, but escaped
+    * @return array Array $values, but escaped
     */
     function escape_filter_value($values = array())
     {
@@ -407,10 +392,10 @@ class Net_LDAP_Util extends PEAR
 
         foreach ($values as $key => $val) {
             // Escaping of filter meta characters
-            $val = str_replace('\\',   '\5c', $val);
-            $val = str_replace('*',    '\2a', $val);
-            $val = str_replace('(',    '\28', $val);
-            $val = str_replace(')',    '\29', $val);
+            $val = str_replace('\\', '\5c', $val);
+            $val = str_replace('*',  '\2a', $val);
+            $val = str_replace('(',  '\28', $val);
+            $val = str_replace(')',  '\29', $val);
 
             // ASCII < 32 escaping
             $val = Net_LDAP_Util::asc2hex32($val);
@@ -428,9 +413,10 @@ class Net_LDAP_Util extends PEAR
     *
     * Converts any sequences of a backslash followed by two hex digits into the corresponding character.
     *
+    * @param array $values Array of values to escape
+    *
     * @static
-    * @param array $values    Array of values to escape
-    * @return array           Array $values, but unescaped
+    * @return array Array $values, but unescaped
     */
     function unescape_filter_value($values = array())
     {
@@ -450,8 +436,9 @@ class Net_LDAP_Util extends PEAR
     /**
     * Converts all ASCII chars < 32 to "\HEX"
     *
+    * @param string $string String to convert
+    *
     * @static
-    * @param string $string      String to convert
     * @return string
     */
     function asc2hex32($string)
@@ -468,11 +455,12 @@ class Net_LDAP_Util extends PEAR
     }
 
     /**
-    * Converts all Hex expressions ("\HEX") to their original asc characters
+    * Converts all Hex expressions ("\HEX") to their original ASCII characters
+    *
+    * @param string $string String to convert
     *
     * @static
     * @author beni@php.net, heavily based on work from DavidSmith@byu.net
-    * @param string  $string
     * @return string
     */
     function hex2asc($string)
@@ -505,13 +493,14 @@ class Net_LDAP_Util extends PEAR
     *       The "C+" is treaten as value of the first pair instead as attr name of the second pair.
     *       To prevent this, escape correctly.
     *
+    * @param string $rdn Part of an (multivalued) escaped RDN (eg. ou=foo OR ou=foo+cn=bar)
+    *
     * @static
-    * @param string $rdn   Part of an (multivalued) escaped RDN (eg. ou=foo OR ou=foo+cn=bar)
-    * @return array        Array with the components of the multivalued RDN or Error
+    * @return array Array with the components of the multivalued RDN or Error
     */
     function split_rdn_multival($rdn)
     {
-        $rdns = preg_split('/(?<!\\\\)\+/',$rdn);
+        $rdns = preg_split('/(?<!\\\\)\+/', $rdn);
         $rdns = Net_LDAP_Util::_correct_dn_splitting($rdns, '+');
         return array_values($rdns);
     }
@@ -521,8 +510,9 @@ class Net_LDAP_Util extends PEAR
     *
     * The split will occur at the first unescaped '=' character.
     *
-    * @param string $attr     Attribute and Value Syntax
-    * @return array           indexed array, 0=attribute name, 1=attribute value
+    * @param string $attr Attribute and Value Syntax
+    *
+    * @return array Indexed array: 0=attribute name, 1=attribute value
     */
     function split_attribute_string($attr)
     {
@@ -532,8 +522,10 @@ class Net_LDAP_Util extends PEAR
     /**
     * Corrects splitting of dn parts
     *
-    * @param array $dn   Raw DN array
-    * @return array      corrected array
+    * @param array $dn        Raw DN array
+    * @param array $separator Separator that was used when splitting
+    *
+    * @return array Corrected array
     * @access private
     */
     function _correct_dn_splitting($dn = array(), $separator = ',')

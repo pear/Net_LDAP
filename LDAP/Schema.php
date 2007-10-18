@@ -1,30 +1,7 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +--------------------------------------------------------------------------+
-// | Net_LDAP                                                                 |
-// +--------------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                    |
-// +--------------------------------------------------------------------------+
-// | This library is free software; you can redistribute it and/or            |
-// | modify it under the terms of the GNU Lesser General Public               |
-// | License as published by the Free Software Foundation; either             |
-// | version 2.1 of the License, or (at your option) any later version.       |
-// |                                                                          |
-// | This library is distributed in the hope that it will be useful,          |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU        |
-// | Lesser General Public License for more details.                          |
-// |                                                                          |
-// | You should have received a copy of the GNU Lesser General Public         |
-// | License along with this library; if not, write to the Free Software      |
-// | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA |
-// +--------------------------------------------------------------------------+
-// | Authors: Jan Wagner                                                      |
-// +--------------------------------------------------------------------------+
-//
-// $Id$
 
-require_once("PEAR.php");
+require_once 'PEAR.php';
 
 /**
 * Syntax definitions
@@ -42,25 +19,29 @@ define('NET_LDAP_SYNTAX_OID',                '1.3.6.1.4.1.1466.115.121.1.38');
 define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
 
 /**
- * Load an LDAP Schema and provide information
- *
- * This class takes a Subschema entry, parses this information
- * and makes it available in an array. Most of the code has been
- * inspired by perl-ldap( http://perl-ldap.sourceforge.net).
- * You will find portions of their implementation in here.
- *
- * @package Net_LDAP
- * @author Jan Wagner <wagner@netsols.de>
- * @version $Revision$
- */
- class Net_LDAP_Schema extends PEAR
- {
+* Load an LDAP Schema and provide information
+*
+* This class takes a Subschema entry, parses this information
+* and makes it available in an array. Most of the code has been
+* inspired by perl-ldap( http://perl-ldap.sourceforge.net).
+* You will find portions of their implementation in here.
+*
+* @category Net
+* @package  Net_LDAP
+* @author   Jan Wagner <wagner@netsols.de>
+* @author   Benedikt Hallinger <beni@php.net>
+* @license  http://www.gnu.org/copyleft/lesser.html LGPL
+* @version  $Revision$
+* @link     http://pear.php.net/package/Net_LDAP/
+*/
+class Net_LDAP_Schema extends PEAR
+{
     /**
-     * Map of entry types to ldap attributes of subschema entry
-     *
-     * @access public
-     * @var array
-     */
+    * Map of entry types to ldap attributes of subschema entry
+    *
+    * @access public
+    * @var array
+    */
     var $types = array('attribute'        => 'attributeTypes',
                        'ditcontentrule'   => 'dITContentRules',
                        'ditstructurerule' => 'dITStructureRules',
@@ -71,11 +52,11 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
                        'syntax'           => 'ldapSyntaxes');
 
     /**
-     * Array of entries belonging to this type
-     *
-     * @access private
-     * @var array
-     */
+    * Array of entries belonging to this type
+    *
+    * @access private
+    * @var array
+    */
     var $_attributeTypes    = array();
     var $_matchingRules     = array();
     var $_matchingRuleUse   = array();
@@ -87,11 +68,11 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
 
 
     /**
-     * hash of all fetched oids
-     *
-     * @access private
-     * @var array
-     */
+    * hash of all fetched oids
+    *
+    * @access private
+    * @var array
+    */
     var $_oids = array();
 
     /**
@@ -105,26 +86,27 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
 
 
     /**
-     * constructor of the class
-     *
-     * @access protected
-     */
+    * constructor of the class
+    *
+    * @access protected
+    */
     function Net_LDAP_Schema()
     {
         $this->PEAR('Net_LDAP_Error'); // default error class
     }
 
     /**
-     * Return a hash of entries for the given type
-     *
-     * Returns a hash of entry for th givene type. Types may be:
-     * objectclasses, attributes, ditcontentrules, ditstructurerules, matchingrules,
-     * matchingruleuses, nameforms, syntaxes
-     *
-     * @access public
-     * @param string $type Type to fetch
-     * @return array|Net_LDAP_Error Array or Net_LDAP_Error
-     */
+    * Return a hash of entries for the given type
+    *
+    * Returns a hash of entry for th givene type. Types may be:
+    * objectclasses, attributes, ditcontentrules, ditstructurerules, matchingrules,
+    * matchingruleuses, nameforms, syntaxes
+    *
+    * @param string $type Type to fetch
+    *
+    * @access public
+    * @return array|Net_LDAP_Error Array or Net_LDAP_Error
+    */
     function &getAll($type)
     {
         $map = array('objectclasses'     => &$this->_objectClasses,
@@ -142,15 +124,16 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
     }
 
     /**
-     * Return a specific entry
-     *
-     * @access public
-     * @param string $type Type of name
-     * @param string $name Name or OID to fetch
-     * @return mixed Entry or Net_LDAP_Error
-     */
-     function &get($type, $name)
-     {
+    * Return a specific entry
+    *
+    * @param string $type Type of name
+    * @param string $name Name or OID to fetch
+    *
+    * @access public
+    * @return mixed Entry or Net_LDAP_Error
+    */
+    function &get($type, $name)
+    {
         if ($this->_initialized) {
             $type = strtolower($type);
             if (false == key_exists($type, $this->types)) {
@@ -160,9 +143,9 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
             $name = strtolower($name);
             $type_var = &$this->{'_' . $this->types[$type]};
 
-            if( key_exists($name, $type_var)) {
+            if (key_exists($name, $type_var)) {
                 return $type_var[$name];
-            } elseif(key_exists($name, $this->_oids) && $this->_oids[$name]['type'] == $type) {
+            } elseif (key_exists($name, $this->_oids) && $this->_oids[$name]['type'] == $type) {
                 return $this->_oids[$name];
             } else {
                 return PEAR::raiseError("Could not find $type $name");
@@ -171,48 +154,50 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
             $return = null;
             return $return;
         }
-     }
+    }
 
 
     /**
-     * Fetches attributes that MAY be present in the given objectclass
-     *
-     * @access public
-     * @param string $oc Name or OID of objectclass
-     * @return array|Net_LDAP_Error Array with attributes or Net_LDAP_Error
-     */
+    * Fetches attributes that MAY be present in the given objectclass
+    *
+    * @param string $oc Name or OID of objectclass
+    *
+    * @access public
+    * @return array|Net_LDAP_Error Array with attributes or Net_LDAP_Error
+    */
     function may($oc)
     {
         return $this->_getAttr($oc, 'may');
     }
 
     /**
-     * Fetches attributes that MUST be present in the given objectclass
-     *
-     * @access public
-     * @param string $oc Name or OID of objectclass
-     * @return array|Net_LDAP_Error Array with attributes or Net_LDAP_Error
-     */
+    * Fetches attributes that MUST be present in the given objectclass
+    *
+    * @param string $oc Name or OID of objectclass
+    *
+    * @access public 
+    * @return array|Net_LDAP_Error Array with attributes or Net_LDAP_Error
+    */
     function must($oc)
     {
         return $this->_getAttr($oc, 'must');
     }
 
     /**
-     * Fetches the given attribute from the given objectclass
-     *
-     * @access private
-     * @param string $oc   Name or OID of objectclass
-     * @param string $attr Name of attribute to fetch
-     * @return array|Net_LDAP_Error The attribute or Net_LDAP_Error
-     */
+    * Fetches the given attribute from the given objectclass
+    *
+    * @param string $oc   Name or OID of objectclass
+    * @param string $attr Name of attribute to fetch
+    *
+    * @access private
+    * @return array|Net_LDAP_Error The attribute or Net_LDAP_Error
+    */
     function _getAttr($oc, $attr)
     {
         $oc = strtolower($oc);
         if (key_exists($oc, $this->_objectClasses) && key_exists($attr, $this->_objectClasses[$oc])) {
             return $this->_objectClasses[$oc][$attr];
-        }
-        elseif (key_exists($oc, $this->_oids) &&
+        } elseif (key_exists($oc, $this->_oids) &&
                 $this->_oids[$oc]['type'] == 'objectclass' &&
                 key_exists($attr, $this->_oids[$oc])) {
             return $this->_oids[$oc][$attr];
@@ -222,11 +207,12 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
     }
 
     /**
-     * Returns the name(s) of the immediate superclass(es)
-     *
-     * @param string $oc Name or OID of objectclass
-     * @return array|Net_LDAP_Error  Array of names or Net_LDAP_Error
-     */
+    * Returns the name(s) of the immediate superclass(es)
+    *
+    * @param string $oc Name or OID of objectclass
+    *
+    * @return array|Net_LDAP_Error  Array of names or Net_LDAP_Error
+    */
     function superclass($oc)
     {
         $o = $this->get('objectclass', $oc);
@@ -237,11 +223,12 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
     }
 
     /**
-     * Parses the schema of the given Subschema entry
-     *
-     * @access public
-     * @param Net_LDAP_Entry $entry Subschema entry
-     */
+    * Parses the schema of the given Subschema entry
+    *
+    * @param Net_LDAP_Entry &$entry Subschema entry
+    *
+    * @access public
+    */
     function parse(&$entry)
     {
         foreach ($this->types as $type => $attr) {
@@ -280,12 +267,13 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
     }
 
     /**
-     * parses an attribute value into a schema entry
-     *
-     * @access private
-     * @param string $value Attribute value
-     * @return array|false Schema entry array or false
-     */
+    * parses an attribute value into a schema entry
+    *
+    * @param string $value Attribute value
+    *
+    * @access private
+    * @return array|false Schema entry array or false
+    */
     function &_parse_entry($value)
     {
         // tokens that have no value associated
@@ -327,7 +315,7 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
                     }
                 }
                 // create a array if the value should be multivalued but was not
-                if (in_array($token, $multiValue ) && !is_array($schema_entry[$token])) {
+                if (in_array($token, $multiValue) && !is_array($schema_entry[$token])) {
                     $schema_entry[$token] = array($schema_entry[$token]);
                 }
             }
@@ -352,12 +340,13 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
     }
 
     /**
-     * tokenizes the given value into an array of tokens
-     *
-     * @access private
-     * @param string $value String to parse
-     * @return array Array of tokens
-     */
+    * tokenizes the given value into an array of tokens
+    *
+    * @param string $value String to parse
+    *
+    * @access private
+    * @return array Array of tokens
+    */
     function _tokenize($value)
     {
         $tokens = array();        // array of tokens
@@ -391,7 +380,8 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
     * PHP function needs to be used to fetch the value in the
     * proper format (e.g. binary or string)
     *
-    * @param string $attribute   the name of the attribute (eg.: 'sn')
+    * @param string $attribute The name of the attribute (eg.: 'sn')
+    *
     * @return boolean
     */
     function isBinary($attribute)
@@ -414,5 +404,5 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
             return $return;
         }
     }
- }
+}
 ?>

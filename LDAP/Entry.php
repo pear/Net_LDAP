@@ -1,152 +1,133 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +--------------------------------------------------------------------------+
-// | Net_LDAP                                                                 |
-// +--------------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                    |
-// +--------------------------------------------------------------------------+
-// | This library is free software; you can redistribute it and/or            |
-// | modify it under the terms of the GNU Lesser General Public               |
-// | License as published by the Free Software Foundation; either             |
-// | version 2.1 of the License, or (at your option) any later version.       |
-// |                                                                          |
-// | This library is distributed in the hope that it will be useful,          |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU        |
-// | Lesser General Public License for more details.                          |
-// |                                                                          |
-// | You should have received a copy of the GNU Lesser General Public         |
-// | License along with this library; if not, write to the Free Software      |
-// | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA |
-// +--------------------------------------------------------------------------+
-// | Authors: Jan Wagner, Tarjej Huse                                         |
-// +--------------------------------------------------------------------------+
-//
-// $Id$
 
-require_once("PEAR.php");
-require_once('Util.php');
+require_once 'PEAR.php';
+require_once 'Util.php';
 
 /**
- * Object representation of a directory entry
- *
- * This class represents a directory entry. You can add, delete, replace
- * attributes and their values, rename the entry, delete the entry.
- *
- * @package Net_LDAP
- * @author Jan Wagner <wagner@netsols.de>
- * @author Tarjej Huse
- * @version $Revision$
- */
+* Object representation of a directory entry
+*
+* This class represents a directory entry. You can add, delete, replace
+* attributes and their values, rename the entry, delete the entry.
+*
+* @category Net
+* @package  Net_LDAP
+* @author   Jan Wagner <wagner@netsols.de>
+* @author   Tarjej Huse <tarjei@bergfald.no>
+* @license  http://www.gnu.org/copyleft/lesser.html LGPL
+* @version  $Revision$
+* @link     http://pear.php.net/package/Net_LDAP/
 
+*/
 class Net_LDAP_Entry extends PEAR
 {
     /**
-     * Entry ressource identifier
-     *
-     * @access private
-     * @var ressourcee
-     */
+    * Entry ressource identifier
+    *
+    * @access private
+    * @var ressourcee
+    */
     var $_entry = null;
 
     /**
-     * LDAP ressource identifier
-     *
-     * @access private
-     * @var ressource
-     */
+    * LDAP ressource identifier
+    *
+    * @access private
+    * @var ressource
+    */
     var $_link = null;
 
     /**
-     * Net_LDAP object
-     *
-     * This object will be used for updating and schema checking
-     *
-     * @access private
-     * @var object Net_LDAP
-     */
+    * Net_LDAP object
+    *
+    * This object will be used for updating and schema checking
+    *
+    * @access private
+    * @var object Net_LDAP
+    */
     var $_ldap = null;
 
     /**
-     * Distinguished name of the entry
-     *
-     * @access private
-     * @var string
-     */
+    * Distinguished name of the entry
+    *
+    * @access private
+    * @var string
+    */
     var $_dn = null;
 
     /**
-     * Attributes
-     *
-     * @access private
-     * @var array
-     */
+    * Attributes
+    *
+    * @access private
+    * @var array
+    */
     var $_attributes = array();
 
     /**
-     * Original attributes before any modification
-     *
-     * @access private
-     * @var array
-     */
+    * Original attributes before any modification
+    *
+    * @access private
+    * @var array
+    */
     var $_original = array();
 
 
     /**
-     * Map of attribute names
-     *
-     * @access private
-     * @var array
-     */
+    * Map of attribute names
+    *
+    * @access private
+    * @var array
+    */
     var $_map = array();
 
 
     /**
-     * Is this a new entry?
-     *
-     * @access private
-     * @var boolean
-     */
+    * Is this a new entry?
+    *
+    * @access private
+    * @var boolean
+    */
     var $_new = true;
 
     /**
-     * New distinguished name
-     *
-     * @access private
-     * @var string
-     */
+    * New distinguished name
+    *
+    * @access private
+    * @var string
+    */
     var $_newdn = null;
 
     /**
-     * Shall the entry be deleted?
-     *
-     * @access private
-     * @var boolean
-     */
+    * Shall the entry be deleted?
+    *
+    * @access private
+    * @var boolean
+    */
     var $_delete = false;
 
     /**
-     * Map with changes to the entry
-     *
-     * @access private
-     * @var array
-     */
+    * Map with changes to the entry
+    *
+    * @access private
+    * @var array
+    */
     var $_changes = array("add"     => array(),
                           "delete"  => array(),
                           "replace" => array()
                           );
     /**
-     * Internal Constructor
-     *
-     * Constructor of the entry. Sets up the distinguished name and the entries
-     * attributes.
-     * You should not call this method manually! Use {@link Net_LDAP_Entry::createFresh()} instead!
-     *
-     * @access protected
-     * @param Net_LDAP|ressource|array $ldap   Net_LDAP object, ldap-link ressource or array of attributes
-     * @param string|ressource         $entry  Either a DN or a LDAP-Entry ressource
-     * @return none
-     */
+    * Internal Constructor
+    *
+    * Constructor of the entry. Sets up the distinguished name and the entries
+    * attributes.
+    * You should not call this method manually! Use {@link Net_LDAP_Entry::createFresh()} instead!
+    *
+    * @param Net_LDAP|ressource|array &$ldap Net_LDAP object, ldap-link ressource or array of attributes
+    * @param string|ressource         $entry Either a DN or a LDAP-Entry ressource
+    *
+    * @access protected
+    * @return none
+    */
     function Net_LDAP_Entry(&$ldap, $entry = null)
     {
         $this->PEAR('Net_LDAP_Error');
@@ -186,9 +167,10 @@ class Net_LDAP_Entry extends PEAR
     *          );
     * </code>
     *
+    * @param string $dn    DN of the Entry
+    * @param array  $attrs Attributes of the entry
+    *
     * @static
-    * @param string $dn     DN of the Entry
-    * @param array  $attrs  Attributes of the entry
     * @return Net_LDAP_Entry
     */
     function createFresh($dn, $attrs = array())
@@ -202,19 +184,20 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Get or set the distinguished name of the entry
-     *
-     * If called without an argument the current (or the new DN if set) DN gets returned.
-     * If you provide an DN, this entry is moved to the new location specified if a DN existed.
-     * If the DN was not set, the DN gets initialized. Call {@link update()} to actually create
-     * the new Entry in the directory.
-     *
-     * Please note that special characters (eg german umlauts) should be encoded using utf8_encode().
-     *
-     * @access public
-     * @param string $dn New distinguished name
-     * @return string|true Distinguished name (or true if a new DN was provided)
-     */
+    * Get or set the distinguished name of the entry
+    *
+    * If called without an argument the current (or the new DN if set) DN gets returned.
+    * If you provide an DN, this entry is moved to the new location specified if a DN existed.
+    * If the DN was not set, the DN gets initialized. Call {@link update()} to actually create
+    * the new Entry in the directory.
+    *
+    * Please note that special characters (eg german umlauts) should be encoded using utf8_encode().
+    *
+    * @param string $dn New distinguished name
+    *
+    * @access public
+    * @return string|true Distinguished name (or true if a new DN was provided)
+    */
     function dn($dn = null)
     {
         if (false == is_null($dn)) {
@@ -230,25 +213,26 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Sets the internal attributes array
-     *
-     * This fetches the values for the attributes from the server.
-     * The attribute Syntax will be checked so binary attributes will be returned
-     * as binary values.
-     *
-     * Attributes may be passed directly via the $attributes parameter to setup this
-     * entry manually. This overrides attribute fetching from the server.
-     *
-     * @access private
-     * @param array $attributes
-     */
+    * Sets the internal attributes array
+    *
+    * This fetches the values for the attributes from the server.
+    * The attribute Syntax will be checked so binary attributes will be returned
+    * as binary values.
+    *
+    * Attributes may be passed directly via the $attributes parameter to setup this
+    * entry manually. This overrides attribute fetching from the server.
+    *
+    * @param array $attributes Attributes to set for this entry
+    *
+    * @access private
+    * @return void
+    */
     function _setAttributes($attributes = null)
     {
         /*
         * fetch attributes from the server
         */
-        if (is_null($attributes) && is_resource($this->_entry) && is_resource($this->_link))
-        {
+        if (is_null($attributes) && is_resource($this->_entry) && is_resource($this->_link)) {
             // fetch schema
             if (is_a($this->_ldap, 'Net_LDAP')) {
                 $schema =& $this->_ldap->schema();
@@ -308,15 +292,15 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Get the values of all attributes in a hash
-     *
-     * The returned hash has the form
-     * array('attributename' => 'single value',
-     *       'attributename' => array('value1', value2', value3'))
-     *
-     * @access public
-     * @return array Hash of all attributes with their values
-     */
+    * Get the values of all attributes in a hash
+    *
+    * The returned hash has the form
+    * <code>array('attributename' => 'single value',
+    *       'attributename' => array('value1', value2', value3'))</code>
+    *
+    * @access public
+    * @return array Hash of all attributes with their values
+    */
     function getValues()
     {
         $attrs = array();
@@ -327,22 +311,23 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Get the value of a specific attribute
-     *
-     * The first parameter is the name of the attribute
-     * The second parameter influences the way the value is returned:
-     * 'single': only the first value is returned as string
-     * 'all': all values including the value count are returned in an
-     *               array
-     * 'default': in all other cases an attribute value with a single value is
-     *            returned as string, if it has multiple values it is returned
-     *            as an array (without value count)
-     *
-     * @access public
-     * @param string $attr Attribute name
-     * @param string $option Option
-     * @return string|array|PEAR_Error string, array or PEAR_Error
-     */
+    * Get the value of a specific attribute
+    *
+    * The first parameter is the name of the attribute
+    * The second parameter influences the way the value is returned:
+    * 'single': only the first value is returned as string
+    * 'all': all values including the value count are returned in an
+    *               array
+    * 'default': in all other cases an attribute value with a single value is
+    *            returned as string, if it has multiple values it is returned
+    *            as an array (without value count)
+    *
+    * @param string $attr   Attribute name
+    * @param string $option Option
+    *
+    * @access public
+    * @return string|array|PEAR_Error string, array or PEAR_Error
+    */
     function getValue($attr, $option = null)
     {
         $attr = $this->_getAttrName($attr);
@@ -361,10 +346,10 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Alias function of getValue for perl-ldap interface
-     *
-     * @see getValue()
-     */
+    * Alias function of getValue for perl-ldap interface
+    *
+    * @see getValue()
+    */
     function get_value()
     {
         $args = func_get_args();
@@ -372,23 +357,24 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Returns an array of attributes names
-     *
-     * @access public
-     * @return array Array of attribute names
-     */
+    * Returns an array of attributes names
+    *
+    * @access public
+    * @return array Array of attribute names
+    */
     function attributes()
     {
         return array_keys($this->_attributes);
     }
 
     /**
-     * Returns whether an attribute exists or not
-     *
-     * @access public
-     * @param string $attr Attribute name
-     * @return boolean
-     */
+    * Returns whether an attribute exists or not
+    *
+    * @param string $attr Attribute name
+    *
+    * @access public
+    * @return boolean
+    */
     function exists($attr)
     {
         $attr = $this->_getAttrName($attr);
@@ -396,24 +382,25 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Adds a new attribute or a new value to an existing attribute
-     *
-     * The paramter has to be an array of the form:
-     * array('attributename' => 'single value',
-     *       'attributename' => array('value1', 'value2))
-     * When the attribute already exists the values will be added, else the
-     * attribute will be created. These changes are local to the entry and do
-     * not affect the entry on the server until update() is called.
-     *
-     * Note, that you can add values of attributes that you haven't selected, but if
-     * you do so, {@link getValue()} and {@link getValues()} will only return the
-     * values you added, _NOT_ all values present on the server. To avoid this, just refetch
-     * the entry after calling {@link update()} or select the attribute.
-     *
-     * @access public
-     * @param array $attr
-     * @return true|Net_LDAP_Error
-     */
+    * Adds a new attribute or a new value to an existing attribute
+    *
+    * The paramter has to be an array of the form:
+    * array('attributename' => 'single value',
+    *       'attributename' => array('value1', 'value2))
+    * When the attribute already exists the values will be added, else the
+    * attribute will be created. These changes are local to the entry and do
+    * not affect the entry on the server until update() is called.
+    *
+    * Note, that you can add values of attributes that you haven't selected, but if
+    * you do so, {@link getValue()} and {@link getValues()} will only return the
+    * values you added, _NOT_ all values present on the server. To avoid this, just refetch
+    * the entry after calling {@link update()} or select the attribute.
+    *
+    * @param array $attr Attributes to add
+    *
+    * @access public
+    * @return true|Net_LDAP_Error
+    */
     function add($attr = array())
     {
         if (false == is_array($attr)) {
@@ -447,29 +434,30 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Deletes an whole attribute or a value or the whole entry
-     *
-     * The parameter can be one of the following:
-     *
-     * "attributename" - The attribute as a whole will be deleted
-     * array("attributename1", "attributename2) - All given attributes will be
-     *                                            deleted
-     * array("attributename" => "value") - The value will be deleted
-     * array("attributename" => array("value1", "value2") - The given values
-     *                                                      will be deleted
-     * If $attr is null or omitted , then the whole Entry will be deleted!
-     *
-     * These changes are local to the entry and do
-     * not affect the entry on the server until {@link update()} is called.
-     *
-     * Please note that you must select the attribute (at $ldap->search() for example)
-     * to be able to delete values of it, Otherwise {@link update()} will silently fail
-     * and remove nothing.
-     *
-     * @access public
-     * @param string|array $attr
-     * @return true
-     */
+    * Deletes an whole attribute or a value or the whole entry
+    *
+    * The parameter can be one of the following:
+    *
+    * "attributename" - The attribute as a whole will be deleted
+    * array("attributename1", "attributename2) - All given attributes will be
+    *                                            deleted
+    * array("attributename" => "value") - The value will be deleted
+    * array("attributename" => array("value1", "value2") - The given values
+    *                                                      will be deleted
+    * If $attr is null or omitted , then the whole Entry will be deleted!
+    *
+    * These changes are local to the entry and do
+    * not affect the entry on the server until {@link update()} is called.
+    *
+    * Please note that you must select the attribute (at $ldap->search() for example)
+    * to be able to delete values of it, Otherwise {@link update()} will silently fail
+    * and remove nothing.
+    *
+    * @param string|array $attr Attributes to delete (NULL or missing to delete whole entry)
+    *
+    * @access public
+    * @return true
+    */
     function delete($attr = null)
     {
         if (is_null($attr)) {
@@ -521,21 +509,22 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Replaces attributes or its values
-     *
-     * The parameter has to an array of the following form:
-     * array("attributename" => "single value",
-     *       "attribute2name" => array("value1", "value2"))
-     * If the attribute does not yet exist it will be added instead.
-     * If the attribue value is null, the attribute will de deleted
-     *
-     * These changes are local to the entry and do
-     * not affect the entry on the server until {@link update()} is called.
-     *
-     * @access public
-     * @param array $attr
-     * @return true|Net_LDAP_Error
-     */
+    * Replaces attributes or its values
+    *
+    * The parameter has to an array of the following form:
+    * array("attributename" => "single value",
+    *       "attribute2name" => array("value1", "value2"))
+    * If the attribute does not yet exist it will be added instead.
+    * If the attribue value is null, the attribute will de deleted
+    *
+    * These changes are local to the entry and do
+    * not affect the entry on the server until {@link update()} is called.
+    *
+    * @param array $attr Attributes to replace
+    *
+    * @access public
+    * @return true|Net_LDAP_Error
+    */
     function replace($attr = array())
     {
         if (false == is_array($attr)) {
@@ -566,26 +555,27 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Update the entry on the directory server
-     *
-     * @access public
-     * @param Net_LDAP $ldap If passed, a call to setLDAP() is issued prior update, thus switching the LDAP-server. This is for perl-ldap interface compliance
-     * @return true|Net_LDAP_Error
-     * @todo Entry rename with a DN containing special characters needs testing!
-     */
+    * Update the entry on the directory server
+    *
+    * @param Net_LDAP $ldap If passed, a call to setLDAP() is issued prior update, thus switching the LDAP-server. This is for perl-ldap interface compliance
+    *
+    * @access public
+    * @return true|Net_LDAP_Error
+    * @todo Entry rename with a DN containing special characters needs testing!
+    */
     function update($ldap = null)
     {
         if ($ldap) {
             $msg = $this->setLDAP($ldap);
             if (Net_LDAP::isError($msg)) {
-               return PEAR::raiseError('You passed an invalid $ldap variable to update()');
+                return PEAR::raiseError('You passed an invalid $ldap variable to update()');
             }
         }
 
         // ensure we have a valid LDAP object
         $ldap =& $this->getLDAP();
         if (!is_a($ldap, 'Net_LDAP')) {
-           return PEAR::raiseError("The entries LDAP object is not valid");
+            return PEAR::raiseError("The entries LDAP object is not valid");
         }
 
         $link = $ldap->getLink();
@@ -697,12 +687,13 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Returns the right attribute name
-     *
-     * @access private
-     * @param string $attr Name of attribute
-     * @return string The right name of the attribute
-     */
+    * Returns the right attribute name
+    *
+    * @param string $attr Name of attribute
+    *
+    * @access private
+    * @return string The right name of the attribute
+    */
     function _getAttrName($attr)
     {
         $name = strtolower($attr);
@@ -713,11 +704,11 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-     * Returns a reference to the LDAP-Object of this entry
-     *
-     * @access public
-     * @return Net_LDAP|Net_LDAP_Error   Reference to the Net_LDAP Object (the connection) or Net_LDAP_Error
-     */
+    * Returns a reference to the LDAP-Object of this entry
+    *
+    * @access public
+    * @return Net_LDAP|Net_LDAP_Error   Reference to the Net_LDAP Object (the connection) or Net_LDAP_Error
+    */
     function &getLDAP()
     {
         if (!is_a($this->_ldap, 'Net_LDAP')) {
@@ -728,7 +719,12 @@ class Net_LDAP_Entry extends PEAR
     }
 
     /**
-    * Sets  a reference to the LDAP-Object of this entry
+    * Sets a reference to the LDAP-Object of this entry
+    *
+    * After setting a Net_LDAP object, calling update() will use that object for
+    * updating directory contents. Use this to dynamicly switch directorys.
+    *
+    * @param Net_LDAP &$ldap Net_LDAP object that this entry should be connected to
     *
     * @access public
     * @return true|Net_LDAP_Error
@@ -781,9 +777,11 @@ class Net_LDAP_Entry extends PEAR
     * @param string $regex     The regular expression
     * @param string $attr_name The attribute to search in
     * @param array  $matches   (optional, PASS BY REFERENCE!) Array to store matches in
+    *
     * @return boolean|Net_LDAP_Error  TRUE, if we had a match in one of the values, otherwise false. Net_LDAP_Error in case something went wrong
     */
-    function preg_match($regex, $attr_name, $matches = array()){
+    function preg_match($regex, $attr_name, $matches = array())
+    {
         $matches = array();
 
         // fetch attribute values

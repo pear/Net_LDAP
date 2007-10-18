@@ -1,87 +1,67 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +--------------------------------------------------------------------------+
-// | Net_LDAP                                                                 |
-// +--------------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                    |
-// +--------------------------------------------------------------------------+
-// | This library is free software; you can redistribute it and/or            |
-// | modify it under the terms of the GNU Lesser General Public               |
-// | License as published by the Free Software Foundation; either             |
-// | version 2.1 of the License, or (at your option) any later version.       |
-// |                                                                          |
-// | This library is distributed in the hope that it will be useful,          |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of           |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU        |
-// | Lesser General Public License for more details.                          |
-// |                                                                          |
-// | You should have received a copy of the GNU Lesser General Public         |
-// | License along with this library; if not, write to the Free Software      |
-// | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA |
-// +--------------------------------------------------------------------------+
-// | Authors: Tarjej Huse, Benedikt Hallinger                                 |
-// +--------------------------------------------------------------------------+
-//
-// $Id$
 
-require_once("PEAR.php");
+require_once 'PEAR.php';
 
 /**
- * Result set of an LDAP search
- *
- * @author  Tarjei Huse
- * @author  Benedikt Hallinger <beni@php.net>
- * @version $Revision$
- * @package Net_LDAP
- */
+* Result set of an LDAP search
+*
+* @category Net
+* @package  Net_LDAP
+* @author   Tarjej Huse <tarjei@bergfald.no>
+* @author   Benedikt Hallinger <beni@php.net>
+* @license  http://www.gnu.org/copyleft/lesser.html LGPL
+* @version  $Revision$
+* @link     http://pear.php.net/package/Net_LDAP/
+*/
 class Net_LDAP_Search extends PEAR
 {
     /**
-     * Search result identifier
-     *
-     * @access private
-     * @var resource
-     */
+    * Search result identifier
+    *
+    * @access private
+    * @var resource
+    */
     var $_search;
 
     /**
-     * LDAP resource link
-     *
-     * @access private
-     * @var resource
-     */
+    * LDAP resource link
+    *
+    * @access private
+    * @var resource
+    */
     var $_link;
 
     /**
-     * Net_LDAP object
-     *
-     * A reference of the Net_LDAP object for passing to Net_LDAP_Entry
-     *
-     * @access private
-     * @var object Net_LDAP
-     */
+    * Net_LDAP object
+    *
+    * A reference of the Net_LDAP object for passing to Net_LDAP_Entry
+    *
+    * @access private
+    * @var object Net_LDAP
+    */
     var $_ldap;
 
     /**
-     * Result entry identifier
-     *
-     * @access private
-     * @var resource
-     */
+    * Result entry identifier
+    *
+    * @access private
+    * @var resource
+    */
     var $_entry = null;
 
     /**
-     * The errorcode the search got
-     *
-     * Some errorcodes might be of interest, but might not be best handled as errors.
-     * examples: 4 - LDAP_SIZELIMIT_EXCEEDED - indicates a huge search.
-     *               Incomplete results are returned. If you just want to check if there's anything in the search.
-     *               than this is a point to handle.
-     *           32 - no such object - search here returns a count of 0.
-     *
-     * @access private
-     * @var int
-     */
+    * The errorcode the search got
+    *
+    * Some errorcodes might be of interest, but might not be best handled as errors.
+    * examples: 4 - LDAP_SIZELIMIT_EXCEEDED - indicates a huge search.
+    *               Incomplete results are returned. If you just want to check if there's anything in the search.
+    *               than this is a point to handle.
+    *           32 - no such object - search here returns a count of 0.
+    *
+    * @access private
+    * @var int
+    */
     var $_errorCode = 0; // if not set - sucess!
 
     /**
@@ -109,13 +89,14 @@ class Net_LDAP_Search extends PEAR
     */
     var $_entry_cache = false;
 
-   /**
+    /**
     * Constructor
     *
+    * @param resource          &$search    Search result identifier
+    * @param Net_LDAP|resource &$ldap      Net_LDAP object or just a LDAP-Link resource
+    * @param array             $attributes (optional) Array with searched attribute names. (see {@link $_searchedAttrs})
+    *
     * @access protected
-    * @param resource $search         Search result identifier
-    * @param Net_LDAP|resource $ldap  Net_LDAP object or just a LDAP-Link resource
-    * @param array $attributes        (optional) Array with searched attribute names. (see {@link $_searchedAttrs})
     */
     function Net_LDAP_Search(&$search, &$ldap, $attributes = array())
     {
@@ -138,10 +119,10 @@ class Net_LDAP_Search extends PEAR
     }
 
     /**
-     * Returns an assosiative array of entry objects
-     *
-     * @return array Array of entry objects.
-     */
+    * Returns an assosiative array of entry objects
+    *
+    * @return array Array of entry objects.
+    */
     function entries()
     {
         $entries = array();
@@ -154,14 +135,14 @@ class Net_LDAP_Search extends PEAR
     }
 
     /**
-     * Get the next entry in the searchresult.
-     *
-     * This will return a valid Net_LDAP_Entry object or false, so
-     * you can use this method to easily iterate over the entries inside
-     * a while loop.
-     *
-     * @return Net_LDAP_Entry|false  Reference to Net_LDAP_Entry object or false
-     */
+    * Get the next entry in the searchresult.
+    *
+    * This will return a valid Net_LDAP_Entry object or false, so
+    * you can use this method to easily iterate over the entries inside
+    * a while loop.
+    *
+    * @return Net_LDAP_Entry|false  Reference to Net_LDAP_Entry object or false
+    */
     function &shiftEntry()
     {
         if ($this->count() == 0 ) {
@@ -183,10 +164,10 @@ class Net_LDAP_Search extends PEAR
     }
 
     /**
-     * Alias function of shiftEntry() for perl-ldap interface
-     *
-     * @see shiftEntry()
-     */
+    * Alias function of shiftEntry() for perl-ldap interface
+    *
+    * @see shiftEntry()
+    */
     function shift_entry()
     {
         $args = func_get_args();
@@ -194,13 +175,13 @@ class Net_LDAP_Search extends PEAR
     }
 
     /**
-     * Retrieve the next entry in the searchresult, but starting from last entry
-     *
-     * This is the opposite to {@link shiftEntry()} and is also very useful
-     * to be used inside a while loop.
-     *
-     * @return Net_LDAP_Entry|false
-     */
+    * Retrieve the next entry in the searchresult, but starting from last entry
+    *
+    * This is the opposite to {@link shiftEntry()} and is also very useful
+    * to be used inside a while loop.
+    *
+    * @return Net_LDAP_Entry|false
+    */
     function popEntry()
     {
         if (false === $this->_entry_cache) {
@@ -213,10 +194,10 @@ class Net_LDAP_Search extends PEAR
     }
 
     /**
-     * Alias function of popEntry() for perl-ldap interface
-     *
-     * @see popEntry()
-     */
+    * Alias function of popEntry() for perl-ldap interface
+    *
+    * @see popEntry()
+    */
     function pop_entry()
     {
         $args = func_get_args();
@@ -238,8 +219,9 @@ class Net_LDAP_Search extends PEAR
     *   $entries = $search->sorted_as_struct(array('locality','sn'), SORT_DESC);
     * </code>
     *
-    * @param array  $attrs  Array of attribute names to sort; order from left to right.
-    * @param int    $order  Ordering direction, either constant SORT_ASC or SORT_DESC
+    * @param array $attrs Array of attribute names to sort; order from left to right.
+    * @param int   $order Ordering direction, either constant SORT_ASC or SORT_DESC
+    *
     * @return array|Net_LDAP_Error   Array with sorted entries or error
     */
     function sorted_as_struct($attrs = array('cn'), $order = SORT_ASC)
@@ -287,7 +269,7 @@ class Net_LDAP_Search extends PEAR
         foreach ($entries as $dn => $entry) {
             foreach ($entry as $attr_name => $attr_values) {
                 sort($entries[$dn][$attr_name]);
-                if($order == SORT_DESC) {
+                if ($order == SORT_DESC) {
                     array_reverse($entries[$dn][$attr_name]);
                 }
             }
@@ -340,11 +322,13 @@ class Net_LDAP_Search extends PEAR
     *   $entries = $search->sorted(array('locality','sn'), SORT_DESC);
     * </code>
     *
-    * @param array      $attrs Array of sort attributes to sort; order from left to right.
-    * @param int        $order Ordering direction, either constant SORT_ASC or SORT_DESC
+    * @param array $attrs Array of sort attributes to sort; order from left to right.
+    * @param int   $order Ordering direction, either constant SORT_ASC or SORT_DESC
+    *
     * @return array|Net_LDAP_Error   Array with sorted Net_LDAP_Entries or error
     */
-    function sorted($attrs = array('cn'), $order = SORT_ASC) {
+    function sorted($attrs = array('cn'), $order = SORT_ASC)
+    {
         $return = array();
         $sorted = $this->sorted_as_struct($attrs, $order);
         if (PEAR::isError($sorted)) {
@@ -361,7 +345,7 @@ class Net_LDAP_Search extends PEAR
         return $return;
     }
 
-   /**
+    /**
     * Return entries as array
     *
     * This method returns the entries and the selected attributes values as
@@ -393,25 +377,26 @@ class Net_LDAP_Search extends PEAR
         $return = array();
         $entries = $this->entries();
         foreach ($entries as $entry) {
-        	$attrs = array();
-        	$entry_attributes = $entry->attributes();
-        	foreach ($entry_attributes as $attr_name) {
-        		$attr_values = $entry->getValue($attr_name, 'all');
-        		if (!is_array($attr_values)) {
-        			$attr_values = array($attr_values);
-        		}
-        		$attrs[$attr_name] = $attr_values;
-        	}
+            $attrs = array();
+            $entry_attributes = $entry->attributes();
+            foreach ($entry_attributes as $attr_name) {
+                $attr_values = $entry->getValue($attr_name, 'all');
+                if (!is_array($attr_values)) {
+                    $attr_values = array($attr_values);
+                }
+                $attrs[$attr_name] = $attr_values;
+            }
             $return[$entry->dn()] = $attrs;
         }
         return $return;
     }
 
-   /**
+    /**
     * Set the search objects resource link
     *
+    * @param resource &$search Search result identifier
+    *
     * @access public
-    * @param resource $search Search result identifier
     * @return void
     */
     function setSearch(&$search)
@@ -419,11 +404,12 @@ class Net_LDAP_Search extends PEAR
         $this->_search = $search;
     }
 
-   /**
+    /**
     * Set the ldap ressource link
     *
+    * @param resource &$link Link identifier
+    *
     * @access public
-    * @param resource $link Link identifier
     * @return void
     */
     function setLink(&$link)
@@ -431,14 +417,14 @@ class Net_LDAP_Search extends PEAR
         $this->_link = $link;
     }
 
-   /**
+    /**
     * Returns the number of entries in the searchresult
     *
     * @return int Number of entries in search.
     */
     function count()
     {
-        /* this catches the situation where OL returned errno 32 = no such object! */
+        // this catches the situation where OL returned errno 32 = no such object!
         if (!$this->_search) {
             return 0;
         }
@@ -446,16 +432,16 @@ class Net_LDAP_Search extends PEAR
     }
 
     /**
-     * Get the errorcode the object got in its search.
-     *
-     * @return int The ldap error number.
-     */
+    * Get the errorcode the object got in its search.
+    *
+    * @return int The ldap error number.
+    */
     function getErrorCode()
     {
         return $this->_errorCode;
     }
 
-   /**
+    /**
     * Destructor
     *
     * @access protected
@@ -465,8 +451,10 @@ class Net_LDAP_Search extends PEAR
         @ldap_free_result($this->_search);
     }
 
-   /**
+    /**
     * Closes search result
+    *
+    * @return void
     */
     function done()
     {
