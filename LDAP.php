@@ -835,7 +835,7 @@ class Net_LDAP extends PEAR
     /**
     * Set the LDAP_PROTOCOL_VERSION that is used on the connection.
     *
-    * @param int LDAP-version that should be used
+    * @param int $version LDAP-version that should be used
     *
     * @return Net_LDAP_Error|true    Net_LDAP_Error object or true
     */
@@ -1097,7 +1097,7 @@ class Net_LDAP extends PEAR
     }
 
     /**
-    * gets a root dse object
+    * Gets a rootDSE object
     *
     * @param array $attrs Array of attributes to search for
     *
@@ -1329,7 +1329,11 @@ class Net_LDAP extends PEAR
 /**
 * Net_LDAP_Error implements a class for reporting portable LDAP error messages.
 *
-* @package Net_LDAP
+* @category Net
+* @package  Net_LDAP
+* @author   Tarjej Huse <tarjei@bergfald.no>
+* @license  http://www.gnu.org/copyleft/lesser.html LGPL
+* @link     http://pear.php.net/package/Net_LDAP/
 */
 class Net_LDAP_Error extends PEAR_Error
 {
