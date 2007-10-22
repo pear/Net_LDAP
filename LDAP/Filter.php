@@ -285,9 +285,28 @@ class Net_LDAP_Filter extends PEAR
         }
 
         /* THIS CODE IS NOT FULLY IMPLEMENTED YET!
-           Maybe a better idea is to just detect if a leaf filter component is proccesed or if there are
+           An idea is to just detect if a leaf filter component is proccesed or if there are
            combinations. Then we might call create() or combine() or a mix of those.
            Leaf Filters containing more than one leaf are illegal and must be combined using an logical operator
+
+           I think a possibility for detecting subfilter processing is to do:
+           if (preg_match('/^\((.+)\)$/', $FILTER, $matches)) {
+               if (in_array(substr($matches[1], 0, 1), array('!', '|', '&'))) {
+                   // Subfilter processing: pass subfilters to parse() and combine the objects using the logical operator detected
+                   // we have now something like "(...)(...)(...)" but at least one part ("(...)").
+                   // I think we need to "byte off" each "(...)" part, which we send to parse() separately,
+                   // this way, we may avoid problems if we encounter nested filters
+               } else {
+                   // This is one leaf filter component, do some syntax checks, then escape and build filter_o
+                   // $matches[1] should be now again soemthing like "/^(...)$/"
+               }
+           } else {
+               // ERROR: Filter components must be enclosed in round brackets'
+               return PEAR::raiseError("Filter parsing error: invalid filter syntax - filter components must be enclosed in round brackets");
+           }
+
+
+        // Some code snippets:
         $return = false;
         if (preg_match('/^\((\w+)(>|<|>=|<=|=|=~|=\*)(.+)\)$/', $FILTER, $matches)) {
             // leaf filter component
