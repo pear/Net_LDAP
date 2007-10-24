@@ -262,87 +262,63 @@ class Net_LDAP_Filter extends PEAR
     * Parse FILTER into a Net_LDAP_Filter object
     *
     * This parses an filter string into Net_LDAP_Filter objects.
-    * Currently, this only initializes a new Net_LDAP_Filter and passes the
-    * $FILTER directly to the object, enabling you to provide a custom filter string.
-    * Basic filter syntax checks are in place, but they are basic.
-    *
-    * Use this method only if you know what you are doing, or risk filter errors.
     *
     * @param string $FILTER The filter string
     *
     * @access static
     * @return Net_LDAP_Filter|Net_LDAP_Error
-    * @todo this is just for perl interface compatibility and not fully implemented. Use Net_LDAP_Filter::create()
+    * @todo Leaf-mode: Check proper escaping? Do we need to escape at all? what about *-chars?check for the need of encoding values, tackle problems (see code comments)
     */
     function parse($FILTER)
     {
-        if (preg_match('/\(.+=.+\)/', $FILTER)) {    // very basic syntax check
-            $leaf_filter          = new Net_LDAP_Filter();
-            $leaf_filter->_filter = $FILTER;
-            return $leaf_filter;
-        } else {
-            return PEAR::raiseError("Filter parsing error: invalid filter syntax");
-        }
+        if (preg_match('/^\((.+?)\)$/', $FILTER, $matches)) {
+            if (in_array(substr($matches[1], 0, 1), array('!', '|', '&'))) {
+                // Subfilter processing: pass subfilters to parse() and combine
+                // the objects using the logical operator detected
+                // we have now something like "(...)(...)(...)" but at least one part ("(...)").
 
-        /* THIS CODE IS NOT FULLY IMPLEMENTED YET!
-           An idea is to just detect if a leaf filter component is proccesed or if there are
-           combinations. Then we might call create() or combine() or a mix of those.
-           Leaf Filters containing more than one leaf are illegal and must be combined using an logical operator
+                // extract logical operator and subfilters
+                $log_op              = substr($matches[1], 0, 1);
+                $remaining_component = substr($matches[1], 1);
 
-           I think a possibility for detecting subfilter processing is to do:
-           if (preg_match('/^\((.+)\)$/', $FILTER, $matches)) {
-               if (in_array(substr($matches[1], 0, 1), array('!', '|', '&'))) {
-                   // Subfilter processing: pass subfilters to parse() and combine the objects using the logical operator detected
-                   // we have now something like "(...)(...)(...)" but at least one part ("(...)").
-                   // I think we need to "byte off" each "(...)" part, which we send to parse() separately,
-                   // this way, we may avoid problems if we encounter nested filters
-               } else {
-                   // This is one leaf filter component, do some syntax checks, then escape and build filter_o
-                   // $matches[1] should be now again soemthing like "/^(...)$/"
-               }
-           } else {
-               // ERROR: Filter components must be enclosed in round brackets'
-               return PEAR::raiseError("Filter parsing error: invalid filter syntax - filter components must be enclosed in round brackets");
-           }
-
-
-        // Some code snippets:
-        $return = false;
-        if (preg_match('/^\((\w+)(>|<|>=|<=|=|=~|=\*)(.+)\)$/', $FILTER, $matches)) {
-            // leaf filter component
-            $leaf_filter = new Net_LDAP_Filter();
-
-            //$value = Net_LDAP_Util::escape_filter_value(array($matches[3]));
-            $value[0] = $matches[3];
-
-            $leaf_filter->_filter = '('.$matches[1].$matches[2].$value[0].')';
-            return $leaf_filter;
-        } elseif (preg_match('/^\((&|!|\|)(.+)\)$/', $FILTER, $matches)) {
-            // filter contains subfilters, parse each component
-            print_r($matches);
-            $remaining_filter = $matches[2];
-            while (strlen($remaining_filter) > 0) {
-                // fetch next component and parse
-                if (preg_match('/^(\(.+?\))(.+)?/', $remaining_filter, $submatches)){ // [TODO] lookbehind for escaped brackets
-                    $parsed_subfilter_cur = Net_LDAP_Filter::parse($submatches[1]);
-                    if (PEAR::isError($parsed_subfilter_cur)) {
-                        return PEAR::raiseError("Unable to parse subfilter: ".$parsed_subfilter_cur->getMessage());
+                // bite off the next filter part and parse
+                $subfilters = array();
+                while (preg_match('/^(\(.+?\))(.*)/', $remaining_component, $matches)) {
+                    $remaining_component = $matches[2];
+                    $filter_o = Net_LDAP_Filter::parse($matches[1]);
+                    if (PEAR::isError($filter_o)) {
+                        return $filter_o;
                     }
-                    echo "PARSED: ".$submatches[1]."\n";
-                    $remaining_filter = $submatches[2];
+                    array_push($subfilters, $filter_o);
+                }
+
+                // combine subfilters using the logical operator
+                $filter_o = Net_LDAP_Filter::combine($log_op, $subfilters);
+                return $filter_o;
+            } else {
+                // This is one leaf filter component, do some syntax checks, then escape and build filter_o
+                // $matches[1] should be now something like "foo=bar"
+
+                // detect multiple leaf components
+                // [TODO] Maybe this will make problems with filters containing brackets inside the value
+                if (stristr($matches[1], ')(')) {
+                    return PEAR::raiseError("Filter parsing error: invalid filter syntax - multiple leaf components detected!");
                 } else {
-                    return PEAR::raiseError("Unable to parse subfilter: $remaining_filter");
+                    $filter_parts = preg_split('/(?<!\\\\)(=|=~|>|<|>=|<=)/', $matches[1], 2, PREG_SPLIT_DELIM_CAPTURE);
+                    if (count($filter_parts) != 3) {
+                        return PEAR::raiseError("Filter parsing error: invalid filter syntax - unknown matching rule used");
+                    } else {
+                        // [TODO]: Check proper escaping? Do we need to escape at all? what about *-chars?
+                        $filter_o          = new Net_LDAP_Filter();
+                        $filter_o->_filter = '('.$filter_parts[0].$filter_parts[1].$filter_parts[2].')';
+                        return $filter_o;
+                    }
                 }
             }
-
-            $return = new Net_LDAP_Filter();
+        } else {
+               // ERROR: Filter components must be enclosed in round brackets
+               return PEAR::raiseError("Filter parsing error: invalid filter syntax - filter components must be enclosed in round brackets");
         }
-
-        if (false === $return && strlen($FILTER) > 0) { //TODO Problem if no filter passed
-            $return = PEAR::raiseError("Unable to parse filter: $FILTER");
-        }
-        return $return;
-        */
     }
 
     /**

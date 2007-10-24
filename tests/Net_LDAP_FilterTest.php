@@ -65,19 +65,17 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
 
     /**
      * Test correct parsing of filter strings through parse()
-     *
-     * @todo Currently, parsing is not fully implemented, so we just test that the filter string is inserted correctly
      */
     public function testParse() {
-       $parsed = Net_LDAP_Filter::parse($this->filter_str);
-
-       $this->assertType('Net_LDAP_Filter', $parsed);
-       $this->assertEquals($this->filter_str, $parsed->asString());
-
        $parsed_dmg = Net_LDAP_Filter::parse('some_damaged_filter_str');
        $this->assertType('PEAR_Error', $parsed_dmg);
 
-       $this->markTestIncomplete("Not fully implemented, because the parse() method isn't itself. Only the current behavior (\$filter_str == \$parsed->asString()) was tested.");
+       $parsed_dmg2 = Net_LDAP_Filter::parse('(invalid=filter)(since=~no-surrounding brackets)');
+       $this->assertType('PEAR_Error', $parsed_dmg2);
+
+       $parsed = Net_LDAP_Filter::parse($this->filter_str);
+       $this->assertType('Net_LDAP_Filter', $parsed);
+       $this->assertEquals($this->filter_str, $parsed->asString());
     }
 
 
