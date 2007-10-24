@@ -89,7 +89,7 @@ class Net_LDAP_Util extends PEAR
         // also convert to output format and apply casefolding
         foreach ($dn_array as $key => $value) {
             $value_u = Net_LDAP_Util::unescape_dn_value($value);
-            $rdns = Net_LDAP_Util::split_rdn_multival($value_u[0]);
+            $rdns    = Net_LDAP_Util::split_rdn_multival($value_u[0]);
             if (count($rdns) > 1) {
                 // MV RDN!
                 foreach ($rdns as $subrdn_k => $subrdn_v) {
@@ -99,9 +99,9 @@ class Net_LDAP_Util extends PEAR
 
                     if ($options['onlyvalues']) {
                         preg_match('/(.+?)(?<!\\\\)=(.+)/', $subrdn_v, $matches);
-                        $rdn_ocl = $matches[1];
-                        $rdn_val = $matches[2];
-                        $unescaped = Net_LDAP_Util::unescape_dn_value($rdn_val);
+                        $rdn_ocl         = $matches[1];
+                        $rdn_val         = $matches[2];
+                        $unescaped       = Net_LDAP_Util::unescape_dn_value($rdn_val);
                         $rdns[$subrdn_k] = $unescaped[0];
                     } else {
                         $unescaped = Net_LDAP_Util::unescape_dn_value($subrdn_v);
@@ -119,9 +119,9 @@ class Net_LDAP_Util extends PEAR
 
                 if ($options['onlyvalues']) {
                     preg_match('/(.+?)(?<!\\\\)=(.+)/', $value, $matches);
-                    $dn_ocl = $matches[1];
-                    $dn_val = $matches[2];
-                    $unescaped = Net_LDAP_Util::unescape_dn_value($dn_val);
+                    $dn_ocl         = $matches[1];
+                    $dn_val         = $matches[2];
+                    $unescaped      = Net_LDAP_Util::unescape_dn_value($dn_val);
                     $dn_array[$key] = $unescaped[0];
                 } else {
                     $unescaped = Net_LDAP_Util::unescape_dn_value($value);
@@ -345,8 +345,8 @@ class Net_LDAP_Util extends PEAR
                     // no multivalued RDN!
                     // split at first unescaped "="
                     $dn_comp = preg_split('/(?<=[^\\\\])=/', $rdns[0], 2);
-                    $ocl = ltrim($dn_comp[0]);  // trim left whitespaces 'cause of "cn=foo, l=bar" syntax (whitespace after comma)
-                    $val = $dn_comp[1];
+                    $ocl     = ltrim($dn_comp[0]);  // trim left whitespaces 'cause of "cn=foo, l=bar" syntax (whitespace after comma)
+                    $val     = $dn_comp[1];
 
                     // strip 'OID.', otherwise apply casefolding and escaping
                     if (substr(strtolower($ocl), 0, 4) == 'oid.') {

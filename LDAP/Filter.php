@@ -254,7 +254,7 @@ class Net_LDAP_Filter extends PEAR
         }
 
         $combined_filter->_subfilters = $filters;
-        $combined_filter->_match = $log_op;
+        $combined_filter->_match      = $log_op;
         return $combined_filter;
     }
 
@@ -277,7 +277,7 @@ class Net_LDAP_Filter extends PEAR
     function parse($FILTER)
     {
         if (preg_match('/\(.+=.+\)/', $FILTER)) {    // very basic syntax check
-            $leaf_filter = new Net_LDAP_Filter();
+            $leaf_filter          = new Net_LDAP_Filter();
             $leaf_filter->_filter = $FILTER;
             return $leaf_filter;
         } else {

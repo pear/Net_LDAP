@@ -241,7 +241,7 @@ class Net_LDAP_Entry extends PEAR
             $attributes = array();
             do {
                 if (empty($attr)) {
-                    $ber = null;
+                    $ber  = null;
                     $attr = @ldap_first_attribute($this->_link, $this->_entry, $ber);
                 } else {
                     $attr = @ldap_next_attribute($this->_link, $this->_entry, $ber);
@@ -421,7 +421,7 @@ class Net_LDAP_Entry extends PEAR
                 $this->_attributes[$k] = array_merge($this->_attributes[$k], $v);
             } else {
                 $this->_map[strtolower($k)] = $k;
-                $this->_attributes[$k] = $v;
+                $this->_attributes[$k]      = $v;
             }
             // save changes for update()
             if (empty($this->_changes["add"][$k])) {
@@ -462,8 +462,7 @@ class Net_LDAP_Entry extends PEAR
     {
         if (is_null($attr)) {
             $this->_delete = true;
-            $return = true;
-            return $return;
+            return true;
         }
         if (is_string($attr)) {
             $attr = array($attr);
@@ -544,7 +543,7 @@ class Net_LDAP_Entry extends PEAR
             // existing attributes will get replaced
             if ($this->exists($k)) {
                 $this->_changes["replace"][$k] = $v;
-                $this->_attributes[$k] = $v;
+                $this->_attributes[$k]         = $v;
             } else {
                 // new ones just get added
                 $this->add(array($k => $v));
@@ -595,11 +594,11 @@ class Net_LDAP_Entry extends PEAR
             if (Net_LDAP::isError($msg)) {
                 return $msg;
             }
-            $this->_new = false;
-            $this->_changes['add'] = array();
-            $this->_changes['delete'] = array();
+            $this->_new                = false;
+            $this->_changes['add']     = array();
+            $this->_changes['delete']  = array();
             $this->_changes['replace'] = array();
-            $this->_original = $this->_attributes;
+            $this->_original           = $this->_attributes;
 
             $return = true;
             return $return;
@@ -631,7 +630,7 @@ class Net_LDAP_Entry extends PEAR
                                         @ldap_error($link), @ldap_errno($link));
             }
             // reflect changes to local copy
-            $this->_dn = $this->_newdn;
+            $this->_dn    = $this->_newdn;
             $this->_newdn = null;
         }
 

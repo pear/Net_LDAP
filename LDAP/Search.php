@@ -152,7 +152,7 @@ class Net_LDAP_Search extends PEAR
 
         if (is_null($this->_entry)) {
             $this->_entry = @ldap_first_entry($this->_link, $this->_search);
-            $entry = new Net_LDAP_Entry($this->_ldap, $this->_entry);
+            $entry        = new Net_LDAP_Entry($this->_ldap, $this->_entry);
         } else {
             if (!$this->_entry = @ldap_next_entry($this->_link, $this->_entry)) {
                 $false = false;
@@ -278,7 +278,7 @@ class Net_LDAP_Search extends PEAR
         // reformat entrys array for later use with array_multisort()
         $to_sort = array(); // <- will be a numeric array similar to ldap_get_entries
         foreach ($entries as $dn => $entry_attr) {
-            $row = array();
+            $row       = array();
             $row['dn'] = $dn;
             foreach ($entry_attr as $attr_name => $attr_values) {
                 $row[$attr_name] = $attr_values;
@@ -374,10 +374,10 @@ class Net_LDAP_Search extends PEAR
     */
     function as_struct()
     {
-        $return = array();
+        $return  = array();
         $entries = $this->entries();
         foreach ($entries as $entry) {
-            $attrs = array();
+            $attrs            = array();
             $entry_attributes = $entry->attributes();
             foreach ($entry_attributes as $attr_name) {
                 $attr_values = $entry->getValue($attr_name, 'all');

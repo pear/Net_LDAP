@@ -51,7 +51,7 @@ define('NET_LDAP_VERSION', '1.0.0');
 * @author    Benedikt Hallinger <beni@php.net>
 * @copyright 2003-2007 Tarjej Huse, Jan Wagner, Del Elson, Benedikt Hallinger
 * @license   http://www.gnu.org/copyleft/lesser.html LGPL
-* @version   $Revision$
+* @version   CVS: $Id$
 * @link      http://pear.php.net/package/Net_LDAP/
 */
 class Net_LDAP extends PEAR
@@ -159,7 +159,7 @@ class Net_LDAP extends PEAR
 
         @$obj = & new Net_LDAP($config);
 
-        $err  = $obj->bind();
+        $err = $obj->bind();
         if (Net_LDAP::isError($err)) {
             return $err;
         }
@@ -366,8 +366,8 @@ class Net_LDAP extends PEAR
             // Set LDAP version before trying to bind.
             //
             if (Net_LDAP::isError($msg = $this->setLDAPVersion())) {
-                $current_error = $msg;
-                $this->_link = false;
+                $current_error           = $msg;
+                $this->_link             = false;
                 $this->_down_host_list[] = $host;
                 continue;
             }
@@ -383,7 +383,7 @@ class Net_LDAP extends PEAR
                     $msg = $this->bind($this->_config['binddn'], $this->_config['bindpw']);
                     if (Net_LDAP::isError($msg)) {
                         // The privilegued bind failed too, discard link and save error msg
-                        $this->_link = false;
+                        $this->_link   = false;
                         $current_error = $msg;
                     }
                 } else {
@@ -391,7 +391,7 @@ class Net_LDAP extends PEAR
                     // DO NOT attempt to call ldap_close on this connection ID,
                     // even attempting to do so can be fatal.  Just discard the
                     // link ID!
-                    $this->_link = false;
+                    $this->_link   = false;
                     $current_error = PEAR::raiseError("Bind failed: " .
                                         @ldap_error($this->_link),
                                         @ldap_errno($this->_link));
@@ -411,8 +411,8 @@ class Net_LDAP extends PEAR
             //
             if ($this->_config["starttls"] === true) {
                 if (Net_LDAP::isError($msg = $this->startTLS())) {
-                    $current_error = $msg;
-                    $this->_link = false;
+                    $current_error           = $msg;
+                    $this->_link             = false;
                     $this->_down_host_list[] = $host;
                     continue;
                 }
@@ -423,8 +423,8 @@ class Net_LDAP extends PEAR
                 foreach ($this->_config['options'] as $opt => $val) {
                     $err = $this->setOption($opt, $val);
                     if (Net_LDAP::isError($err)) {
-                        $current_error = $err;
-                        $this->_link = false;
+                        $current_error           = $err;
+                        $this->_link             = false;
                         $this->_down_host_list[] = $host;
                         continue 2;
                     }
@@ -989,7 +989,7 @@ class Net_LDAP extends PEAR
         }
 
         $newentry = Net_LDAP_Entry::createFresh($newdn, $entry->getValues());
-        $result = $this->add($newentry);
+        $result   = $this->add($newentry);
 
         if (is_a($result, 'Net_LDAP_Error')) {
             return $result;
@@ -1143,7 +1143,7 @@ class Net_LDAP extends PEAR
     }
 
     /**
-    * get a schema object
+    * Get a schema object
     *
     * @param string $dn Subschema entry dn
     *

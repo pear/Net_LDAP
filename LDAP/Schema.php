@@ -140,7 +140,7 @@ class Net_LDAP_Schema extends PEAR
                 return PEAR::raiseError("No such type $type");
             }
 
-            $name = strtolower($name);
+            $name     = strtolower($name);
             $type_var = &$this->{'_' . $this->types[$type]};
 
             if (key_exists($name, $type_var)) {
@@ -233,7 +233,7 @@ class Net_LDAP_Schema extends PEAR
     {
         foreach ($this->types as $type => $attr) {
             // initialize map type to entry
-            $type_var = '_' . $attr;
+            $type_var          = '_' . $attr;
             $this->{$type_var} = array();
 
             // get values for this type
@@ -332,8 +332,8 @@ class Net_LDAP_Schema extends PEAR
         }
         // make one name the default and put the other ones into aliases
         if (is_array($schema_entry['name'])) {
-            $aliases = $schema_entry['name'];
-            $schema_entry['name'] = array_shift($aliases);
+            $aliases                 = $schema_entry['name'];
+            $schema_entry['name']    = array_shift($aliases);
             $schema_entry['aliases'] = $aliases;
         }
         return $schema_entry;
@@ -349,7 +349,7 @@ class Net_LDAP_Schema extends PEAR
     */
     function _tokenize($value)
     {
-        $tokens = array();        // array of tokens
+        $tokens  = array();       // array of tokens
         $matches = array();       // matches[0] full pattern match, [1,2,3] subpatterns
 
         // this one is taken from perl-ldap, modified for php
