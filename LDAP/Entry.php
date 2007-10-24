@@ -15,7 +15,7 @@ require_once 'Util.php';
 * @author   Jan Wagner <wagner@netsols.de>
 * @author   Tarjej Huse <tarjei@bergfald.no>
 * @license  http://www.gnu.org/copyleft/lesser.html LGPL
-* @version  $Revision$
+* @version  CVS: $Id$
 * @link     http://pear.php.net/package/Net_LDAP/
 
 */

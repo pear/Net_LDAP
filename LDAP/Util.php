@@ -13,7 +13,7 @@ require_once 'PEAR.php';
 * @package  Net_LDAP
 * @author   Benedikt Hallinger <beni@php.net>
 * @license  http://www.gnu.org/copyleft/lesser.html LGPL
-* @version  $Revision$
+* @version  CVS: $Id$
 * @link     http://pear.php.net/package/Net_LDAP/
 */
 class Net_LDAP_Util extends PEAR

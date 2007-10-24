@@ -31,7 +31,7 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
 * @author   Jan Wagner <wagner@netsols.de>
 * @author   Benedikt Hallinger <beni@php.net>
 * @license  http://www.gnu.org/copyleft/lesser.html LGPL
-* @version  $Revision$
+* @version  CVS: $Id$
 * @link     http://pear.php.net/package/Net_LDAP/
 */
 class Net_LDAP_Schema extends PEAR
