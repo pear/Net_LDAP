@@ -80,15 +80,14 @@ class Net_LDAP_Filter extends PEAR
     /**
     * Create a new Net_LDAP_Filter object and parse $filter.
     *
-    * This is currently not fully implemented (filter will be used as-provided).
-    * This may change in future versions.
-    *
-    * /!\ Construction of Net_LDAP_Filter objects should happen through either
-    * {@link create()} or {@link combine()}
+    * This is for PERL Net::LDAP interface.
+    * Construction of Net_LDAP_Filter objects should happen through either
+    * {@link create()} or {@link combine()} which give you more control.
+    * However, you may use the perl iterface if you already have generated filters.
     *
     * @param string $filter LDAP filter string
     *
-    * @todo This is just for perl interface compatibility and not fully implemented. Use Net_LDAP_Filter::create()
+    * @see parse()
     */
     function Net_LDAP_Filter($filter = false)
     {
@@ -267,7 +266,7 @@ class Net_LDAP_Filter extends PEAR
     *
     * @access static
     * @return Net_LDAP_Filter|Net_LDAP_Error
-    * @todo Leaf-mode: Check proper escaping? Do we need to escape at all? what about *-chars?check for the need of encoding values, tackle problems (see code comments)
+    * @todo Leaf-mode: Do we need to escape at all? what about *-chars?check for the need of encoding values, tackle problems (see code comments)
     */
     function parse($FILTER)
     {
@@ -308,9 +307,13 @@ class Net_LDAP_Filter extends PEAR
                     if (count($filter_parts) != 3) {
                         return PEAR::raiseError("Filter parsing error: invalid filter syntax - unknown matching rule used");
                     } else {
-                        // [TODO]: Check proper escaping? Do we need to escape at all? what about *-chars?
                         $filter_o          = new Net_LDAP_Filter();
-                        $filter_o->_filter = '('.$filter_parts[0].$filter_parts[1].$filter_parts[2].')';
+                        // [TODO]: Do we need to escape at all? what about *-chars user provide and that should remain special?
+                        //         I think, those prevent escaping! We need to check against PERL Net::LDAP!
+                        // $value_arr         = Net_LDAP_Util::escape_filter_value(array($filter_parts[2]));
+                        // $value             = $value_arr[0];
+                        $value             = $filter_parts[2];
+                        $filter_o->_filter = '('.$filter_parts[0].$filter_parts[1].$value.')';
                         return $filter_o;
                     }
                 }

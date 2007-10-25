@@ -55,7 +55,6 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
      */
     public function testCreatePerlCompatible() {
         $filter_o = new Net_LDAP_Filter($this->filter_str);
-
         $this->assertType('Net_LDAP_Filter', $filter_o);
         $this->assertEquals($this->filter_str, $filter_o->asString());
 
@@ -70,8 +69,17 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
        $parsed_dmg = Net_LDAP_Filter::parse('some_damaged_filter_str');
        $this->assertType('PEAR_Error', $parsed_dmg);
 
-       $parsed_dmg2 = Net_LDAP_Filter::parse('(invalid=filter)(since=~no-surrounding brackets)');
+       $parsed_dmg2 = Net_LDAP_Filter::parse('(invalid=filter)(because=~no-surrounding brackets)');
        $this->assertType('PEAR_Error', $parsed_dmg2);
+
+       $parsed_dmg3 = Net_LDAP_Filter::parse('((invalid=filter)(because=log_op is missing))');
+       $this->assertType('PEAR_Error', $parsed_dmg3);
+
+       $parsed_dmg4 = Net_LDAP_Filter::parse('(invalid-because-becauseinvalidoperator)');
+       $this->assertType('PEAR_Error', $parsed_dmg4);
+
+       $parsed_dmg5 = Net_LDAP_Filter::parse('(&(filterpart>=ok)(part2=~ok)(filterpart3_notok---becauseinvalidoperator))');
+       $this->assertType('PEAR_Error', $parsed_dmg5);
 
        $parsed = Net_LDAP_Filter::parse($this->filter_str);
        $this->assertType('Net_LDAP_Filter', $parsed);
