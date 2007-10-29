@@ -37,7 +37,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date>2007-10-29</date>
+    <date></date>
     <version>
         <release>1.0.0</release>
         <api>1.0.0</api>
@@ -48,18 +48,6 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </stability>
     <license>GPL License</license>
     <notes>
-        After more than four years of development, we are very proud to announce the
-                        ~ FIRST STABLE Net_LDAP RELEASE 1.0.0 ~
-        Net_LDAP ist tested now and should be stable enough for production use.
-        The API is finished so far, no changes should be neccessary in the future.
-
-        Changes to Release candidate 4:
-          - Implemented PHPUnit tests
-          - Fixed some minor bugs of RC4 (including the schema loading warning-generation)
-          - Fixed several bugs in Net_LDAP_Util
-          - Improved Net_LDAP_Filter and Net_LDAP_Util error handling and code cleanness
-          - Completely implemented Net_LDAP_Filter perl interface
-          - Improved several doc comments and fixed some spelling errors
     </notes>
 
     <contents>
@@ -110,7 +98,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <phprelease />
 
     <!-- CHANGELOG -->
-    <changelog>
+    <elease>
         <release>
             <version>
                 <release>0.1</release>
@@ -309,8 +297,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
                    Additionally, a bug at recursive deletion of an entry is fixed and the Net_LDAP_Filter
                    class is slightly optimized.
              </notes>
-         </release>
-		 <release>
+        </release>
+		<release>
 			 	<date>2007-06-20</date>
 				<version>
 					<release>1.0.0RC1</release>
@@ -335,8 +323,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
 					The LDAP-Rename command now uses this functions to deal with DN escaping issues.
 					Please note that ldap_explode_dn_escaped() is not available from Net_LDAP_Util anymore; it got superseeded by Net_LDAP_Util::ldap_explode_dn().
 				</notes>
-		 </release>
-		 <release>
+		</release>
+		<release>
 			 <date>2007-06-28</date>
 			<version>
 				<release>1.0.0RC2</release>
@@ -353,8 +341,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
 				people would expect attribute moving because of the overall API of Net_LDAP.
 				Instead use the more failsafer copy() from Net_LDAP.
 			</notes>
-		 </release>
-		 <release>
+		</release>
+		<release>
 			<date>2007-07-24</date>
 			<version>
 				<release>1.0.0RC3</release>
@@ -371,8 +359,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
 				The parameter $ldap is not available anymore, you need to use $entry->setLDAP() prior update now if you want to change the LDAP
 				object. This brought us a more logical API now, since Entry operations should be performed by the Net_LDAP object.
 			</notes>
-		 </release>
-		 <release>
+		</release>
+		<release>
 			<date>2007-09-18</date>
 			<version>
 				<release>1.0.0RC4</release>
@@ -388,6 +376,32 @@ http://pear.php.net/dtd/package-2.0.xsd">
 				- Reintroduced $ldap parameter for $entry->update(), but it is not prefferred to use this way.
 					The Parameter is there for perl interface compatibility
 			</notes>
-		 </release>
+		</release>
+		<release>
+			<date>2007-10-29</date>
+			<version>
+				<release>1.0.0</release>
+				<api>1.0.0</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<license>GPL License</license>
+			<notes>
+				After more than four years of development, we are very proud to announce the
+				        ~ FIRST STABLE Net_LDAP RELEASE 1.0.0 ~
+				Net_LDAP ist tested now and should be stable enough for production use.
+				The API is finished so far, no changes should be neccessary in the future.
+	
+				Changes to Release candidate 4:
+					- Implemented PHPUnit tests
+					- Fixed some minor bugs of RC4 (including the schema loading warning-generation)
+					- Fixed several bugs in Net_LDAP_Util
+					- Improved Net_LDAP_Filter and Net_LDAP_Util error handling and code cleanness
+					- Completely implemented Net_LDAP_Filter perl interface
+					- Improved several doc comments and fixed some spelling errors
+			</notes>
+		</release>
     </changelog>
 </package>
