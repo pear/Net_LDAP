@@ -37,7 +37,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date></date>
+    <date>2007-10-29</date>
     <version>
         <release>1.0.0</release>
         <api>1.0.0</api>
@@ -64,31 +64,37 @@ http://pear.php.net/dtd/package-2.0.xsd">
 
     <contents>
         <dir name="/">
-        <dir name="doc">
-            <file baseinstalldir="Net" name="manual.html" role="doc" />
-            <file baseinstalldir="Net" name="README.txt" role="doc" />
-            <file baseinstalldir="Net" name="RootDSE.txt" role="doc" />
-            <file baseinstalldir="Net" name="Schema.txt" role="doc" />
-            <file baseinstalldir="Net" name="utf8.txt" role="doc" />
-            <file baseinstalldir="Net" name="examples/connecting.php" role="doc" />
-            <file baseinstalldir="Net" name="examples/fetch_entry.php" role="doc" />
-            <file baseinstalldir="Net" name="examples/search_entries.php" role="doc" />
-            <file baseinstalldir="Net" name="examples/add_entry.php" role="doc" />
-            <file baseinstalldir="Net" name="examples/modify_entry.php" role="doc" />
-            <file baseinstalldir="Net" name="examples/modify_entry2.php" role="doc" />
-        </dir> <!-- /doc -->
-        <dir name="LDAP">
-            <file baseinstalldir="Net" name="Entry.php" role="php" />
-            <file baseinstalldir="Net" name="Filter.php" role="php" />
-            <file baseinstalldir="Net" name="RootDSE.php" role="php" />
-            <file baseinstalldir="Net" name="Schema.php" role="php" />
-            <file baseinstalldir="Net" name="Search.php" role="php" />
-            <file baseinstalldir="Net" name="Util.php" role="php" />
-        </dir> <!-- /LDAP -->
-        <dir name="tests">
-            <file baseinstalldir="Net" name="tests.php" role="test" />
-        </dir> <!-- /tests -->
             <file baseinstalldir="Net" name="LDAP.php" role="php" />
+            <dir name="LDAP">
+                <file baseinstalldir="Net" name="Entry.php" role="php" />
+                <file baseinstalldir="Net" name="Filter.php" role="php" />
+                <file baseinstalldir="Net" name="RootDSE.php" role="php" />
+                <file baseinstalldir="Net" name="Schema.php" role="php" />
+                <file baseinstalldir="Net" name="Search.php" role="php" />
+                <file baseinstalldir="Net" name="Util.php" role="php" />
+            </dir> <!-- /LDAP -->
+            <dir name="doc">
+                <file baseinstalldir="Net" name="manual.html" role="doc" />
+                <file baseinstalldir="Net" name="README.txt" role="doc" />
+                <file baseinstalldir="Net" name="RootDSE.txt" role="doc" />
+                <file baseinstalldir="Net" name="Schema.txt" role="doc" />
+                <file baseinstalldir="Net" name="utf8.txt" role="doc" />
+                <file baseinstalldir="Net" name="examples/connecting.php" role="doc" />
+                <file baseinstalldir="Net" name="examples/fetch_entry.php" role="doc" />
+                <file baseinstalldir="Net" name="examples/search_entries.php" role="doc" />
+                <file baseinstalldir="Net" name="examples/add_entry.php" role="doc" />
+                <file baseinstalldir="Net" name="examples/modify_entry.php" role="doc" />
+                <file baseinstalldir="Net" name="examples/modify_entry2.php" role="doc" />
+            </dir> <!-- /doc -->
+            <dir name="tests">
+                <file baseinstalldir="Net" name="AllTests.php" role="test" />
+                <file baseinstalldir="Net" name="Net_LDAP_EntryTest.php" role="test" />
+                <file baseinstalldir="Net" name="Net_LDAP_FilterTest.php" role="test" />
+                <file baseinstalldir="Net" name="Net_LDAP_RootDSETest.php" role="test" />
+                <file baseinstalldir="Net" name="Net_LDAP_SearchTest.php" role="test" />
+                <file baseinstalldir="Net" name="Net_LDAPTest.php" role="test" />
+                <file baseinstalldir="Net" name="Net_LDAP_UtilTest.php" role="test" />
+            </dir> <!-- /tests -->
         </dir> <!-- / -->
     </contents>
     <dependencies>
