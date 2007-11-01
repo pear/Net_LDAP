@@ -15,7 +15,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
                  * Simple modification, deletion and creation of ldap entries.
                  * Support for schema handling.
 
-                 Net_LDAP layers itself on top of PHP&apos;s existing ldap extensions.
+                 Net_LDAP layers itself on top of PHP's existing ldap extensions.
     </description>
     <lead>
         <name>Tarjei Huse</name>
@@ -98,7 +98,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <phprelease />
 
     <!-- CHANGELOG -->
-    <elease>
+    <changelog>
         <release>
             <version>
                 <release>0.1</release>
@@ -373,7 +373,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
 			<license>GPL License</license>
 			<notes>
 				- Fixed some minor bugs of RC3
-				- Reintroduced $ldap parameter for $entry->update(), but it is not prefferred to use this way.
+				- Reintroduced $ldap parameter for
+				$entry-&lt;update(), but it is not prefferred to use this way.
 					The Parameter is there for perl interface compatibility
 			</notes>
 		</release>
