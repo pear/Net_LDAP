@@ -146,11 +146,13 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
 
     /**
      * Tests, if printMe() works
-     *
-     * The non-file resource mode is skipped because we can assume, PHPs print() works.
      */
     public function testPrintMe() {
-        $testfile      = '/tmp/Net_LDAP_Filter_printMe-Testfile';
+        if (substr(strtolower(PHP_OS), 0,3) == 'win') {
+            $testfile = '/tmp/Net_LDAP_Filter_printMe-Testfile';
+        } else {
+            $testfile = 'c:\Net_LDAP_Filter_printMe-Testfile';
+        }
         $filter = Net_LDAP_Filter::create('testPrintMe', 'equals', 'ok');
         $this->assertType('Net_LDAP_Filter', $filter);
 
@@ -159,26 +161,33 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue($filter->printMe());
         ob_end_clean();
 
-        // write success:
-        $file = fopen($testfile, 'w');
-        if (!$file) $this->markSkipped("$testfile could not be opened, skipping write test");
-        $this->assertTrue($filter->printMe($file));
-        fclose($file);
-
         // PrintMe if Filehandle is an error (e.g. if some PEAR-File db is used):
         $err = new PEAR_Error();
         $this->assertType('PEAR_Error', $filter->printMe($err));
 
-        //PrintMe if filter is damaged
+        // PrintMe if filter is damaged,
+        // $filter_dmg is used below too, to test printing to a file with
+        // damaged filter
         $filter_dmg = new Net_LDAP_Filter('damaged_filter_string');
-        $this->assertType('PEAR_Error', $filter_dmg->printMe($file));
 
+        // write success:
+        $file = @fopen($testfile, 'w');
+        if (is_writable($testfile) && $file) {
+            $this->assertTrue($filter->printMe($file));
+            $this->assertType('PEAR_Error', $filter_dmg->printMe($file)); // dmg. filter
+            @fclose($file);
+        } else {
+            $this->markSkipped("$testfile could not be opened in write mode, skipping write test");
+        }
         // write failure:
-        $file = fopen($testfile, 'r');
-        if (!$file) $this->markSkipped("$testfile could not be opened, skipping failing write test");
-        $this->assertType('PEAR_Error', $filter->printMe($file));
-        fclose($file);
-        unlink($testfile);
+        $file = @fopen($testfile, 'r');
+        if (is_writable($testfile) && $file) {
+            $this->assertType('PEAR_Error', $filter->printMe($file));
+            @fclose($file);
+            @unlink($testfile);
+        } else {
+            $this->markSkipped("$testfile could not be opened in read mode, skipping write test");
+        }
     }
 
     /**

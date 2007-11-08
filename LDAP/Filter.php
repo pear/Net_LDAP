@@ -382,9 +382,14 @@ class Net_LDAP_Filter extends PEAR
                 print($filter_str);
             }
         } else {
-            $res = fwrite($FH, $this->asString());
-            if ($res == false) {
-                return PEAR::raiseError("Unable to write filter string to filehandle \$FH!");
+            $filter_str = $this->asString();
+            if (PEAR::isError($filter_str)) {
+                return $filter_str;
+            } else {
+                $res = @fwrite($FH, $this->asString());
+                if ($res == false) {
+                    return PEAR::raiseError("Unable to write filter string to filehandle \$FH!");
+                }
             }
         }
         return true;
