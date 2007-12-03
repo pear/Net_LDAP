@@ -5,8 +5,6 @@
 *
 * PHP version 4, 5
 *
-* LICENSE:  LGPL.
-*
 * @category  Net
 * @package   Net_LDAP
 * @author    Tarjej Huse <tarjei@bergfald.no>
