@@ -408,13 +408,13 @@ class Net_LDAP_Filter extends PEAR
     * For upward compatibiliy reasons you are strongly encouraged to use the escape
     * methods provided by the Net_LDAP_Util class.
     *
-    * @param string $string Any string who should be escaped
+    * @param string $value Any string who should be escaped
     *
     * @static
     * @return string         The string $string, but escaped
     * @deprecated  Do not use this method anymore, instead use Net_LDAP_Util::escape_filter_value() directly
     */
-    function escape($string)
+    function escape($value)
     {
         $return = Net_LDAP_Util::escape_filter_value(array($value));
         return $return[0];
