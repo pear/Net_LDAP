@@ -2,6 +2,7 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
 
 require_once 'PEAR.php';
+require_once 'Net/LDAP/Entry.php';
 
 /**
 * LDIF capabilitys for Net_LDAP, closely taken from PERLs Net::LDAP
@@ -53,23 +54,12 @@ class Net_LDAP_LDIF extends PEAR
 	var $_FH = null;
 	
 	/**
-	* Linecounter for input file handle (FH or FHPIPE)
+	* Linecounter for input file handle
 	*
 	* @access private
 	* @var array
 	*/
 	var $_input_line = 0;
-	
-	/**
-	* Pipe filehandle, if we are in piped mode
-	*
-	* Either STDIN or STDOUT. This way, we know wheter we are in piped
-	* mode and if so, what mode it is.
-	*
-	* @access private
-	* @var array
-	*/
-	var $_FHPipe = null;
 	
 	/**
 	* Mode we are working in
@@ -113,13 +103,12 @@ class Net_LDAP_LDIF extends PEAR
 	* new (FILE):
 	* Open the file read-only. FILE may be the name of a file
 	* or an already open filehandle.
-	* If the file doesn't exist, it will be created in write mode.
+	* If the file doesn't exist, it will be created if in write mode.
 	*
 	* new (FILE, MODE, OPTIONS):
 	*     Open the file with the given MODE (see PHPs fopen()), eg "w" or "a".
 	*     FILE may be the name of a file or an already open filehandle.
-	*     If FILE begins or ends with a | then FILE will be passed directly to open.
-	*     ("|FILE" reads from STDIN, "FILE|" writes to STDOUT)
+	*     PERLs Net_LDAP "FILE|" mode does not work curently.
 	*
 	*     OPTIONS is an associative array and may contain:
 	*       encode => 'none' | 'canonical' | 'base64'
@@ -172,15 +161,15 @@ class Net_LDAP_LDIF extends PEAR
 		// todo: maybe implement further checks on possible values
 		foreach ($options as $option => $value) {
 			if (!array_key_exists($option, $this->_options)) {
-				$this->_addError('Net_LDAP_LDIF error: option '.$option.' not known!');
-				return();
+				$this->_dropError('Net_LDAP_LDIF error: option '.$option.' not known!');
+				return;
 			} else {
 				$this->_options[$option] = strtolower($value);
 			}
 		}
 		
 		// setup LDIF class
-		$this->version($version);
+		$this->version($this->_options['version']);
 		
 		// setup file mode
 		// todo: maybe check on allowed modes
@@ -190,29 +179,10 @@ class Net_LDAP_LDIF extends PEAR
 		if (is_resource($file)) {
 			$this->_FH = $file;
 		} else {
-			// Look for piped mode and initialize streams
-			if (preg_match('/^\|(.+)$/', $file, $fmatch)) {
-				// Start-pipemode
-				$file = $fmatch[1];
-				if (!defined(STDIN)) {
-					$this->_addError('Net_LDAP_LDIF error: |FILE only works with the CLI version of PHP');
-				} else {
-					$this->_FHPipe = STDIN;
-				}
-			} elseif(preg_match('/^(.+)\|$/', $file, $fmatch)) {
-				// End-pipemode
-				$file = $fmatch[1];
-				if (!defined(STDOUT)) {
-					$this->_addError('Net_LDAP_LDIF error: FILE| only works with the CLI version of PHP');
-				} else {
-					$this->_FHPipe = STDOUT;
-				}
-			}
-			
 			// Open file
-			$fh = @fopen($file, $mode);
-			if (false === $fh) {
-				$this->_addError('Net_LDAP_LDIF error: Could not open file '.$file);
+			$this->_FH = @fopen($file, $mode);
+			if (false === $this->_FH) {
+				$this->_dropError('Net_LDAP_LDIF error: Could not open file '.$file);
 			}
 		}
 		
@@ -225,7 +195,10 @@ class Net_LDAP_LDIF extends PEAR
 	*/
 	function read_entry() {
 		// read fresh lines, set them as current lines and create the entry
-		$this->_lines_cur = $this->next_lines(true);
+		$attrs = $this->next_lines(true);
+		if (count($attrs) > 0) {
+			$this->_lines_cur = $attrs;
+		}
 		return $this->current_entry();
 	}
 	
@@ -233,11 +206,7 @@ class Net_LDAP_LDIF extends PEAR
 	* Returns true when the end of the file is reached.
 	*/
 	function eof() {
-		if ($this->_fromSTDIN()) {
-			return false;
-		} else {
-			return feof($this->_FH);
-		}
+		return feof($this->_FH);
 	}
 	
 	/**
@@ -263,7 +232,7 @@ class Net_LDAP_LDIF extends PEAR
 		// write out entry
 		foreach ($entries as $entry) {
 			if (!is_a($entry, 'Net_LDAP_Entry')) {
-				$this->_addError('Net_LDAP_LDIF error: unable to write corrupt entry');
+				$this->_dropError('Net_LDAP_LDIF error: unable to write corrupt entry');
 			} else {
 				// TODO: Convert and write to file
 			}
@@ -363,32 +332,43 @@ class Net_LDAP_LDIF extends PEAR
 	function current_entry() {
 		// parse current lines into an array of attributes and build the entry
 		$attributes = array();
-		$dn = '';
+		$dn = false;
 		foreach ($this->current_lines() as $line) {
-			if (preg_match('/^(\w+):\s(\w+)$/', $line, $data)) {
+			preg_match('/^(\w+)(:|::|:<)(.+)$/', $line, $matches);
+			$attr  =& $matches[1];
+			$delim =& $matches[2];
+			$data  =& $matches[3];
+			
+			if ($delim == ':') {
 				// normal data
-				$attributes[$data[1]] = $data[2];
-			} elseif(preg_match('/^(\w+)::\s(\w+)$/', $line, $data)) {
+				$attributes[$attr][] = $data;
+			} elseif($delim == '::') {
 				// base64 data
-				$attributes[$data[1]] = base64_decode($data[2]);
-			} elseif(preg_match('/^(\w+):<\s(\w+)$/', $line, $data)) {
+				$attributes[$attr][] = base64_decode($data);
+			} elseif($delim == ':<') {
 				// file inclusion
 				// TODO
 				$this->_dropError('File inclusions are currently not supported');
-				//$attributes[$data[1]] = ...;
+				//$attributes[$attr][] = ...;
 			} else {
-				$this->_dropError('Net_LDAP_LDIF parsing error: invalid syntax at parsing lines')
+				$this->_dropError('Net_LDAP_LDIF parsing error: invalid syntax at parsing entry line: '.$line);
 				break;
 			}
 			
 			// detect DN
-			if (strtolower($data[1]) == 'dn') {
-				$dn = $data[1];
+			if (strtolower($attr) == 'dn') {
+				$dn = $data;
 			}
 		}
-		
-		$newentry = Net_LDAP_Entry::createfresh($dn, $attributes);
-		return $newentry;
+
+		if (false === $dn) {
+			var_dump($this->_lines_next);
+			$this->_dropError('Net_LDAP_LDIF parsing error: unable to detect DN for entry');
+			return false;
+		} else {
+			$newentry = Net_LDAP_Entry::createfresh($dn, $attributes);
+			return $newentry;
+		}
 	}
 	
 	/**
@@ -413,38 +393,46 @@ class Net_LDAP_LDIF extends PEAR
 	*/
 	function next_lines($force = false) {
 		// if we already have those lines, just return them, otherwise read
-		if (count($lines) == 0 || $force) {
+		if (count($this->_lines_next) == 0 || $force) {
 			$this->_lines_next = array(); // empty in case something was left (if used $force)
 			$entry_done = false;
-			$fh =& $this->_getInputStream();
+			$fh =& $this->handle();
 			$commentmode = false; // if we are in an comment, for wrapping purposes
-			while ($entry_done || $this->eof() {
+			
+			while (!$entry_done && !$this->eof()) {
 				$this->_input_line++;
 				$data = fgets($fh);
 				if ($data === false) {
-					$this->_dropError('Net_LDAP_LDIF error: error reading from file', $this->_input_line)
+					// error only, if EOF not reached after fgets() call
+					if  (!$this->eof()) {
+						$this->_dropError('Net_LDAP_LDIF error: error reading from file at input line '.$this->_input_line, $this->_input_line);
+					}
 					break;
 				} else {
-					if (count($this->_lines_next) > 0 && $data != '') {
-						// entry is finished if we have an empty line
+					if (count($this->_lines_next) > 0 && preg_match('/^$/', $data)) {
+						// entry is finished if we have an empty line after we had data
 						$entry_done = true;
 					} else {
 						// build lines
-						if (preg_match('/^\w+::?\s.+)$/', $data)) {
+						if (preg_match('/^\w+::?\s.+$/', $data)) {
 							// normal attribute: add line
 							$commentmode         = false;
-							$this->_lines_next[] = $data;
+							$this->_lines_next[] = trim($data);
 						} elseif (preg_match('/^\s(.+)$/', $data, $matches)) {
 							// wrapped data: unwrap if not in comment mode
 							if (!$commentmode) {
-								$last = array_pop($this->_lines_next[]);
+								$last = array_pop($this->_lines_next);
 								$last = $last.$matches[1];
 								$this->_lines_next[] = $last;
 							}
-						} elseif (preg_match('/^#/', $data, $matches)) {
+						} elseif (preg_match('/^#/', $data)) {
+							// LDIF comments
 							$commentmode = true;
+						} elseif (preg_match('/$/', $data)) {
+							// empty line but we had no data for this
+							// entry,so just ignore this line
 						} else {
-							$this->_dropError('Net_LDAP_LDIF error: invalid syntax', $this->_input_line)
+							$this->_dropError('Net_LDAP_LDIF error: invalid syntax at input line '.$this->_input_line, $this->_input_line);
 							break;
 						}
 						
@@ -452,7 +440,6 @@ class Net_LDAP_LDIF extends PEAR
 				}
 			}
 		}
-		
 		return $this->_lines_next;
 	}
 	
@@ -471,54 +458,6 @@ class Net_LDAP_LDIF extends PEAR
 			die($msg.PHP_EOL);
 		} elseif ($this->_options['onerror'] == 'warn') {
 			echo $msg.PHP_EOL;
-		}
-	}
-	
-	/**
-	* Are we reading from a pipe?
-	*
-	* @access private
-	* @return boolean
-	*/
-	function _fromSTDIN() {
-		return ($this->_FHPipe === STDIN)? true : false;
-	}
-	
-	/**
-	* Are we writing to a pipe?
-	*
-	* @access private
-	* @return boolean
-	*/
-	function _toSTDOUT() {
-		return ($this->_FHPipe === STDOUT)? true : false;
-	}
-	
-	/**
-	* Returns the input file handle
-	*
-	* @access private
-	* @return resource
-	*/
-	function &_getInputStream() {
-		if ($this->_fromSTDIN()) {
-			return $this->_FHPipe;
-		} else {
-			return $this->handle();
-		}
-	}
-	
-	/**
-	* Returns the output file handle
-	*
-	* @access private
-	* @return resource
-	*/
-	function &_getOutputStream() {
-		if ($this->_toSTDOUT()) {
-			return $this->_FHPipe;
-		} else {
-			return $this->handle();
 		}
 	}
 }
