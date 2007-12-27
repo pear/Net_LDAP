@@ -89,7 +89,7 @@ class Net_LDAP_LDIF extends PEAR
 	var $_lines_cur = array();
 	
 	/**
-	* Cache for lines that will build the enxt entry
+	* Cache for lines that will build the next entry
 	*
 	* @access private
 	* @var boolean
@@ -362,7 +362,6 @@ class Net_LDAP_LDIF extends PEAR
 		}
 
 		if (false === $dn) {
-			var_dump($this->_lines_next);
 			$this->_dropError('Net_LDAP_LDIF parsing error: unable to detect DN for entry');
 			return false;
 		} else {
@@ -398,9 +397,11 @@ class Net_LDAP_LDIF extends PEAR
 			$entry_done = false;
 			$fh =& $this->handle();
 			$commentmode = false; // if we are in an comment, for wrapping purposes
+			$lines_read = 0;
 			
 			while (!$entry_done && !$this->eof()) {
 				$this->_input_line++;
+				$lines_read++;
 				$data = fgets($fh);
 				if ($data === false) {
 					// error only, if EOF not reached after fgets() call
@@ -410,8 +411,33 @@ class Net_LDAP_LDIF extends PEAR
 					break;
 				} else {
 					if (count($this->_lines_next) > 0 && preg_match('/^$/', $data)) {
-						// entry is finished if we have an empty line after we had data
+						// Entry is finished if we have an empty line after we had data
 						$entry_done = true;
+						
+						// Look ahead if the next EOF is nearby. Comments and empty
+						// lines at the file end may cause problems otherwise
+						$current_pos = ftell($fh);
+						$data        = fgets($fh);
+						while (!feof($fh)) {
+							if (preg_match('/^\s*$/', $data) || preg_match('/^#/', $data)) {
+								// only empty lines or comments, continue to seek
+								// TODO: Known bug: Wrappings for comments are okay but are treaten as
+								//       error, since we do not honor comment mode here.
+								//       This should be a very theoretically case, however so
+								//       i fix this if necessary.
+								$this->_input_line++;
+								$current_pos = ftell($fh);
+								$data        = fgets($fh);
+							} else {
+								// Data found if non emtpy line and not a comment!!
+								// Rewind to position prior last read and stop lookahead
+								fseek($fh, $current_pos);
+								break;
+							}
+						}
+						// now we have either the file pointer at the beginning of
+						// a new data position or at the end of file causing feof() to return true
+						
 					} else {
 						// build lines
 						if (preg_match('/^\w+::?\s.+$/', $data)) {
@@ -421,9 +447,14 @@ class Net_LDAP_LDIF extends PEAR
 						} elseif (preg_match('/^\s(.+)$/', $data, $matches)) {
 							// wrapped data: unwrap if not in comment mode
 							if (!$commentmode) {
-								$last = array_pop($this->_lines_next);
-								$last = $last.$matches[1];
-								$this->_lines_next[] = $last;
+								if ($lines_read == 1) {
+									// first line: wrapped data is illegal
+									$this->_dropError('Net_LDAP_LDIF error: illegal wrapping at input line '.$this->_input_line, $this->_input_line);
+								} else {
+									$last = array_pop($this->_lines_next);
+									$last = $last.$matches[1];
+									$this->_lines_next[] = $last;
+								}
 							}
 						} elseif (preg_match('/^#/', $data)) {
 							// LDIF comments
