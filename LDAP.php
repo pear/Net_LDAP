@@ -27,6 +27,7 @@ require_once 'LDAP/Entry.php';
 require_once 'LDAP/Search.php';
 require_once 'LDAP/Util.php';
 require_once 'LDAP/Filter.php';
+require_once 'LDAP/LDIF.php';
 
 /**
 *  Error constants for errors that are not LDAP errors.

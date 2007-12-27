@@ -15,6 +15,7 @@ require_once 'Net_LDAPTest.php';
 require_once 'Net_LDAP_EntryTest.php';
 require_once 'Net_LDAP_RootDSETest.php';
 require_once 'Net_LDAP_SearchTest.php';
+require_once 'Net_LDAP_LDIFTest.php';
 
 class Net_LDAP_AllTests
 {
@@ -31,6 +32,7 @@ class Net_LDAP_AllTests
        // LDAP independent tests
        $suite->addTestSuite('Net_LDAP_FilterTest');
        $suite->addTestSuite('Net_LDAP_UtilTest');
+       $suite->addTestSuite('Net_LDAP_LDIFTest');
 
        // LDAP dependent tests (require a LDAP server)
        $suite->addTestSuite('Net_LDAPTest');
