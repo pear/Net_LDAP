@@ -3,6 +3,7 @@
 
 require_once 'PEAR.php';
 require_once 'Net/LDAP/Entry.php';
+require_once 'Net/LDAP/Util.php';
 
 /**
 * LDIF capabilitys for Net_LDAP, closely taken from PERLs Net::LDAP
@@ -258,7 +259,7 @@ class Net_LDAP_LDIF extends PEAR
     * always get the last entry only.
     *
     * @param Net_LDAP_Entry|array Entry or array of entries
-    * @todo impement the options, see Net_LDAP_LDIF() comment
+    * @todo impement the options 'change', 'sort', 'wrap', 'raw'
     */
     function write_entry($entries) {
         if (!is_array($entries)) {
@@ -278,12 +279,20 @@ class Net_LDAP_LDIF extends PEAR
                 $this->_dropError('Net_LDAP_LDIF error: unable to write corrupt entry '.$entrynum);
             } else {
                 // write DN
-                $dn = $this->_convertDN($entry->dn())."\r\n";
+                if ($this->_options['encode'] == 'base64') {
+                    $dn = $this->_convertDN($entry->dn())."\r\n";
+                } elseif ($this->_options['encode'] == 'canonical') {
+                    $dn = Net_LDAP_Util::canonical_dn($entry->dn(), array('casefold' => 'none') )."\r\n";
+                } else {
+                     $dn = $entry->dn()."\r\n";
+                }
+
                 if (fwrite($this->handle(), $dn, strlen($dn)) === false) {
                     $this->_dropError('Net_LDAP_LDIF error: unable to write DN of entry '.$entrynum);
                 } else {
                     // write attributes
-                    foreach ($entry->getValues() as $attr_name => $attr_values) {
+                    $entry_attrs = $entry->getValues();
+                    foreach ($entry_attrs as $attr_name => $attr_values) {
                         if (!is_array($attr_values)) {
                             $attr_values = array($attr_values);
                         }
@@ -597,6 +606,9 @@ class Net_LDAP_LDIF extends PEAR
         if ($attr_value == '') {
             $attr_value = " \r\n";
         }
+
+        // lowercase attr names if set
+        if ($this->_options['lowercase']) $attr_name = strtolower($attr_name);
 
         // if converting is needed, do it
         return ($base64)? $attr_name.':: '.base64_encode($attr_value) : $attr_name.': '.$attr_value;
