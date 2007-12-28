@@ -7,6 +7,26 @@ require_once 'Net/LDAP/Entry.php';
 /**
 * LDIF capabilitys for Net_LDAP, closely taken from PERLs Net::LDAP
 *
+* It provides a means to convert between Net_LDAP_Entry objects and LDAP entries
+* represented in LDIF format files. Reading and writing are supported and may
+* manipulate single entries or lists of entries.
+*
+* Usage example:
+* <code>
+* // Read and parse an ldif-file into Net_LDAP_Entry
+* // objects and print out the DNs
+* require 'Net/LDAP/LDIF.php';
+* $options = array(
+*       'onerror' => 'die'
+* );
+* $ldif = new Net_LDAP_LDIF('test.ldif', 'r', $options);
+* do {
+*       $entry = $ldif->read_entry();
+*       $dn = $entry->dn();
+*       echo $ldif->_input_line." done building entry: $dn\n";
+* } while (!$ldif->eof());
+* </code>
+*
 * @category Net
 * @package  Net_LDAP
 * @author   Benedikt Hallinger <beni@php.net>
@@ -14,6 +34,7 @@ require_once 'Net/LDAP/Entry.php';
 * @version  CVS: $Id$
 * @link     http://pear.php.net/package/Net_LDAP/
 * @see      http://www.ietf.org/rfc/rfc2849.txt
+* @todo     Error handling should be PEARified
 */
 class Net_LDAP_LDIF extends PEAR
 {
@@ -98,7 +119,7 @@ class Net_LDAP_LDIF extends PEAR
 	
 	
 	/**
-	* Open LDIF file for read only or read/write
+	* Open LDIF file for reading or for writing
 	*
 	* new (FILE):
 	* Open the file read-only. FILE may be the name of a file
@@ -119,9 +140,9 @@ class Net_LDAP_LDIF extends PEAR
 	*
 	*       onerror => 'die' | 'warn' | undef
 	*         Specify what happens when an error is detected.
-	*         'die'  Net::LDAP::LDIF will croak with an appropriate message.
-	*         'warn' Net::LDAP::LDIF will warn (echo) with an appropriate message.
-	*         undef  Net::LDAP::LDIF will not warn (default), use error().
+	*         'die'  Net_LDAP_LDIF will croak with an appropriate message.
+	*         'warn' Net_LDAP_LDIF will warn (echo) with an appropriate message.
+	*         undef  Net_LDAP_LDIF will not warn (default), use error().
 	*
 	*       change => 1
 	*         Write entry changes to the LDIF file instead of the entries itself. I.e. write LDAP
@@ -137,7 +158,7 @@ class Net_LDAP_LDIF extends PEAR
 	*       version => '1'
 	*         Set the LDIF version to write to the resulting LDIF file.
 	*         According to RFC 2849 currently the only legal value for this option is 1.
-	*         When this option is set Net::LDAP::LDIF tries to adhere more strictly to
+	*         When this option is set Net_LDAP_LDIF tries to adhere more strictly to
 	*         the LDIF specification in RFC2489 in a few places.
 	*         The default is undef meaning no version information is written to the LDIF file.
 	*
@@ -153,7 +174,7 @@ class Net_LDAP_LDIF extends PEAR
 	*               are also done through the schema.
 	*
 	* @param string|ressource $file    Filename or filehandle
-	* @param string           $mode    Mode to open that file
+	* @param string           $mode    Mode to open filename
 	* @param array            $options Options like described above
 	*/
 	function Net_LDAP_LDIF($file, $mode = 'r', $options = array()) {
@@ -172,20 +193,32 @@ class Net_LDAP_LDIF extends PEAR
 		$this->version($this->_options['version']);
 		
 		// setup file mode
-		// todo: maybe check on allowed modes
-		$this->_mode = $mode;
-		
-		// Decide operational mode
-		if (is_resource($file)) {
-			$this->_FH = $file;
+		if (!preg_match('/^[rwa](?:\+b|b\+)?$/', $mode)) {
+			$this->_dropError('Net_LDAP_LDIF error: file mode '.$mode.' not supported!');
 		} else {
-			// Open file
-			$this->_FH = @fopen($file, $mode);
-			if (false === $this->_FH) {
-				$this->_dropError('Net_LDAP_LDIF error: Could not open file '.$file);
-			}
+			$this->_mode = $mode;
 		}
 		
+		// setup filehandle
+		if (is_resource($file)) {
+			// checks on mode?
+			$this->_FH = $file;
+		} else {
+			if ($this->_mode == 'r' && !is_readable($file)) {
+				$this->_dropError('Unable to open '.$file.': permission denied');
+				$this->_mode = false;
+			} elseif (($this->_mode == 'w' || $this->_mode == 'a') && !is_writable($file)) {
+				$this->_dropError('Unable to open '.$file.': permission denied');
+				$this->_mode = false;
+			}
+			
+			if ($this->_mode) {
+				$this->_FH = @fopen($file, $this->_mode);
+				if (false === $this->_FH) {
+					$this->_dropError('Net_LDAP_LDIF error: Could not open file '.$file);
+				}
+			}
+		}
 	}
 	
 	/**
@@ -217,7 +250,6 @@ class Net_LDAP_LDIF extends PEAR
 	* always get the last entry only.
 	*
 	* @param Net_LDAP_Entry|array Entry or array of entries
-	* @todo NOT IMPLEMENTED YET
 	*/
 	function write_entry($entries) {
 		if (!is_array($entries)) {
@@ -229,12 +261,36 @@ class Net_LDAP_LDIF extends PEAR
 			$this->write_version();
 		}
 		
-		// write out entry
+		// write out entries
+		$entrynum = 0;
 		foreach ($entries as $entry) {
+			$entrynum++;
 			if (!is_a($entry, 'Net_LDAP_Entry')) {
-				$this->_dropError('Net_LDAP_LDIF error: unable to write corrupt entry');
+				$this->_dropError('Net_LDAP_LDIF error: unable to write corrupt entry '.$entrynum);
 			} else {
-				// TODO: Convert and write to file
+				// write DN
+				$dn = 'dn: '.$this->_convertDN($entry->dn())."\r\n";
+				if (fwrite($this->handle(), $dn, strlen($dn)) === false) {
+					$this->_dropError('Net_LDAP_LDIF error: unable to write DN of entry '.$entrynum);
+				} else {
+					// write attributes
+					foreach ($entry->getValues() as $attr_name => $attr_values) {
+						if (!is_array($attr_values)) {
+							$attr_values = array($attr_values);
+						}
+						foreach ($attr_values as $attr_val) {
+							$line = $this->_convertAttribute($attr_name, $attr_val)."\r\n";
+							if (fwrite($this->handle(), $line, strlen($line)) === false) {
+								$this->_dropError('Net_LDAP_LDIF error: unable to write attribute '.$attr_name.' of entry '.$entrynum);
+							}
+						}
+					}
+				
+					// mark end of entry
+					if (fwrite($this->handle(), "\r\n", 2) === false) {
+						$this->_dropError('Net_LDAP_LDIF error: unable to close entry '.$entrynum);
+					}
+				}
 			}
 		}
 	}
@@ -244,12 +300,15 @@ class Net_LDAP_LDIF extends PEAR
 	*
 	* If the object's version is defined, this method allows to explicitely write the version before an entry is written.
 	* If not called explicitely, it gets called automatically when writing the first entry.
-	*
-	* @todo NOT IMPLEMENTED YET
 	*/
 	function write_version() {
 		$this->_version_written = true;
-		// TODO: Write to file
+		$version_string = 'version: '.$this->version()."\r\n";
+		if (fwrite($this->handle(), $version_string, strlen($version_string)) === false) {
+			$this->_dropError('Net_LDAP_LDIF error: unable to write version');
+		} else {
+			return true;
+		}
 	}
 	
 	/**
@@ -260,7 +319,7 @@ class Net_LDAP_LDIF extends PEAR
 	* According to RFC 2849 currently the only legal value for VERSION is 1.
 	*
 	* @param int $version
-	* @todo NOT IMPLEMENTED YET
+	* @return int
 	*/
 	function version($version = '') {
 		if ($version) {
@@ -270,10 +329,11 @@ class Net_LDAP_LDIF extends PEAR
 				$this->_version = $version;
 			}
 		}
+		return $this->_version;
 	}
 	
 	/**
-	* Returns the file handle the Net::LDAP::LDIF object reads from or writes to.
+	* Returns the file handle the Net_LDAP_LDIF object reads from or writes to.
 	*
 	* You can, for example, use this to fetch the content of the LDIF file yourself
 	*
@@ -292,7 +352,7 @@ class Net_LDAP_LDIF extends PEAR
 	* Clean up
 	*
 	* This method signals that the LDIF object is no longer needed.
-	* You can use this to free up memory.
+	* You can use this to free up some memory.
 	*
 	* @todo NOT IMPLEMENTED YET
 	*/
@@ -302,11 +362,18 @@ class Net_LDAP_LDIF extends PEAR
 	/**
 	* Returns error message if error was found.
 	*
-	* @todo NOT IMPLEMENTED YET
-	* @return true|Net_LDAP_Error
+	* Example:
+	* <code>
+	*  $ldif->someAction();
+	*  if ($ldif->error()) {
+	*     echo "Error: ".$ldif->error()." at input line: ".$ldif->error_lines();
+	*  }
+	* </code>
+	*
+	* @return false|Net_LDAP_Error
 	*/
 	function error() {
-		return (Net_LDAP::isError($this->_error['error']))? $this->_error['error'] : true;
+		return (Net_LDAP::isError($this->_error['error']))? $this->_error['error'] : false;
 	}
 	
 	/**
@@ -315,7 +382,6 @@ class Net_LDAP_LDIF extends PEAR
 	* Perl returns an array of faulty lines in list context,
 	* but we always just return an int because of PHPs language.
 	*
-	* @todo NOT IMPLEMENTED YET
 	* @return int
 	*/
 	function error_lines() {
@@ -325,9 +391,8 @@ class Net_LDAP_LDIF extends PEAR
 	/**
 	* Returns the current Net::LDAP::Entry object.
 	*
-	* @todo NOT IMPLEMENTED YET
 	* @return Net_LDAP_Entry
-	* @todo what about file inclusions? "jpegphoto:< file:///usr/local/directory/photos/fiona.jpg"
+	* @todo what about file inclusions and urls? "jpegphoto:< file:///usr/local/directory/photos/fiona.jpg"
 	*/
 	function current_entry() {
 		// parse current lines into an array of attributes and build the entry
@@ -347,7 +412,7 @@ class Net_LDAP_LDIF extends PEAR
 				$attributes[$attr][] = base64_decode($data);
 			} elseif($delim == ':<') {
 				// file inclusion
-				// TODO
+				// TODO: Is this the job of the LDAP-client or the server?
 				$this->_dropError('File inclusions are currently not supported');
 				//$attributes[$attr][] = ...;
 			} else {
@@ -365,7 +430,7 @@ class Net_LDAP_LDIF extends PEAR
 			$this->_dropError('Net_LDAP_LDIF parsing error: unable to detect DN for entry');
 			return false;
 		} else {
-			$newentry = Net_LDAP_Entry::createfresh($dn, $attributes);
+			$newentry = Net_LDAP_Entry::createFresh($dn, $attributes);
 			return $newentry;
 		}
 	}
@@ -472,6 +537,35 @@ class Net_LDAP_LDIF extends PEAR
 			}
 		}
 		return $this->_lines_next;
+	}
+	
+	/**
+	* Convert an attribute and value to LDIF string representation
+	*
+	* It honors correct encoding of values
+	*
+	* @access private
+	* @param string $attr_name  Name of the attribute
+	* @param string $attr_value Value of the attribute
+	* @return string LDIF string for that attribute and value
+	* @todo encoding stuff
+	*/
+	function _convertAttribute($attr_name, $attr_value) {
+		// TODO: Encoding must be implemented, if some bad chars are detected,
+		//       we must use BASE64; additionally we must take care of non-UTF8
+		return $attr_name.': '.$attr_value;
+	}
+	
+	/**
+	* Convert an entries dn to LDIF string representation
+	*
+	* @access private
+	* @param string $dn  DN
+	* @return string LDIF string for that DN
+	* @todo encoding stuff
+	*/
+	function _convertDN($dn) {
+		return $dn;
 	}
 	
 	/**
