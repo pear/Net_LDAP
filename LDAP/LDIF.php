@@ -46,7 +46,7 @@ class Net_LDAP_LDIF extends PEAR
     * @var array
     */
     var $_options = array(
-        'encode'    => 'none',
+        'encode'    => 'base64',
         'onerror'   => 'undef',
         'change'    => 0,
         'lowercase' => 0,
@@ -141,9 +141,10 @@ class Net_LDAP_LDIF extends PEAR
     *     OPTIONS is an associative array and may contain:
     *       encode => 'none' | 'canonical' | 'base64'
     *         Some DN values in LDIF cannot be written verbatim and have to be encoded in some way:
-    *         'none'       The default.
+    *         'none'       No encoding.
     *         'canonical'  See "canonical_dn()" in Net::LDAP::Util.
-    *         'base64'     Use base64.
+    *         'base64'     Use base64. (default, this differs from the Perl interface.
+    *                                   The perl default is "none"!)
     *
     *       onerror => 'die' | 'warn' | undef
     *         Specify what happens when an error is detected.
