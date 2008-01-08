@@ -471,33 +471,44 @@ class Net_LDAP_Entry extends PEAR
         // therefore this has to be a simple list of attribute names to delete
         if (is_numeric(key($attr))) {
             foreach ($attr as $name) {
-                $name = $this->_getAttrName($name);
-                if ($this->exists($name)) {
-                    $this->_changes["delete"][$name] = null;
-                    unset($this->_attributes[$name]);
+                if (is_array($name)) {
+                    // someone mixed modes (list mode but specific values given!)
+                    $del_attr_name = array_search($name, $attr);
+                    $this->delete(array($del_attr_name => $name));
+                } else {
+                    $name = $this->_getAttrName($name);
+                    if ($this->exists($name)) {
+                        $this->_changes["delete"][$name] = null;
+                        unset($this->_attributes[$name]);
+                    }
                 }
             }
         } else {
             // Here we have a hash with "attributename" => "value to delete"
             foreach ($attr as $name => $values) {
-                // get the correct attribute name
-                $name = $this->_getAttrName($name);
-                if ($this->exists($name)) {
-                    if (false == is_array($values)) {
-                        $values = array($values);
-                    }
-                    // save values to be deleted
-                    if (empty($this->_changes["delete"][$name])) {
-                        $this->_changes["delete"][$name] = array();
-                    }
-                    $this->_changes["delete"][$name] =
-                        array_merge($this->_changes["delete"][$name], $values);
-                    foreach ($values as $value) {
-                        // find the key for the value that should be deleted
-                        $key = array_search($value, $this->_attributes[$name]);
-                        if (false !== $key) {
-                            // delete the value
-                            unset($this->_attributes[$name][$key]);
+                if (is_int($name)) {
+                    // someone mixed modes and gave us just an attribute name
+                    $this->delete($values);
+                } else {
+                    // get the correct attribute name
+                    $name = $this->_getAttrName($name);
+                    if ($this->exists($name)) {
+                        if (false == is_array($values)) {
+                            $values = array($values);
+                        }
+                        // save values to be deleted
+                        if (empty($this->_changes["delete"][$name])) {
+                            $this->_changes["delete"][$name] = array();
+                        }
+                        $this->_changes["delete"][$name] =
+                            array_merge($this->_changes["delete"][$name], $values);
+                        foreach ($values as $value) {
+                            // find the key for the value that should be deleted
+                            $key = array_search($value, $this->_attributes[$name]);
+                            if (false !== $key) {
+                                // delete the value
+                                unset($this->_attributes[$name][$key]);
+                            }
                         }
                     }
                 }
