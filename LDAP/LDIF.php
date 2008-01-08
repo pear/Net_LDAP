@@ -36,6 +36,8 @@ require_once 'Net/LDAP/Util.php';
 * @link     http://pear.php.net/package/Net_LDAP/
 * @see      http://www.ietf.org/rfc/rfc2849.txt
 * @todo     Error handling should be PEARified
+* @todo     LDAPv3 controls are not implemented yet
+* @todo     Use _writeLine() everywhere
 */
 class Net_LDAP_LDIF extends PEAR
 {
@@ -90,6 +92,14 @@ class Net_LDAP_LDIF extends PEAR
     * @var array
     */
     var $_input_line = 0;
+
+    /**
+    * counter for processed entries
+    *
+    * @access private
+    * @var int
+    */
+    var $_entrynum = 0;
 
     /**
     * Mode we are working in
@@ -155,6 +165,7 @@ class Net_LDAP_LDIF extends PEAR
     *       change => 1
     *         Write entry changes to the LDIF file instead of the entries itself. I.e. write LDAP
     *         operations acting on the entries to the file instead of the entries contents.
+    *         This writes the changes usually carried out by an update() to the LDIF file.
     *
     *       lowercase => 1
     *         Convert attribute names to lowercase when writing.
@@ -253,45 +264,55 @@ class Net_LDAP_LDIF extends PEAR
     }
 
     /**
-    * Write the entries to the LDIF file.
+    * Write the entry or entries to the LDIF file.
     *
-    * If you want to build an LDIF file containing several entries,
-    * you must open the filehandle in append mode ("a"), otherwise you will
-    * always get the last entry only.
+    * If you want to build an LDIF file containing several entries AND
+    * you want to call write_entry() several times, you must open the filehandle
+    * in append mode ("a"), otherwise you will always get the last entry only.
     *
     * @param Net_LDAP_Entry|array Entry or array of entries
-    * @todo impement the options 'change', 'raw'
+    * @todo impement the options 'raw'
+    * @todo implement operations on whole entries (adding and deleting a whole entry)
     */
     function write_entry($entries) {
         if (!is_array($entries)) {
             $entries = array($entries);
         }
 
-        // write Version if not already done
-        if (!$this->_version_written) {
-            $this->write_version();
-        }
-
-        // write out entries
-        $entrynum = 0;
         foreach ($entries as $entry) {
-            $entrynum++;
+            $this->_entrynum++;
             if (!is_a($entry, 'Net_LDAP_Entry')) {
-                $this->_dropError('Net_LDAP_LDIF error: unable to write corrupt entry '.$entrynum);
+                $this->_dropError('Net_LDAP_LDIF error: entry '.$this->_entrynum.' is not an Net_LDAP_Entry object');
             } else {
-                // prepare DN
-                if ($this->_options['encode'] == 'base64') {
-                    $dn = $this->_convertDN($entry->dn())."\r\n";
-                } elseif ($this->_options['encode'] == 'canonical') {
-                    $dn = Net_LDAP_Util::canonical_dn($entry->dn(), array('casefold' => 'none') )."\r\n";
-                } else {
-                     $dn = $entry->dn()."\r\n";
-                }
+                if ($this->_options['change']) {
+                    // LDIF change mode
+                    // fetch changes from entry
+                    // TODO: this violates object oriented design since $entry->_changes is marked private!!
+                    $entry_attrs_changes = $entry->_changes;
+                    $num_of_changes      = count($entry_attrs_changes['add'])
+                                           + count($entry_attrs_changes['replace'])
+                                           + count($entry_attrs_changes['delete']);
+                    if ($num_of_changes > 0) {
+                        // write change data
+                        if (!$this->_version_written) {
+                            $this->write_version();
+                        }
+                        $this->_writeDN($entry->dn());
 
-                // write DN
-                if (fwrite($this->handle(), $dn, strlen($dn)) === false) {
-                    $this->_dropError('Net_LDAP_LDIF error: unable to write DN of entry '.$entrynum);
+                        // TODO: Consider other entry change types like delete and modrdn
+                        $this->_writeLine("changetype: modify\r\n");
+
+                        foreach ($entry_attrs_changes as $changetype => $entry_attrs) {
+                            foreach ($entry_attrs as $attr_name => $attr_values) {
+                                $this->_writeLine("$changetype: $attr_name\r\n");
+                                if ($attr_values !== null) $this->_writeAttribute($attr_name, $attr_values, $changetype);
+                                $this->_writeLine("-\r\n");
+                            }
+                        }
+                        $this->_finishEntry();
+                    }
                 } else {
+                    // LDIF-content mode
                     // fetch attributes for further processing
                     $entry_attrs = $entry->getValues();
 
@@ -305,23 +326,15 @@ class Net_LDAP_LDIF extends PEAR
                         }
                     }
 
-                    // write attributes
+                    // write data
+                    if (!$this->_version_written) {
+                        $this->write_version();
+                    }
+                    $this->_writeDN($entry->dn());
                     foreach ($entry_attrs as $attr_name => $attr_values) {
-                        if (!is_array($attr_values)) {
-                            $attr_values = array($attr_values);
-                        }
-                        foreach ($attr_values as $attr_val) {
-                            $line = $this->_convertAttribute($attr_name, $attr_val)."\r\n";
-                            if (fwrite($this->handle(), $line, strlen($line)) === false) {
-                                $this->_dropError('Net_LDAP_LDIF error: unable to write attribute '.$attr_name.' of entry '.$entrynum);
-                            }
-                        }
+                        $this->_writeAttribute($attr_name, $attr_values);
                     }
-
-                    // mark end of entry
-                    if (fwrite($this->handle(), "\r\n", 2) === false) {
-                        $this->_dropError('Net_LDAP_LDIF error: unable to close entry '.$entrynum);
-                    }
+                    $this->_finishEntry();
                 }
             }
         }
@@ -335,12 +348,7 @@ class Net_LDAP_LDIF extends PEAR
     */
     function write_version() {
         $this->_version_written = true;
-        $version_string = 'version: '.$this->version()."\r\n";
-        if (fwrite($this->handle(), $version_string, strlen($version_string)) === false) {
-            $this->_dropError('Net_LDAP_LDIF error: unable to write version');
-        } else {
-            return true;
-        }
+        return $this->_writeLine('version: '.$this->version()."\r\n", 'Net_LDAP_LDIF error: unable to write version');
     }
 
     /**
@@ -528,8 +536,8 @@ class Net_LDAP_LDIF extends PEAR
                                 // only empty lines or comments, continue to seek
                                 // TODO: Known bug: Wrappings for comments are okay but are treaten as
                                 //       error, since we do not honor comment mode here.
-                                //       This should be a very theoretically case, however so
-                                //       i fix this if necessary.
+                                //       This should be a very theoretically case, however
+                                //       i am willing to fix this if really necessary.
                                 $this->_input_line++;
                                 $current_pos = ftell($fh);
                                 $data        = fgets($fh);
@@ -679,6 +687,70 @@ class Net_LDAP_LDIF extends PEAR
 
         // if converting is needed, do it
         return ($base64)? 'dn:: '.base64_encode($dn) : 'dn: '.$dn;
+    }
+
+    /**
+    * Writes an attribute to the filehandle
+    *
+    * @access private
+    * @param string $attr_name
+    * @param string|array $attr_values Single attribute value or array with attribute values
+    */
+    function _writeAttribute($attr_name, $attr_values) {
+        // write out attribute content
+        if (!is_array($attr_values)) {
+            $attr_values = array($attr_values);
+        }
+        foreach ($attr_values as $attr_val) {
+            $line = $this->_convertAttribute($attr_name, $attr_val)."\r\n";
+            $this->_writeLine($line, 'Net_LDAP_LDIF error: unable to write attribute '.$attr_name.' of entry '.$this->_entrynum);
+        }
+    }
+
+    /**
+    * Writes a DN to the filehandle
+    *
+    * Depending on
+    *
+    * @access private
+    * @param string $dn
+    */
+    function _writeDN($dn) {
+        // prepare DN
+        if ($this->_options['encode'] == 'base64') {
+            $dn = $this->_convertDN($dn)."\r\n";
+        } elseif ($this->_options['encode'] == 'canonical') {
+            $dn = Net_LDAP_Util::canonical_dn($dn, array('casefold' => 'none') )."\r\n";
+        } else {
+            $dn = $dn."\r\n";
+        }
+        $this->_writeLine($dn, 'Net_LDAP_LDIF error: unable to write DN of entry '.$this->_entrynum);
+    }
+
+    /**
+    * Finishes an LDIF entry
+    *
+    * @access private
+    */
+    function _finishEntry() {
+        $this->_writeLine("\r\n", 'Net_LDAP_LDIF error: unable to close entry '.$this->_entrynum);
+    }
+
+    /**
+    * Just write an arbitary line to the filehandle
+    *
+    * @access private
+    * @param string $line  Content to write
+    * @param string $error If error occurs, drop this message
+    * @return true|false
+    */
+    function _writeLine($line, $error = 'Net_LDAP_LDIF error: unable to write to filehandle') {
+        if (fwrite($this->handle(), $line, strlen($line)) === false) {
+            $this->_dropError($error);
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**
