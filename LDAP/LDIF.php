@@ -260,7 +260,7 @@ class Net_LDAP_LDIF extends PEAR
     * always get the last entry only.
     *
     * @param Net_LDAP_Entry|array Entry or array of entries
-    * @todo impement the options 'change', 'sort', 'wrap', 'raw'
+    * @todo impement the options 'change', 'raw'
     */
     function write_entry($entries) {
         if (!is_array($entries)) {
@@ -279,7 +279,7 @@ class Net_LDAP_LDIF extends PEAR
             if (!is_a($entry, 'Net_LDAP_Entry')) {
                 $this->_dropError('Net_LDAP_LDIF error: unable to write corrupt entry '.$entrynum);
             } else {
-                // write DN
+                // prepare DN
                 if ($this->_options['encode'] == 'base64') {
                     $dn = $this->_convertDN($entry->dn())."\r\n";
                 } elseif ($this->_options['encode'] == 'canonical') {
@@ -288,13 +288,15 @@ class Net_LDAP_LDIF extends PEAR
                      $dn = $entry->dn()."\r\n";
                 }
 
+                // write DN
                 if (fwrite($this->handle(), $dn, strlen($dn)) === false) {
                     $this->_dropError('Net_LDAP_LDIF error: unable to write DN of entry '.$entrynum);
                 } else {
-                    // write attributes
+                    // fetch attributes for further processing
                     $entry_attrs = $entry->getValues();
+
+                    // sort and put objectclass-attrs to first position
                     if ($this->_options['sort']) {
-                        // sort and put objectclass-attrs to first position
                         ksort($entry_attrs);
                         if (array_key_exists('objectclass', $entry_attrs)) {
                             $oc = $entry_attrs['objectclass'];
@@ -302,6 +304,8 @@ class Net_LDAP_LDIF extends PEAR
                             $entry_attrs = array_merge(array('objectclass' => $oc), $entry_attrs);
                         }
                     }
+
+                    // write attributes
                     foreach ($entry_attrs as $attr_name => $attr_values) {
                         if (!is_array($attr_values)) {
                             $attr_values = array($attr_values);
@@ -579,6 +583,8 @@ class Net_LDAP_LDIF extends PEAR
     * Convert an attribute and value to LDIF string representation
     *
     * It honors correct encoding of values according to RFC 2849.
+    * Line wrapping will occur at the configured maximum but only if
+    * the value is greater than 40 chars.
     *
     * @access private
     * @param string $attr_name  Name of the attribute
@@ -586,42 +592,52 @@ class Net_LDAP_LDIF extends PEAR
     * @return string LDIF string for that attribute and value
     */
     function _convertAttribute($attr_name, $attr_value) {
-        $base64 = false;
-        // ASCII-chars that are NOT safe for the
-        // start and for being inside the value.
-        // These are the int values of those chars.
-        $unsafe_init = array(0, 10, 13, 32, 58, 60);
-        $unsafe      = array(0, 10, 13);
+        // Handle empty attribute or process
+        if (strlen($attr_value) == 0) {
+            $attr_value = " ";
+        } else {
+            $base64 = false;
+            // ASCII-chars that are NOT safe for the
+            // start and for being inside the value.
+            // These are the int values of those chars.
+            $unsafe_init = array(0, 10, 13, 32, 58, 60);
+            $unsafe      = array(0, 10, 13);
 
-        // Test for illegal init char
-        $init_ord = ord(substr($attr_value, 0, 1));
-        if ($init_ord >= 127 || in_array($init_ord, $unsafe_init)) {
-            $base64 = true;
-        }
-
-        // Test for illegal content char
-        for ($i = 0; $i < strlen($attr_value); $i++) {
-            $char = substr($attr_value, $i, 1);
-            if (ord($char) >= 127 || in_array($init_ord, $unsafe)) {
+            // Test for illegal init char
+            $init_ord = ord(substr($attr_value, 0, 1));
+            if ($init_ord >= 127 || in_array($init_ord, $unsafe_init)) {
                 $base64 = true;
+            }
+
+            // Test for illegal content char
+            for ($i = 0; $i < strlen($attr_value); $i++) {
+                $char = substr($attr_value, $i, 1);
+                if (ord($char) >= 127 || in_array($init_ord, $unsafe)) {
+                    $base64 = true;
+                }
+            }
+
+            // Test for ending space
+            if (substr($attr_value, -1) == ' ') {
+                $base64 = true;
+            }
+
+            // if converting is needed, do it
+            if ($base64) {
+                $attr_name .= ':';
+                $attr_value = base64_encode($attr_value);
+            }
+
+            // lowercase attr names if requested
+            if ($this->_options['lowercase']) $attr_name = strtolower($attr_name);
+
+            // handle line wrapping
+            if ($this->_options['wrap'] > 40 && strlen($attr_value) > $this->_options['wrap']) {
+                $attr_value = wordwrap($attr_value, $this->_options['wrap'], "\n ", true);
             }
         }
 
-        // Test for ending space
-        if (substr($attr_value, -1) == ' ') {
-            $base64 = true;
-        }
-
-        // Handle empty attribute
-        if ($attr_value == '') {
-            $attr_value = " \r\n";
-        }
-
-        // lowercase attr names if set
-        if ($this->_options['lowercase']) $attr_name = strtolower($attr_name);
-
-        // if converting is needed, do it
-        return ($base64)? $attr_name.':: '.base64_encode($attr_value) : $attr_name.': '.$attr_value;
+        return $attr_name.': '.$attr_value;
     }
 
     /**
