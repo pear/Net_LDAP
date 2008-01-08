@@ -813,5 +813,21 @@ class Net_LDAP_Entry extends PEAR
         }
         return $match;
     }
+
+    /**
+    * Is this entry going to be deleted once update() is called?
+    */
+    function willBeDeleted() {
+        return $this->_delete;
+    }
+
+    /**
+    * Returns the attribute changes to be carried out once update() is called
+    *
+    * @return array
+    */
+    function getChanges() {
+        return $this->_changes;
+    }
 }
 ?>

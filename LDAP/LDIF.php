@@ -272,7 +272,7 @@ class Net_LDAP_LDIF extends PEAR
     *
     * @param Net_LDAP_Entry|array Entry or array of entries
     * @todo impement the options 'raw'
-    * @todo implement operations on whole entries (adding and deleting a whole entry)
+    * @todo implement operations on whole entries (adding and moving a whole entry)
     */
     function write_entry($entries) {
         if (!is_array($entries)) {
@@ -286,22 +286,30 @@ class Net_LDAP_LDIF extends PEAR
             } else {
                 if ($this->_options['change']) {
                     // LDIF change mode
-                    // fetch changes from entry
-                    // TODO: this violates object oriented design since $entry->_changes is marked private!!
-                    $entry_attrs_changes = $entry->_changes;
+                    // fetch change information from entry
+                    $entry_attrs_changes = $entry->getChanges();
                     $num_of_changes      = count($entry_attrs_changes['add'])
                                            + count($entry_attrs_changes['replace'])
                                            + count($entry_attrs_changes['delete']);
-                    if ($num_of_changes > 0) {
-                        // write change data
+
+                    $is_changed = ($num_of_changes > 0 || $entry->willBeDeleted());
+
+                    // write version if not done yet
+                    // also write DN of entry
+                    if ($is_changed) {
                         if (!$this->_version_written) {
                             $this->write_version();
                         }
                         $this->_writeDN($entry->dn());
+                    }
 
-                        // TODO: Consider other entry change types like delete and modrdn
+                    // process changes
+                    // TODO: consider DN move change!
+                    if ($entry->willBeDeleted()) {
+                        $this->_writeLine("changetype: delete\r\n");
+                    } elseif ($num_of_changes > 0) {
+                        // write attribute change data
                         $this->_writeLine("changetype: modify\r\n");
-
                         foreach ($entry_attrs_changes as $changetype => $entry_attrs) {
                             foreach ($entry_attrs as $attr_name => $attr_values) {
                                 $this->_writeLine("$changetype: $attr_name\r\n");
@@ -309,6 +317,10 @@ class Net_LDAP_LDIF extends PEAR
                                 $this->_writeLine("-\r\n");
                             }
                         }
+                    }
+
+                    // finish this entrys data if we had changes
+                    if ($is_changed) {
                         $this->_finishEntry();
                     }
                 } else {
