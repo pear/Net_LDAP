@@ -293,6 +293,15 @@ class Net_LDAP_LDIF extends PEAR
                 } else {
                     // write attributes
                     $entry_attrs = $entry->getValues();
+                    if ($this->_options['sort']) {
+                        // sort and put objectclass-attrs to first position
+                        ksort($entry_attrs);
+                        if (array_key_exists('objectclass', $entry_attrs)) {
+                            $oc = $entry_attrs['objectclass'];
+                            unset($entry_attrs['objectclass']);
+                            $entry_attrs = array_merge(array('objectclass' => $oc), $entry_attrs);
+                        }
+                    }
                     foreach ($entry_attrs as $attr_name => $attr_values) {
                         if (!is_array($attr_values)) {
                             $attr_values = array($attr_values);
