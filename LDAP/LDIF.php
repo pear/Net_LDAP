@@ -185,7 +185,7 @@ class Net_LDAP_LDIF extends PEAR
     *         Number of columns where output line wrapping shall occur.
     *         Default is 78. Setting it to 40 or lower inhibits wrapping.
     *
-    *       raw => REGEX
+    *       [NOT IMPLEMENTED] raw => REGEX
     *         Use REGEX to denote the names of attributes that are to be
     *         considered binary in search results.
     *         Example: raw => "/(?i:^jpegPhoto|;binary)/i"
@@ -271,7 +271,7 @@ class Net_LDAP_LDIF extends PEAR
     * in append mode ("a"), otherwise you will always get the last entry only.
     *
     * @param Net_LDAP_Entry|array Entry or array of entries
-    * @todo impement the options 'raw'
+    * @todo impement the options 'raw' with auto-schema check
     * @todo implement operations on whole entries (adding and moving a whole entry)
     */
     function write_entry($entries) {
