@@ -14,18 +14,27 @@ require_once 'Net/LDAP/Util.php';
 *
 * Usage example:
 * <code>
-* // Read and parse an ldif-file into Net_LDAP_Entry
-* // objects and print out the DNs
+* // Read and parse an ldif-file into Net_LDAP_Entry objects
+* // and print out the DNs. Store the entries for later use.
 * require 'Net/LDAP/LDIF.php';
 * $options = array(
 *       'onerror' => 'die'
 * );
+* $entries = array();
 * $ldif = new Net_LDAP_LDIF('test.ldif', 'r', $options);
 * do {
 *       $entry = $ldif->read_entry();
-*       $dn = $entry->dn();
-*       echo $ldif->_input_line." done building entry: $dn\n";
+*       $dn    = $entry->dn();
+*       echo " done building entry: $dn\n";
+*       array_push($entry, $entries);
 * } while (!$ldif->eof());
+* $ldif->done();
+*
+*
+* // write those entries to another file
+* $ldif = new Net_LDAP_LDIF('test.out.ldif', 'w', $options);
+* $ldif->write_entry($entries);
+* $ldif->done();
 * </code>
 *
 * @category Net
@@ -37,7 +46,6 @@ require_once 'Net/LDAP/Util.php';
 * @see      http://www.ietf.org/rfc/rfc2849.txt
 * @todo     Error handling should be PEARified
 * @todo     LDAPv3 controls are not implemented yet
-* @todo     Use _writeLine() everywhere
 */
 class Net_LDAP_LDIF extends PEAR
 {
