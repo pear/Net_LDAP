@@ -2,6 +2,7 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
 
 require_once 'PEAR.php';
+require_once 'Net/LDAP.php';
 require_once 'Net/LDAP/Entry.php';
 require_once 'Net/LDAP/Util.php';
 
@@ -205,6 +206,8 @@ class Net_LDAP_LDIF extends PEAR
     * @param array            $options Options like described above
     */
     function Net_LDAP_LDIF($file, $mode = 'r', $options = array()) {
+        $this->PEAR('Net_LDAP_Error'); // default error class
+
         // First, parse options
         // todo: maybe implement further checks on possible values
         foreach ($options as $option => $value) {
@@ -220,31 +223,49 @@ class Net_LDAP_LDIF extends PEAR
         $this->version($this->_options['version']);
 
         // setup file mode
-        if (!preg_match('/^[rwa](?:\+b|b\+)?$/', $mode)) {
+        if (!preg_match('/^[rwa]\+?$/', $mode)) {
             $this->_dropError('Net_LDAP_LDIF error: file mode '.$mode.' not supported!');
         } else {
             $this->_mode = $mode;
-        }
 
-        // setup filehandle
-        if (is_resource($file)) {
-            // TODO: checks on mode?
-            $this->_FH =& $file;
-        } else {
-            if ($this->_mode == 'r' && !is_readable($file)) {
-                $this->_dropError('Unable to open '.$file.': permission denied');
-                $this->_mode = false;
-            } elseif (($this->_mode == 'w' || $this->_mode == 'a') && !is_writable($file)) {
-                $this->_dropError('Unable to open '.$file.': permission denied');
-                $this->_mode = false;
-            }
+            // setup filehandle
+            if (is_resource($file)) {
+                // TODO: checks on mode possible?
+                $this->_FH =& $file;
+            } else {
+                $imode = substr($this->_mode, 0, 1);
+                if ($imode == 'r') {
+                    if (!file_exists($file)) {
+                        $this->_dropError('Unable to open '.$file.' for read: file not found');
+                        $this->_mode = false;
+                    }
+                    if (!is_readable($file)) {
+                        $this->_dropError('Unable to open '.$file.' for read: permission denied');
+                        $this->_mode = false;
+                    }
+                }
 
-            if ($this->_mode) {
-                $this->_FH = @fopen($file, $this->_mode);
-                if (false === $this->_FH) {
-                    $this->_dropError('Net_LDAP_LDIF error: Could not open file '.$file);
-                } else {
-                    $this->_FH_opened = true;
+                if (($imode == 'w' || $imode == 'a')) {
+                    if (file_exists($file)) {
+                        if (!is_writable($file)) {
+                            $this->_dropError('Unable to open '.$file.' for write: permission denied');
+                            $this->_mode = false;
+                        }
+                    } else {
+                        if (!@touch($file)) {
+                            $this->_dropError('Unable to create '.$file.' for write: permission denied');
+                            $this->_mode = false;
+                        }
+                    }
+                }
+
+                if ($this->_mode) {
+                    $this->_FH = @fopen($file, $this->_mode);
+                    if (false === $this->_FH) {
+                        $this->_dropError('Net_LDAP_LDIF error: Could not open file '.$file);
+                    } else {
+                        $this->_FH_opened = true;
+                    }
                 }
             }
         }
@@ -402,7 +423,8 @@ class Net_LDAP_LDIF extends PEAR
     function &handle() {
         if (!is_resource($this->_FH)) {
             $this->_dropError('Net_LDAP_LDIF error: invalid file resource');
-            return null;
+            $null = null;
+            return $null;
         } else {
             return $this->_FH;
         }
@@ -765,7 +787,7 @@ class Net_LDAP_LDIF extends PEAR
     * @return true|false
     */
     function _writeLine($line, $error = 'Net_LDAP_LDIF error: unable to write to filehandle') {
-        if (fwrite($this->handle(), $line, strlen($line)) === false) {
+        if (is_resource($this->handle()) && fwrite($this->handle(), $line, strlen($line)) === false) {
             $this->_dropError($error);
             return false;
         } else {
