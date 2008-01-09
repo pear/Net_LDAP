@@ -158,8 +158,9 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
 
         // print success:
         ob_start();
-        $this->assertTrue($filter->printMe());
+        $printresult = $filter->printMe();
         ob_end_clean();
+        $this->assertTrue($printresult);
 
         // PrintMe if Filehandle is an error (e.g. if some PEAR-File db is used):
         $err = new PEAR_Error();
