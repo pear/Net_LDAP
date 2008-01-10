@@ -450,7 +450,7 @@ class Net_LDAP_LDIF extends PEAR
     }
 
     /**
-    * Returns error message if error was found.
+    * Returns last error message if error was found.
     *
     * Example:
     * <code>

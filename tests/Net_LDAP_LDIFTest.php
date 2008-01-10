@@ -301,11 +301,12 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         $this->assertFalse((boolean)$ldif->error());
 
         // Error giving error msg and line number:
-        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif', 'r', $this->defaultConfig);
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/some_not_existing/path/for/net_ldap_ldif', 'r', $this->defaultConfig);
         $this->assertTrue((boolean)$ldif->error());
-        $this->assertType('string', $ldif->error());
-        $this->assertType('int', $ldif->error_line());
-        $this->assertThis(strlen($ldif->error()), $this->greaterThan(0));
+        $this->assertType('Net_LDAP_Error', $ldif->error());
+        $this->assertType('string', $ldif->error(true));
+        $this->assertType('int', $ldif->error_lines());
+        $this->assertThat(strlen($ldif->error(true)), $this->greaterThan(0));
     }
 
     /**
