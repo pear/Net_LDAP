@@ -279,17 +279,65 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
 
     /**
     * Tests if syntax errors are detected
+    *
+    * The used LDIF files have several damaged entries but always one
+    * correct too, to test if Net_LDAP_LDIF is continue reading as it should
+    * Each Entry must have 2 correct attributes.
     */
     public function testSyntaxerrors() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
         // Test malformed encoding
+        // I think we can ignore this test, because if the LDIF is not encoded properly, we
+        // might be able to successfully fetch the entries data. However, it is possible
+        // that it will be corrupted, but thats not our fault then.
+        // If we should catch that error, we must adjust Net_LDAP_LDIF::next_lines().
+        /*
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/malformed_encoding.ldif', 'r', $this->defaultConfig);
+        $this->assertFalse((boolean)$ldif->error());
+        $entries = array();
+        do {
+            $entry = $ldif->read_entry();
+            if ($entry) {
+                // the correct attributes need to be parsed
+                $this->assertThat(count(array_keys($entry->getValues())), $this->equalTo(2));
+                $entries[] = $entry;
+            }
+        } while (!$ldif->eof());
+        $this->assertTrue((boolean)$ldif->error());
+        $this->assertThat($ldif->error_lines(), $this->greaterThan(1));
+        $this->assertThat(count($entries), $this->equalTo(1));
+        */
 
         // Test malformed syntax
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/malformed_syntax.ldif', 'r', $this->defaultConfig);
+        $this->assertFalse((boolean)$ldif->error());
+        $entries = array();
+        do {
+            $entry = $ldif->read_entry();
+            if ($entry) {
+                // the correct attributes need to be parsed
+                $this->assertThat(count(array_keys($entry->getValues())), $this->equalTo(2));
+                $entries[] = $entry;
+            }
+        } while (!$ldif->eof());
+        $this->assertTrue((boolean)$ldif->error());
+        $this->assertThat($ldif->error_lines(), $this->greaterThan(1));
+        $this->assertThat(count($entries), $this->equalTo(2));
 
         // test bad wrapping
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/malformed_wrapping.ldif', 'r', $this->defaultConfig);
+        $this->assertFalse((boolean)$ldif->error());
+        $entries = array();
+        do {
+           $entry = $ldif->read_entry();
+            if ($entry) {
+                // the correct attributes need to be parsed
+                $this->assertThat(count(array_keys($entry->getValues())), $this->equalTo(2));
+                $entries[] = $entry;
+            }
+        } while (!$ldif->eof());
+        $this->assertTrue((boolean)$ldif->error());
+        $this->assertThat($ldif->error_lines(), $this->greaterThan(1));
+        $this->assertThat(count($entries), $this->equalTo(2));
     }
 
     /**
@@ -307,16 +355,13 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         $this->assertType('string', $ldif->error(true));
         $this->assertType('int', $ldif->error_lines());
         $this->assertThat(strlen($ldif->error(true)), $this->greaterThan(0));
-    }
 
-    /**
-     * @todo Implement testError_lines().
-     */
-    public function testError_lines() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
+        // Test for line number reporting
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/malformed_syntax.ldif', 'r', $this->defaultConfig);
+        $this->assertFalse((boolean)$ldif->error());
+        do { $entry = $ldif->read_entry(); } while (!$ldif->eof());
+        $this->assertTrue((boolean)$ldif->error());
+        $this->assertThat($ldif->error_lines(), $this->greaterThan(1));
     }
 
     /**
@@ -408,8 +453,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
           "This test has not been implemented yet."
         );
     }
-    
-    
+
     /**
     * Compare Net_LDAP_Entries
     *

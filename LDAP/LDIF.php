@@ -486,7 +486,7 @@ class Net_LDAP_LDIF extends PEAR
     /**
     * Returns the current Net::LDAP::Entry object.
     *
-    * @return Net_LDAP_Entry
+    * @return Net_LDAP_Entry|false
     * @todo what about file inclusions and urls? "jpegphoto:< file:///usr/local/directory/photos/fiona.jpg"
     */
     function current_entry() {
@@ -512,7 +512,7 @@ class Net_LDAP_LDIF extends PEAR
                 //$attributes[$attr][] = ...;
             } else {
                 $this->_dropError('Net_LDAP_LDIF parsing error: invalid syntax at parsing entry line: '.$line);
-                break;
+                continue;
             }
 
             if (strtolower($attr) == 'dn') {
@@ -630,7 +630,7 @@ class Net_LDAP_LDIF extends PEAR
                             $commentmode = false;
                         } else {
                             $this->_dropError('Net_LDAP_LDIF error: invalid syntax at input line '.$this->_input_line, $this->_input_line);
-                            break;
+                            continue;
                         }
 
                     }
@@ -813,9 +813,9 @@ class Net_LDAP_LDIF extends PEAR
     * @param string $msg  Errortext
     * @param int    $line Line in the LDIF that caused the error
     */
-    function _dropError($msg, $line = 0) {
-        $this->_error['error'] = PEAR::raiseError($msg);
-        $this->_error['line']  = $line;
+    function _dropError($msg, $line = null) {
+        $this->_error['error'] = new Net_LDAP_Error($msg);
+        if ($line !== null) $this->_error['line'] = $line;
 
         if ($this->_options['onerror'] == 'die') {
             die($msg.PHP_EOL);
