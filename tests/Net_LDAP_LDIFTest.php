@@ -18,7 +18,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
     * Default config for tests.
     *
     * The config is bound to the ldif test file
-    * tests/ldif_data/sorted_w50.ldif
+    * tests/ldif_data/unsorted_w50.ldif
     * so don't change or tests will fail
     *
     * @var array
@@ -28,7 +28,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         'encode'  => 'base64',
         'wrap'    => 50,
         'change'  => 0,
-        'sort'    => 1,
+        'sort'    => 0,
     );
 
     /**
@@ -41,7 +41,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
     */
     var $testentries_data = array(
         'cn=test1,ou=example,dc=cno' => array(
-            'cn'    => 'example2',
+            'cn'    => 'test1',
             'attr3' => array('foo', 'bar'),
             'attr1' => 12345,
             'attr4' => 'brrrzztt',
@@ -49,7 +49,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
             'attr2' => array('1234', 'baz')),
 
         'cn=test blabla,ou=example,dc=cno' => array(
-            'cn'    => 'example2',
+            'cn'    => 'test blabla',
             'attr3' => array('foo', 'bar'),
             'attr1' => 12345,
             'attr4' => 'blablaöäü',
@@ -58,7 +58,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
             'verylong' => 'fhu08rhvt7b478vt5hv78h45nfgt45h78t34hhhhhhhhhv5bg8h6ttttttttt3489t57nhvgh4788trhg8999vnhtgthgui65hgb5789thvngwr789cghm738'),
 
         'cn=test öäü,ou=example,dc=cno' => array(
-            'cn'    => 'example2',
+            'cn'    => 'test öäü',
             'attr3' => array('foo', 'bar'),
             'attr1' => 12345,
             'attr4' => 'blablaöäü',
@@ -187,7 +187,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
      * Tests if entries from an LDIF file are correctly constructed
      */
     public function testRead_entry() {
-        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/sorted_w50.ldif', 'r', $this->defaultConfig);
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif', 'r', $this->defaultConfig);
         $this->assertTrue(is_resource($ldif->handle()));
 
         $entries = array();
@@ -205,7 +205,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
      * Tests if entries are correctly written
      */
     public function testWrite_entry() {
-        $expected = file(dirname(__FILE__).'/ldif_data/sorted_w50.ldif');
+        $expected = file(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif');
         // strip 4 starting lines because of comments in the file header:
         array_shift($expected);array_shift($expected);
         array_shift($expected);array_shift($expected);
@@ -225,7 +225,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
      * Round trip test: Read LDIF, parse to entries, write that to LDIF and compare both files
      */
     public function testReadWriteRead() {
-        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/sorted_w50.ldif', 'r', $this->defaultConfig);
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif', 'r', $this->defaultConfig);
         $this->assertTrue(is_resource($ldif->handle()));
 
         // Read LDIF
@@ -246,7 +246,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
          $ldif->done();
 
          // Compare files
-         $expected = file(dirname(__FILE__).'/ldif_data/sorted_w50.ldif');
+         $expected = file(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif');
          // strip 4 starting lines because of comments in the file header:
          array_shift($expected);array_shift($expected);
          array_shift($expected);array_shift($expected);
@@ -278,53 +278,34 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testWrite_version().
-     */
-    public function testWrite_version() {
+    * Tests if syntax errors are detected
+    */
+    public function testSyntaxerrors() {
         // Remove the following line when you implement this test.
         $this->markTestIncomplete(
           "This test has not been implemented yet."
         );
+        // Test malformed encoding
+
+        // Test malformed syntax
+
+        // test bad wrapping
     }
 
     /**
-     * @todo Implement testVersion().
-     */
-    public function testVersion() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
-
-    /**
-     * @todo Implement testHandle().
-     */
-    public function testHandle() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
-
-    /**
-     * @todo Implement testDone().
-     */
-    public function testDone() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
-
-    /**
-     * @todo Implement testError().
+     * Test error dropping functionality
      */
     public function testError() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
+        // NO error:
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif', 'r', $this->defaultConfig);
+        $this->assertFalse((boolean)$ldif->error());
+
+        // Error giving error msg and line number:
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif', 'r', $this->defaultConfig);
+        $this->assertTrue((boolean)$ldif->error());
+        $this->assertType('string', $ldif->error());
+        $this->assertType('int', $ldif->error_line());
+        $this->assertThis(strlen($ldif->error()), $this->greaterThan(0));
     }
 
     /**

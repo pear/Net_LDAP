@@ -11,7 +11,7 @@ attr2: baz
 attr3: foo
 attr3: bar
 attr4: brrrzztt
-cn: example2
+cn: test1
 
 dn: cn=test blabla,ou=example,dc=cno
 objectclass: oc2
@@ -21,7 +21,7 @@ attr2: baz
 attr3: foo
 attr3: bar
 attr4:: YmxhYmxh9uT8
-cn: example2
+cn: test blabla
 verylong: fhu08rhvt7b478vt5hv78h45nfgt45h78t34hhhhhhhhhv5bg8h6ttttttttt3489t57nhvgh4788trhg8999vnhtgthgui65hgb5789thvngwr789cghm738
 
 dn:: Y249dGVzdCD25Pwsb3U9ZXhhbXBsZSxkYz1jbm8=
@@ -32,5 +32,5 @@ attr2: baz
 attr3: foo
 attr3: bar
 attr4:: YmxhYmxh9uT8
-cn: example2
+cn:: dGVzdCD25Pw=
 
