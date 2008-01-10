@@ -27,7 +27,7 @@ require_once 'Net/LDAP/Util.php';
 *       $entry = $ldif->read_entry();
 *       $dn    = $entry->dn();
 *       echo " done building entry: $dn\n";
-*       array_push($entry, $entries);
+*       array_push($entries, $entry);
 * } while (!$ldif->eof());
 * $ldif->done();
 *
@@ -402,8 +402,8 @@ class Net_LDAP_LDIF extends PEAR
     * @param int $version
     * @return int
     */
-    function version($version = '') {
-        if ($version) {
+    function version($version = null) {
+        if ($version !== null) {
             if ($version != 1) {
                 $this->_dropError('Net_LDAP_LDIF error: illegal LDIF version set');
             } else {
@@ -460,10 +460,15 @@ class Net_LDAP_LDIF extends PEAR
     *  }
     * </code>
     *
+    * @param boolean $as_string If set to true, only the message is returned
     * @return false|Net_LDAP_Error
     */
-    function error() {
-        return (Net_LDAP::isError($this->_error['error']))? $this->_error['error'] : false;
+    function error($as_string = false) {
+        if (Net_LDAP::isError($this->_error['error'])) {
+            return ($as_string)? $this->_error['error']->getMessage() : $this->_error['error'];
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -489,7 +494,7 @@ class Net_LDAP_LDIF extends PEAR
         $attributes = array();
         $dn = false;
         foreach ($this->current_lines() as $line) {
-            preg_match('/^(\w+)(:|::|:<)(.+)$/', $line, $matches);
+            preg_match('/^(\w+)(:|::|:<)\s(.+)$/', $line, $matches);
             $attr  =& $matches[1];
             $delim =& $matches[2];
             $data  =& $matches[3];
@@ -510,9 +515,10 @@ class Net_LDAP_LDIF extends PEAR
                 break;
             }
 
-            // detect DN
             if (strtolower($attr) == 'dn') {
-                $dn = $data;
+                // DN line detected
+                $dn = $attributes[$attr][0];  // save possibly decoded DN
+                unset($attributes[$attr]); // remove wrongly added "dn: " attribute
             }
         }
 
@@ -544,6 +550,7 @@ class Net_LDAP_LDIF extends PEAR
     *
     * @param boolean $force Set this to true if you want to iterate over the lines manually
     * @return array
+    * @bug Problem with DOS line endings. If the file is a unix one, comment mode works correctly
     */
     function next_lines($force = false) {
         // if we already have those lines, just return them, otherwise read
@@ -595,7 +602,10 @@ class Net_LDAP_LDIF extends PEAR
 
                     } else {
                         // build lines
-                        if (preg_match('/^\w+::?\s.+$/', $data)) {
+                        if (preg_match('/^version:\s(.+)$/', $data, $match)) {
+                            // version statement, set version
+                            $this->version($match[1]);
+                        } elseif (preg_match('/^\w+::?\s.+$/', $data)) {
                             // normal attribute: add line
                             $commentmode         = false;
                             $this->_lines_next[] = trim($data);
@@ -614,9 +624,10 @@ class Net_LDAP_LDIF extends PEAR
                         } elseif (preg_match('/^#/', $data)) {
                             // LDIF comments
                             $commentmode = true;
-                        } elseif (preg_match('/$/', $data)) {
+                        } elseif (preg_match('/^\s*$/', $data)) {
                             // empty line but we had no data for this
-                            // entry,so just ignore this line
+                            // entry, so just ignore this line
+                            $commentmode = false;
                         } else {
                             $this->_dropError('Net_LDAP_LDIF error: invalid syntax at input line '.$this->_input_line, $this->_input_line);
                             break;
