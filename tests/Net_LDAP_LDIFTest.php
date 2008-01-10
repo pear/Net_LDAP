@@ -147,6 +147,10 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
             }
         }
 
+        // Test illegal option passing
+        $ldif = new Net_LDAP_LDIF($this->outfile, $mode, array('somebad' => 'option'));
+        $this->assertType('Net_LDAP_Error', $ldif->error());
+
         // Test passing custom handle
         $handle = fopen($this->outfile, 'r');
         $ldif = new Net_LDAP_LDIF($handle, $mode, $this->defaultConfig);
@@ -179,7 +183,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
             $this->assertNull($ldif->handle());
             $this->assertType('Net_LDAP_Error', $ldif->error());
         } else {
-            $this->markTestIncomplete("Could not chmod ".$this->outfile.", write test without permission skipped");
+            $this->markTestSkipped("Could not chmod ".$this->outfile.", write test without permission skipped");
         }
     }
 
@@ -203,15 +207,82 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
 
     /**
      * Tests if entries are correctly written
+     *
+     * This tests converting entries to LDIF lines, wrapping, encoding, etc
      */
     public function testWrite_entry() {
+        $testconf = $this->defaultConfig;
+
+        /*
+        * test wrapped operation
+        */
+        $testconf['wrap'] = 50;
+        $testconf['sort'] = 0;
         $expected = file(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif');
         // strip 4 starting lines because of comments in the file header:
         array_shift($expected);array_shift($expected);
         array_shift($expected);array_shift($expected);
 
         // Write LDIF
-        $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $this->defaultConfig);
+        $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $testconf);
+        $this->assertTrue(is_resource($ldif->handle()));
+        $ldif->write_entry($this->testentries);
+        $this->assertFalse((boolean)$ldif->error(), 'Failed writing entry to '.$this->outfile.': '.$ldif->error(true));
+        $ldif->done();
+
+        // Compare files
+        $this->assertEquals($expected, file($this->outfile));
+
+
+        $testconf['wrap'] = 30;
+        $testconf['sort'] = 0;
+        $expected = file(dirname(__FILE__).'/ldif_data/unsorted_w30.ldif');
+        // strip 4 starting lines because of comments in the file header:
+        array_shift($expected);array_shift($expected);
+        array_shift($expected);array_shift($expected);
+
+        // Write LDIF
+        $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $testconf);
+        $this->assertTrue(is_resource($ldif->handle()));
+        $ldif->write_entry($this->testentries);
+        $this->assertFalse((boolean)$ldif->error(), 'Failed writing entry to '.$this->outfile.': '.$ldif->error(true));
+        $ldif->done();
+
+        // Compare files
+        $this->assertEquals($expected, file($this->outfile));
+
+
+
+        /*
+        * Test unwrapped operation
+        */
+        $testconf['wrap'] = 40;
+        $testconf['sort'] = 1;
+        $expected = file(dirname(__FILE__).'/ldif_data/sorted_w40.ldif');
+        // strip 4 starting lines because of comments in the file header:
+        array_shift($expected);array_shift($expected);
+        array_shift($expected);array_shift($expected);
+
+        // Write LDIF
+        $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $testconf);
+        $this->assertTrue(is_resource($ldif->handle()));
+        $ldif->write_entry($this->testentries);
+        $this->assertFalse((boolean)$ldif->error(), 'Failed writing entry to '.$this->outfile.': '.$ldif->error(true));
+        $ldif->done();
+
+        // Compare files
+        $this->assertEquals($expected, file($this->outfile));
+
+
+        $testconf['wrap'] = 50;
+        $testconf['sort'] = 1;
+        $expected = file(dirname(__FILE__).'/ldif_data/sorted_w50.ldif');
+        // strip 4 starting lines because of comments in the file header:
+        array_shift($expected);array_shift($expected);
+        array_shift($expected);array_shift($expected);
+
+        // Write LDIF
+        $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $testconf);
         $this->assertTrue(is_resource($ldif->handle()));
         $ldif->write_entry($this->testentries);
         $this->assertFalse((boolean)$ldif->error(), 'Failed writing entry to '.$this->outfile.': '.$ldif->error(true));
@@ -251,30 +322,6 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
          array_shift($expected);array_shift($expected);
          array_shift($expected);array_shift($expected);
          $this->assertEquals($expected, file($this->outfile));
-    }
-
-    /**
-    * Tests if values are converted (encoding, wrapping etc) correctly
-    */
-    public function testAttributeConversion() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-
-        // TODO: Test encoding
-
-        // TODO: Test wrapping
-    }
-
-    /**
-    * Tests if DNs are converted  correctly
-    */
-    public function testDNConversion() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
     }
 
     /**
@@ -365,19 +412,11 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testNext_lines().
+     * Tests current_lines() and next_lines().
+     *
+     * This should always return the same lines unless forced
      */
-    public function testNext_lines() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
-
-    /**
-     * Tests current_lines(). This should always return the same lines unless forced
-     */
-    public function testCurrent_lines() {
+    public function testLineMethods() {
         $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif', 'r', $this->defaultConfig);
         $this->assertFalse((boolean)$ldif->error());
         $this->assertEquals(array(), $ldif->current_lines(), 'Net_LDAP_LDIF initialization error!');

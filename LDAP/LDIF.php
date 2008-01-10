@@ -262,6 +262,7 @@ class Net_LDAP_LDIF extends PEAR
                 if ($this->_mode) {
                     $this->_FH = @fopen($file, $this->_mode);
                     if (false === $this->_FH) {
+                        // Fallback; should never be reached if tests above are good enough!
                         $this->_dropError('Net_LDAP_LDIF error: Could not open file '.$file);
                     } else {
                         $this->_FH_opened = true;
