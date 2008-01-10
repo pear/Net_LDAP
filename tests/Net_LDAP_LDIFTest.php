@@ -365,26 +365,6 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testCurrent_entry().
-     */
-    public function testCurrent_entry() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
-
-    /**
-     * @todo Implement testCurrent_lines().
-     */
-    public function testCurrent_lines() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
-
-    /**
      * @todo Implement testNext_lines().
      */
     public function testNext_lines() {
@@ -395,64 +375,58 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement test_convertAttribute().
+     * Tests current_lines(). This should always return the same lines unless forced
      */
-    public function test_convertAttribute() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
+    public function testCurrent_lines() {
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif', 'r', $this->defaultConfig);
+        $this->assertFalse((boolean)$ldif->error());
+        $this->assertEquals(array(), $ldif->current_lines(), 'Net_LDAP_LDIF initialization error!');
+
+        // read first lines
+        $lines = $ldif->next_lines();
+        $this->assertFalse((boolean)$ldif->error(), 'unable to read first lines');
+
+        // read the first lines several times and test
+        for ($i = 0; $i <= 10; $i++) {
+            $r_lines = $ldif->next_lines();
+            $this->assertFalse((boolean)$ldif->error());
+            $this->assertEquals($lines, $r_lines);
+        }
+
+        // now force to iterate and see if the content changes
+        $r_lines = $ldif->next_lines(true);
+        $this->assertFalse((boolean)$ldif->error());
+        $this->assertNotEquals($lines, $r_lines);
+
+        // it could be confusing to some people, but calling
+        // current_entry would not work now, like the description
+        // of the method says.
+        $no_entry = $ldif->current_lines();
+        $this->assertEquals(array(), $no_entry);
     }
 
     /**
-     * @todo Implement test_convertDN().
+     * Tests current_entry(). This should always return the same object
      */
-    public function test_convertDN() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
+    public function testCurrent_entry() {
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif', 'r', $this->defaultConfig);
+        $this->assertFalse((boolean)$ldif->error());
+
+        // read first entry
+        $entry = $ldif->read_entry();
+        $this->assertFalse((boolean)$ldif->error(), 'First entry failed: '.$ldif->error(true));
+
+        // test if current_Entry remains the first one
+        for ($i = 0; $i <= 10; $i++) {
+            $e = $ldif->current_entry();
+            $this->assertFalse((boolean)$ldif->error(), $ldif->error(true));
+            $this->assertEquals($entry, $e);
+        }
     }
 
-    /**
-     * @todo Implement test_writeAttribute().
-     */
-    public function test_writeAttribute() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
 
-    /**
-     * @todo Implement test_writeDN().
-     */
-    public function test_writeDN() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
 
-    /**
-     * @todo Implement test_finishEntry().
-     */
-    public function test_finishEntry() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
 
-    /**
-     * @todo Implement test_writeLine().
-     */
-    public function test_writeLine() {
-        // Remove the following line when you implement this test.
-        $this->markTestIncomplete(
-          "This test has not been implemented yet."
-        );
-    }
 
     /**
     * Compare Net_LDAP_Entries

@@ -534,6 +534,8 @@ class Net_LDAP_LDIF extends PEAR
     /**
     * Returns the lines that generated the current Net::LDAP::Entry object.
     *
+    * Note that this returns an empty array if no lines have been read so far.
+    *
     * @return array Array of lines
     */
     function current_lines() {
@@ -544,7 +546,8 @@ class Net_LDAP_LDIF extends PEAR
     * Returns the lines that will generate the next Net::LDAP::Entry object.
     *
     * If you set $force to TRUE then you can iterate over the lines that build
-    * up entries manually. Otherwise, iterating is done using {@link read_entry()}
+    * up entries manually. Otherwise, iterating is done using {@link read_entry()}.
+    * Force will move the file pointer forward, thus returning the next entries lines.
     *
     * Wrapped lines will be unwrapped. Comments are stripped.
     *
