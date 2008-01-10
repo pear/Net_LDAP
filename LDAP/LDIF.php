@@ -335,15 +335,15 @@ class Net_LDAP_LDIF extends PEAR
                     // process changes
                     // TODO: consider DN move change!
                     if ($entry->willBeDeleted()) {
-                        $this->_writeLine("changetype: delete\r\n");
+                        $this->_writeLine("changetype: delete".PHP_EOL);
                     } elseif ($num_of_changes > 0) {
                         // write attribute change data
-                        $this->_writeLine("changetype: modify\r\n");
+                        $this->_writeLine("changetype: modify".PHP_EOL);
                         foreach ($entry_attrs_changes as $changetype => $entry_attrs) {
                             foreach ($entry_attrs as $attr_name => $attr_values) {
-                                $this->_writeLine("$changetype: $attr_name\r\n");
+                                $this->_writeLine("$changetype: $attr_name".PHP_EOL);
                                 if ($attr_values !== null) $this->_writeAttribute($attr_name, $attr_values, $changetype);
-                                $this->_writeLine("-\r\n");
+                                $this->_writeLine("-".PHP_EOL);
                             }
                         }
                     }
@@ -389,7 +389,7 @@ class Net_LDAP_LDIF extends PEAR
     */
     function write_version() {
         $this->_version_written = true;
-        return $this->_writeLine('version: '.$this->version()."\r\n", 'Net_LDAP_LDIF error: unable to write version');
+        return $this->_writeLine('version: '.$this->version().PHP_EOL, 'Net_LDAP_LDIF error: unable to write version');
     }
 
     /**
@@ -755,7 +755,7 @@ class Net_LDAP_LDIF extends PEAR
             $attr_values = array($attr_values);
         }
         foreach ($attr_values as $attr_val) {
-            $line = $this->_convertAttribute($attr_name, $attr_val)."\r\n";
+            $line = $this->_convertAttribute($attr_name, $attr_val).PHP_EOL;
             $this->_writeLine($line, 'Net_LDAP_LDIF error: unable to write attribute '.$attr_name.' of entry '.$this->_entrynum);
         }
     }
@@ -771,11 +771,11 @@ class Net_LDAP_LDIF extends PEAR
     function _writeDN($dn) {
         // prepare DN
         if ($this->_options['encode'] == 'base64') {
-            $dn = $this->_convertDN($dn)."\r\n";
+            $dn = $this->_convertDN($dn).PHP_EOL;
         } elseif ($this->_options['encode'] == 'canonical') {
-            $dn = Net_LDAP_Util::canonical_dn($dn, array('casefold' => 'none') )."\r\n";
+            $dn = Net_LDAP_Util::canonical_dn($dn, array('casefold' => 'none') ).PHP_EOL;
         } else {
-            $dn = $dn."\r\n";
+            $dn = $dn.PHP_EOL;
         }
         $this->_writeLine($dn, 'Net_LDAP_LDIF error: unable to write DN of entry '.$this->_entrynum);
     }
@@ -786,7 +786,7 @@ class Net_LDAP_LDIF extends PEAR
     * @access private
     */
     function _finishEntry() {
-        $this->_writeLine("\r\n", 'Net_LDAP_LDIF error: unable to close entry '.$this->_entrynum);
+        $this->_writeLine(PHP_EOL, 'Net_LDAP_LDIF error: unable to close entry '.$this->_entrynum);
     }
 
     /**

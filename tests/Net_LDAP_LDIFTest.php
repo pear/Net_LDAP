@@ -17,6 +17,10 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
     /**
     * Default config for tests.
     *
+    * The config is bound to the ldif test file
+    * tests/ldif_data/read_testfile.ldif
+    * so don't change or tests will fail
+    *
     * @var array
     */
     var $defaultConfig = array(
@@ -195,6 +199,41 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         } while (!$ldif->eof());
 
         $this->compareEntries($entries, $this->testentries);
+    }
+
+    /**
+     * Round trip test: Read LDIF, parse to entries, write that to LDIF and compare both files
+     */
+    public function testReadWriteRead() {
+        $testcfg = $this->defaultConfig;
+        $testcfg['sort'] = 0;
+
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/read_testfile.ldif', 'r', $testcfg);
+        $this->assertTrue(is_resource($ldif->handle()));
+
+        // Read LDIF
+        $entries = array();
+        do {
+            $entry = $ldif->read_entry();
+            $this->assertFalse((boolean)$ldif->error(), 'failed building entry from LDIF: '.$ldif->error(true));
+            $this->assertType('Net_LDAP_Entry', $entry);
+            array_push($entries, $entry);
+        } while (!$ldif->eof());
+        $ldif->done();
+
+         // Write LDIF
+         $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $testcfg);
+         $this->assertTrue(is_resource($ldif->handle()));
+         $ldif->write_entry($entries);
+         $this->assertFalse((boolean)$ldif->error(), 'Failed writing entry to '.$this->outfile.': '.$ldif->error(true));
+         $ldif->done();
+
+         // Compare files
+         $expected = file(dirname(__FILE__).'/ldif_data/read_testfile.ldif');
+         // strip 4 starting lines since comments:
+         array_shift($expected);array_shift($expected);
+         array_shift($expected);array_shift($expected);
+         $this->assertEquals($expected, file($this->outfile));
     }
 
     /**
@@ -391,26 +430,20 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         // step 1: extract and sort data
         foreach ($entry1 as $e) {
             $values = $e->getValues();
-//             ksort($values);
             foreach ($values as $attr_name => $attr_values) {
                 if (!is_array($attr_values)) $attr_values = array($attr_values);
-//                 sort($attr_values);
                 $values[$attr_name] = $attr_values;
             }
             $entries_data1[$e->dn()] = $values;
         }
         foreach ($entry2 as $e) {
             $values = $e->getValues();
-//             ksort($values);
             foreach ($values as $attr_name => $attr_values) {
                 if (!is_array($attr_values)) $attr_values = array($attr_values);
-//                 sort($attr_values);
                 $values[$attr_name] = $attr_values;
             }
             $entries_data2[$e->dn()] = $values;
         }
-//         ksort($entries_data1);
-//         ksort($entries_data2);
 
         // step 2: compare DNs (entries)
         $this->assertEquals(array_keys($entries_data1), array_keys($entries_data2), 'Entries DNs not equal! (missing entry or wrong DN)');
