@@ -82,6 +82,14 @@ http://pear.php.net/dtd/package-2.0.xsd">
                 <file baseinstalldir="Net" name="Net_LDAP_SearchTest.php" role="test" />
                 <file baseinstalldir="Net" name="Net_LDAPTest.php" role="test" />
                 <file baseinstalldir="Net" name="Net_LDAP_UtilTest.php" role="test" />
+                <file baseinstalldir="Net" name="Net_LDAP_LDIFTest.php" role="test" />
+                <file baseinstalldir="Net" name="ldif_data/malformed_encoding.ldif" role="test" />
+                <file baseinstalldir="Net" name="ldif_data/malformed_syntax.ldif" role="test" />
+                <file baseinstalldir="Net" name="ldif_data/malformed_wrapping.ldif" role="test" />
+                <file baseinstalldir="Net" name="ldif_data/sorted_w40.ldif" role="test" />
+                <file baseinstalldir="Net" name="ldif_data/sorted_w50.ldif" role="test" />
+                <file baseinstalldir="Net" name="ldif_data/unsorted_w30.ldif" role="test" />
+                <file baseinstalldir="Net" name="ldif_data/unsorted_w50.ldif" role="test" />
             </dir> <!-- /tests -->
         </dir> <!-- / -->
     </contents>
