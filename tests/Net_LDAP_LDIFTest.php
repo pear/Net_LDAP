@@ -18,7 +18,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
     * Default config for tests.
     *
     * The config is bound to the ldif test file
-    * tests/ldif_data/read_testfile.ldif
+    * tests/ldif_data/sorted_w50.ldif
     * so don't change or tests will fail
     *
     * @var array
@@ -187,7 +187,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
      * Tests if entries from an LDIF file are correctly constructed
      */
     public function testRead_entry() {
-        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/read_testfile.ldif', 'r', $this->defaultConfig);
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/sorted_w50.ldif', 'r', $this->defaultConfig);
         $this->assertTrue(is_resource($ldif->handle()));
 
         $entries = array();
@@ -202,13 +202,30 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Tests if entries are correctly written
+     */
+    public function testWrite_entry() {
+        $expected = file(dirname(__FILE__).'/ldif_data/sorted_w50.ldif');
+        // strip 4 starting lines because of comments in the file header:
+        array_shift($expected);array_shift($expected);
+        array_shift($expected);array_shift($expected);
+
+        // Write LDIF
+        $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $this->defaultConfig);
+        $this->assertTrue(is_resource($ldif->handle()));
+        $ldif->write_entry($this->testentries);
+        $this->assertFalse((boolean)$ldif->error(), 'Failed writing entry to '.$this->outfile.': '.$ldif->error(true));
+        $ldif->done();
+
+        // Compare files
+        $this->assertEquals($expected, file($this->outfile));
+    }
+
+    /**
      * Round trip test: Read LDIF, parse to entries, write that to LDIF and compare both files
      */
     public function testReadWriteRead() {
-        $testcfg = $this->defaultConfig;
-        $testcfg['sort'] = 0;
-
-        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/read_testfile.ldif', 'r', $testcfg);
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/sorted_w50.ldif', 'r', $this->defaultConfig);
         $this->assertTrue(is_resource($ldif->handle()));
 
         // Read LDIF
@@ -222,34 +239,38 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         $ldif->done();
 
          // Write LDIF
-         $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $testcfg);
+         $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $this->defaultConfig);
          $this->assertTrue(is_resource($ldif->handle()));
          $ldif->write_entry($entries);
          $this->assertFalse((boolean)$ldif->error(), 'Failed writing entry to '.$this->outfile.': '.$ldif->error(true));
          $ldif->done();
 
          // Compare files
-         $expected = file(dirname(__FILE__).'/ldif_data/read_testfile.ldif');
-         // strip 4 starting lines since comments:
+         $expected = file(dirname(__FILE__).'/ldif_data/sorted_w50.ldif');
+         // strip 4 starting lines because of comments in the file header:
          array_shift($expected);array_shift($expected);
          array_shift($expected);array_shift($expected);
          $this->assertEquals($expected, file($this->outfile));
     }
 
     /**
-     * @todo Implement testEof().
-     */
-    public function testEof() {
+    * Tests if values are converted (encoding, wrapping etc) correctly
+    */
+    public function testAttributeConversion() {
         // Remove the following line when you implement this test.
         $this->markTestIncomplete(
           "This test has not been implemented yet."
         );
+
+        // TODO: Test encoding
+
+        // TODO: Test wrapping
     }
 
     /**
-     * @todo Implement testWrite_entry().
-     */
-    public function testWrite_entry() {
+    * Tests if DNs are converted  correctly
+    */
+    public function testDNConversion() {
         // Remove the following line when you implement this test.
         $this->markTestIncomplete(
           "This test has not been implemented yet."

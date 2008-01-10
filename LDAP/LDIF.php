@@ -694,7 +694,7 @@ class Net_LDAP_LDIF extends PEAR
 
             // handle line wrapping
             if ($this->_options['wrap'] > 40 && strlen($attr_value) > $this->_options['wrap']) {
-                $attr_value = wordwrap($attr_value, $this->_options['wrap'], "\n ", true);
+                $attr_value = wordwrap($attr_value, $this->_options['wrap'], PHP_EOL." ", true);
             }
         }
 
