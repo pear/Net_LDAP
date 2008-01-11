@@ -63,7 +63,12 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
             'attr1' => 12345,
             'attr4' => 'blablaöäü',
             'objectclass' => 'oc3',
-            'attr2' => array('1234', 'baz'))
+            'attr2' => array('1234', 'baz'),
+            'attr5' => 'endspace ',
+            'attr6' => ':badinitchar'),
+
+        ':cn=endspace,dc=cno ' => array(
+            'cn'    => 'endspace')
     );
 
     /**
@@ -290,6 +295,15 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
 
         // Compare files
         $this->assertEquals($expected, file($this->outfile));
+
+
+        /*
+        * Test writing with non entry as parameter
+        */
+        $ldif = new Net_LDAP_LDIF($this->outfile, 'w');
+        $this->assertTrue(is_resource($ldif->handle()));
+        $ldif->write_entry('malformed_parameter');
+        $this->assertTrue((boolean)$ldif->error());
     }
 
     /**

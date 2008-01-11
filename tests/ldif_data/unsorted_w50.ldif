@@ -35,4 +35,9 @@ attr4:: YmxhYmxh9uT8
 objectclass: oc3
 attr2: 1234
 attr2: baz
+attr5:: ZW5kc3BhY2Ug
+attr6:: OmJhZGluaXRjaGFy
+
+dn:: OmNuPWVuZHNwYWNlLGRjPWNubyA=
+cn: endspace
 

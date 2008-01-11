@@ -3,6 +3,9 @@
 #
 
 # wrong wrapping (entry must fail because DN is damaged):
+# (note, that there must eb an empty line below this comment, otherwise
+# the DN line is treaten as wrapped comment)
+
  dn: cn=test1,ou=example,dc=cno
 objectclass: oc1
 cn: test1

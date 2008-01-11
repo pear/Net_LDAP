@@ -32,5 +32,10 @@ attr2: baz
 attr3: foo
 attr3: bar
 attr4:: YmxhYmxh9uT8
+attr5:: ZW5kc3BhY2Ug
+attr6:: OmJhZGluaXRjaGFy
 cn:: dGVzdCD25Pw=
+
+dn:: OmNuPWVuZHNwYWNlLGRjPWNubyA=
+cn: endspace
 

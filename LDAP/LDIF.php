@@ -563,11 +563,10 @@ class Net_LDAP_LDIF extends PEAR
             $entry_done = false;
             $fh =& $this->handle();
             $commentmode = false; // if we are in an comment, for wrapping purposes
-            $lines_read = 0;
+            $datalines_read = 0;  // how many lines with data we have read
 
             while (!$entry_done && !$this->eof()) {
                 $this->_input_line++;
-                $lines_read++;
                 $data = fgets($fh);
                 if ($data === false) {
                     // error only, if EOF not reached after fgets() call
@@ -613,16 +612,18 @@ class Net_LDAP_LDIF extends PEAR
                             // normal attribute: add line
                             $commentmode         = false;
                             $this->_lines_next[] = trim($data);
+                            $datalines_read++;
                         } elseif (preg_match('/^\s(.+)$/', $data, $matches)) {
                             // wrapped data: unwrap if not in comment mode
                             if (!$commentmode) {
-                                if ($lines_read == 1) {
-                                    // first line: wrapped data is illegal
+                                if ($datalines_read == 0) {
+                                    // first line of entry: wrapped data is illegal
                                     $this->_dropError('Net_LDAP_LDIF error: illegal wrapping at input line '.$this->_input_line, $this->_input_line);
                                 } else {
                                     $last = array_pop($this->_lines_next);
-                                    $last = $last.$matches[1];
+                                    $last = $last.trim($matches[1]);
                                     $this->_lines_next[] = $last;
+                                    $datalines_read++;
                                 }
                             }
                         } elseif (preg_match('/^#/', $data)) {
