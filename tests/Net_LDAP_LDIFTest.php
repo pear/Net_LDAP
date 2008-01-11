@@ -339,6 +339,13 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Tests if entriy changes are correctly written
+     */
+    public function testWrite_entryChanges() {
+        $this->markTestIncomplete('not implemented yet');
+    }
+
+    /**
     * Tests if syntax errors are detected
     *
     * The used LDIF files have several damaged entries but always one
