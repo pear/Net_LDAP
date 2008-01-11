@@ -39,8 +39,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <!-- Information for this release -->
     <date></date>
     <version>
-        <release>1.0.0</release>
-        <api>1.0.0</api>
+        <release>1.1.0a1</release>
+        <api>1.1.0a1</api>
     </version>
     <stability>
         <release>stable</release>
@@ -48,6 +48,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </stability>
     <license>LGPL License</license>
     <notes>
+        * Added LDIF reading and writing support
+        * Fixed minor issues of 1.0.0 release
     </notes>
 
     <contents>
@@ -96,10 +98,10 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <dependencies>
         <required>
             <php>
-                <min>4.2.0</min>
+                <min>4.2.0</min> <!-- by PHP_CompatInfo; to run tests, 5.0 is needed! -->
             </php>
             <pearinstaller>
-                <min>1.4.0b1</min>
+                <min>1.5.0</min>
             </pearinstaller>
         </required>
     </dependencies>
