@@ -131,7 +131,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
      * @access protected
      */
     protected function tearDown() {
-        @unlink($this->outfile);
+       @unlink($this->outfile);
     }
 
     /**
@@ -342,7 +342,50 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
      * Tests if entriy changes are correctly written
      */
     public function testWrite_entryChanges() {
-        $this->markTestIncomplete('not implemented yet');
+        $testentries = $this->testentries;
+        $testconf = $this->defaultConfig;
+        $testconf['change'] = 1;
+
+        /*
+        * no changes should produce empty file
+        */
+        $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $testconf);
+        $this->assertTrue(is_resource($ldif->handle()));
+        $ldif->write_entry($testentries);
+        $this->assertFalse((boolean)$ldif->error(), 'Failed writing entry to '.$this->outfile.': '.$ldif->error(true));
+        $ldif->done();
+        $this->assertEquals(array(), file($this->outfile));
+
+        /*
+        * changes test
+        */
+        //prepare some changes
+        $testentries[0]->delete('attr1'); // del whole attr
+        $testentries[0]->delete(array('attr2' => 'baz')); // del spec. value
+        $testentries[0]->delete(array('attr4', 'attr3' => 'bar')); // del mixed
+
+        // prepare some replaces and adds
+        $testentries[2]->replace(array('attr1' => 'newvaluefor1'));
+        $testentries[2]->replace(array('attr2' => array('newvalue1for2', 'newvalue2for2')));
+        $testentries[2]->replace(array('attr3' => ''));      // will result in delete
+        $testentries[2]->replace(array('newattr' => 'foo')); // will result in add
+
+        // delete whole entry
+        $testentries[3]->delete();
+
+        // carry out write
+        $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $testconf);
+        $this->assertTrue(is_resource($ldif->handle()));
+        $ldif->write_entry($testentries);
+        $this->assertFalse((boolean)$ldif->error(), 'Failed writing entry to '.$this->outfile.': '.$ldif->error(true));
+        $ldif->done();
+
+        //compare results
+        $expected = file(dirname(__FILE__).'/ldif_data/changes.ldif');
+        // strip 4 starting lines because of comments in the file header:
+        array_shift($expected);array_shift($expected);
+        array_shift($expected);array_shift($expected);
+        $this->assertEquals($expected, file($this->outfile));
     }
 
     /**
