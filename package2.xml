@@ -62,6 +62,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
                 <file baseinstalldir="Net" name="Schema.php" role="php" />
                 <file baseinstalldir="Net" name="Search.php" role="php" />
                 <file baseinstalldir="Net" name="Util.php" role="php" />
+                <file baseinstalldir="Net" name="LDIF.php" role="php" />
             </dir> <!-- /LDAP -->
             <dir name="doc">
                 <file baseinstalldir="Net" name="manual.html" role="doc" />
@@ -92,6 +93,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
                 <file baseinstalldir="Net" name="ldif_data/sorted_w50.ldif" role="test" />
                 <file baseinstalldir="Net" name="ldif_data/unsorted_w30.ldif" role="test" />
                 <file baseinstalldir="Net" name="ldif_data/unsorted_w50.ldif" role="test" />
+                <file baseinstalldir="Net" name="ldif_data/changes.ldif" role="test" />
             </dir> <!-- /tests -->
         </dir> <!-- / -->
     </contents>
