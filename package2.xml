@@ -37,14 +37,14 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date></date>
+    <date>2008-01-14</date>
     <version>
         <release>1.1.0a1</release>
         <api>1.1.0a1</api>
     </version>
     <stability>
-        <release>stable</release>
-        <api>stable</api>
+        <release>beta</release>
+        <api>beta</api>
     </stability>
     <license>LGPL License</license>
     <notes>
@@ -308,111 +308,111 @@ http://pear.php.net/dtd/package-2.0.xsd">
                    class is slightly optimized.
              </notes>
         </release>
-		<release>
-			 	<date>2007-06-20</date>
-				<version>
-					<release>1.0.0RC1</release>
-					<api>1.0.0RC1</api>
-				</version>
-				<stability>
-					<release>beta</release>
-					<api>beta</api>
-				</stability>
-				<license>LGPL License</license>
-				<notes>Again some small Bugfixes, most notably a bug within $ldap->modify() that occured when using the
-					combined 'changes' array.
-					Besides that, $search->popEntry() and the corresponding alias pop_entry() has been implemented.
-					Net_LDAP_Util::unescape_filter_value() is available too now and Net_LDAP_Util::escape_filter_value()
-					can handle ASCII chars smaller than 32. Above that, Net_LDAP_Util::canonical_dn() has been fully implemented.
-					A new method createFresh() was added to Net_LDAP_Entry, so creation of initial entries is more
-					standardized and clearer.
-					A new example is available, describing the $ldap->modify() method.
-					The add_entry.php example was updated, it shows the use of Net_LDAP_Entry::createFresh().
-					$ldap->add() links unlinked entries now to the connection used for the add.
-					Some new additional utility functions are available in Net_LDAP_Util to assist you in handling attributes and dns.
-					The LDAP-Rename command now uses this functions to deal with DN escaping issues.
-					Please note that ldap_explode_dn_escaped() is not available from Net_LDAP_Util anymore; it got superseeded by Net_LDAP_Util::ldap_explode_dn().
-				</notes>
-		</release>
-		<release>
-			 <date>2007-06-28</date>
-			<version>
-				<release>1.0.0RC2</release>
-				<api>1.0.0RC2</api>
-			</version>
-			<stability>
-				<release>beta</release>
-				<api>beta</api>
-			</stability>
-			<license>LGPL License</license>
-			<notes>Net_LDAP->dnExists() uses the Util class now, which makes it safer.
-				A new move() method is available from Net_LDAP.
-				Please note, that the copy() method was removed from the Net_LDAP_Entry class since
-				people would expect attribute moving because of the overall API of Net_LDAP.
-				Instead use the more failsafer copy() from Net_LDAP.
-			</notes>
-		</release>
-		<release>
-			<date>2007-07-24</date>
-			<version>
-				<release>1.0.0RC3</release>
-				<api>1.0.0RC3</api>
-			</version>
-			<stability>
-				<release>beta</release>
-				<api>beta</api>
-			</stability>
-			<license>LGPL License</license>
-			<notes>
-				Fixed a bug with dnExists() that was caused mainly by bad behavior of Net_LDAP_UTIL::ldap_explode_dn().
-				Fixed a bug with call time pass-by-reference if calling $entry->update(); however this inflicted a API change:
-				The parameter $ldap is not available anymore, you need to use $entry->setLDAP() prior update now if you want to change the LDAP
-				object. This brought us a more logical API now, since Entry operations should be performed by the Net_LDAP object.
-			</notes>
-		</release>
-		<release>
-			<date>2007-09-18</date>
-			<version>
-				<release>1.0.0RC4</release>
-				<api>1.0.0RC4</api>
-			</version>
-			<stability>
-				<release>beta</release>
-				<api>beta</api>
-			</stability>
-			<license>LGPL License</license>
-			<notes>
-				- Fixed some minor bugs of RC3
-				- Reintroduced $ldap parameter for
-				$entry-&lt;update(), but it is not prefferred to use this way.
-					The Parameter is there for perl interface compatibility
-			</notes>
-		</release>
-		<release>
-			<date>2007-10-29</date>
-			<version>
-				<release>1.0.0</release>
-				<api>1.0.0</api>
-			</version>
-			<stability>
-				<release>stable</release>
-				<api>stable</api>
-			</stability>
-			<license>LGPL License</license>
-			<notes>
-				After more than four years of development, we are very proud to announce the
-				        ~ FIRST STABLE Net_LDAP RELEASE 1.0.0 ~
-				Net_LDAP ist tested now and should be stable enough for production use.
-				The API is finished so far, no changes should be neccessary in the future.
-	
-				Changes to Release candidate 4:
-					- Implemented PHPUnit tests
-					- Fixed some minor bugs of RC4 (including the schema loading warning-generation)
-					- Fixed several bugs in Net_LDAP_Util
-					- Improved Net_LDAP_Filter and Net_LDAP_Util error handling and code cleanness
-					- Completely implemented Net_LDAP_Filter perl interface
-					- Improved several doc comments and fixed some spelling errors
-			</notes>
-		</release>
+        <release>
+                <date>2007-06-20</date>
+                <version>
+                    <release>1.0.0RC1</release>
+                    <api>1.0.0RC1</api>
+                </version>
+                <stability>
+                    <release>beta</release>
+                    <api>beta</api>
+                </stability>
+                <license>LGPL License</license>
+                <notes>Again some small Bugfixes, most notably a bug within $ldap->modify() that occured when using the
+                    combined 'changes' array.
+                    Besides that, $search->popEntry() and the corresponding alias pop_entry() has been implemented.
+                    Net_LDAP_Util::unescape_filter_value() is available too now and Net_LDAP_Util::escape_filter_value()
+                    can handle ASCII chars smaller than 32. Above that, Net_LDAP_Util::canonical_dn() has been fully implemented.
+                    A new method createFresh() was added to Net_LDAP_Entry, so creation of initial entries is more
+                    standardized and clearer.
+                    A new example is available, describing the $ldap->modify() method.
+                    The add_entry.php example was updated, it shows the use of Net_LDAP_Entry::createFresh().
+                    $ldap->add() links unlinked entries now to the connection used for the add.
+                    Some new additional utility functions are available in Net_LDAP_Util to assist you in handling attributes and dns.
+                    The LDAP-Rename command now uses this functions to deal with DN escaping issues.
+                    Please note that ldap_explode_dn_escaped() is not available from Net_LDAP_Util anymore; it got superseeded by Net_LDAP_Util::ldap_explode_dn().
+                </notes>
+        </release>
+        <release>
+            <date>2007-06-28</date>
+            <version>
+                <release>1.0.0RC2</release>
+                <api>1.0.0RC2</api>
+            </version>
+            <stability>
+                <release>beta</release>
+                <api>beta</api>
+            </stability>
+            <license>LGPL License</license>
+            <notes>Net_LDAP->dnExists() uses the Util class now, which makes it safer.
+                A new move() method is available from Net_LDAP.
+                Please note, that the copy() method was removed from the Net_LDAP_Entry class since
+                people would expect attribute moving because of the overall API of Net_LDAP.
+                Instead use the more failsafer copy() from Net_LDAP.
+            </notes>
+        </release>
+        <release>
+            <date>2007-07-24</date>
+            <version>
+                <release>1.0.0RC3</release>
+                <api>1.0.0RC3</api>
+            </version>
+            <stability>
+                <release>beta</release>
+                <api>beta</api>
+            </stability>
+            <license>LGPL License</license>
+            <notes>
+                Fixed a bug with dnExists() that was caused mainly by bad behavior of Net_LDAP_UTIL::ldap_explode_dn().
+                Fixed a bug with call time pass-by-reference if calling $entry->update(); however this inflicted a API change:
+                The parameter $ldap is not available anymore, you need to use $entry->setLDAP() prior update now if you want to change the LDAP
+                object. This brought us a more logical API now, since Entry operations should be performed by the Net_LDAP object.
+            </notes>
+        </release>
+        <release>
+            <date>2007-09-18</date>
+            <version>
+                <release>1.0.0RC4</release>
+                <api>1.0.0RC4</api>
+            </version>
+            <stability>
+                <release>beta</release>
+                <api>beta</api>
+            </stability>
+            <license>LGPL License</license>
+            <notes>
+                - Fixed some minor bugs of RC3
+                - Reintroduced $ldap parameter for
+                $entry-&lt;update(), but it is not prefferred to use this way.
+                    The Parameter is there for perl interface compatibility
+            </notes>
+        </release>
+        <release>
+            <date>2007-10-29</date>
+            <version>
+                <release>1.0.0</release>
+                <api>1.0.0</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <license>LGPL License</license>
+            <notes>
+                After more than four years of development, we are very proud to announce the
+                        ~ FIRST STABLE Net_LDAP RELEASE 1.0.0 ~
+                Net_LDAP ist tested now and should be stable enough for production use.
+                The API is finished so far, no changes should be neccessary in the future.
+
+                Changes to Release candidate 4:
+                    - Implemented PHPUnit tests
+                    - Fixed some minor bugs of RC4 (including the schema loading warning-generation)
+                    - Fixed several bugs in Net_LDAP_Util
+                    - Improved Net_LDAP_Filter and Net_LDAP_Util error handling and code cleanness
+                    - Completely implemented Net_LDAP_Filter perl interface
+                    - Improved several doc comments and fixed some spelling errors
+            </notes>
+        </release>
     </changelog>
 </package>
