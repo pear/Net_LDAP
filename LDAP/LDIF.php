@@ -47,6 +47,7 @@ require_once 'Net/LDAP/Util.php';
 * @see      http://www.ietf.org/rfc/rfc2849.txt
 * @todo     Error handling should be PEARified
 * @todo     LDAPv3 controls are not implemented yet
+* @todo     LDIF change parsing is not implemented. Currently only data-ldifs are supported
 */
 class Net_LDAP_LDIF extends PEAR
 {
@@ -181,7 +182,7 @@ class Net_LDAP_LDIF extends PEAR
     *
     *       sort => 1
     *         Sort attribute names when writing entries according to the rule:
-    *         objectclass first then all other attributes alphabetically sorted
+    *         objectclass first then all other attributes alphabetically sorted by attribute name
     *
     *       version => '1'
     *         Set the LDIF version to write to the resulting LDIF file.
@@ -488,13 +489,23 @@ class Net_LDAP_LDIF extends PEAR
     * Returns the current Net::LDAP::Entry object.
     *
     * @return Net_LDAP_Entry|false
-    * @todo what about file inclusions and urls? "jpegphoto:< file:///usr/local/directory/photos/fiona.jpg"
     */
     function current_entry() {
-        // parse current lines into an array of attributes and build the entry
+        return $this->parseEntry($this->current_lines());
+    }
+
+    /**
+    * Parse LDIF lines into an Net_LDAP_Entry object
+    *
+    * @param array $lines LDIF lines
+    * @return Net_LDAP_Entry|false
+    * @todo what about file inclusions and urls? "jpegphoto:< file:///usr/local/directory/photos/fiona.jpg"
+    */
+    function parseLines($lines) {
+        // parse lines into an array of attributes and build the entry
         $attributes = array();
         $dn = false;
-        foreach ($this->current_lines() as $line) {
+        foreach ($lines as $line) {
             preg_match('/^(\w+)(:|::|:<)\s(.+)$/', $line, $matches);
             $attr  =& $matches[1];
             $delim =& $matches[2];
