@@ -48,7 +48,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </stability>
     <license>LGPL License</license>
     <notes>
-         * Added parseEntry() to Net_LDAP_LDIF for more convinience
+         * Added parseLine() to Net_LDAP_LDIF for more convinience
     </notes>
 
     <contents>
