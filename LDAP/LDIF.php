@@ -491,7 +491,7 @@ class Net_LDAP_LDIF extends PEAR
     * @return Net_LDAP_Entry|false
     */
     function current_entry() {
-        return $this->parseEntry($this->current_lines());
+        return $this->parseLines($this->current_lines());
     }
 
     /**
