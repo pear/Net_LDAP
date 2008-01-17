@@ -320,7 +320,7 @@ class Net_LDAP_LDIF extends PEAR
                                            + count($entry_attrs_changes['replace'])
                                            + count($entry_attrs_changes['delete']);
 
-                    $is_changed = ($num_of_changes > 0 || $entry->willBeDeleted());
+                    $is_changed = ($num_of_changes > 0 || $entry->willBeDeleted() || $entry->willBeMoved());
 
                     // write version if not done yet
                     // also write DN of entry
@@ -328,13 +328,29 @@ class Net_LDAP_LDIF extends PEAR
                         if (!$this->_version_written) {
                             $this->write_version();
                         }
-                        $this->_writeDN($entry->dn());
+                        $this->_writeDN($entry->currentDN());
                     }
 
                     // process changes
-                    // TODO: consider DN move change!
+                    // TODO: consider DN add!
                     if ($entry->willBeDeleted()) {
                         $this->_writeLine("changetype: delete".PHP_EOL);
+                    } elseif ($entry->willBeMoved()) {
+                        $this->_writeLine("changetype: modrdn".PHP_EOL);
+                        $olddn  = Net_LDAP_Util::ldap_explode_dn($entry->currentDN(), array('casefold' => 'none')); // maybe gives a bug if using multivalued RDNs
+                        $oldrdn = array_shift($olddn);
+                        $oldparent = implode(',', $olddn);
+                        $newdn  = Net_LDAP_Util::ldap_explode_dn($entry->dn(), array('casefold' => 'none')); // maybe gives a bug if using multivalued RDNs
+                        $rdn    = array_shift($newdn);
+                        $parent = implode(',', $newdn);
+                        $this->_writeLine("newrdn: ".$rdn.PHP_EOL);
+                        $this->_writeLine("deleteoldrdn: 1".PHP_EOL);
+                        if ($parent !== $oldparent) {
+                            $this->_writeLine("newsuperior: ".$parent.PHP_EOL);
+                        }
+                        // TODO: What if the entry has attribute changes as well?
+                        //       I think we should check for that and make a dummy
+                        //       entry with the changes that is written to the LDIF file
                     } elseif ($num_of_changes > 0) {
                         // write attribute change data
                         $this->_writeLine("changetype: modify".PHP_EOL);

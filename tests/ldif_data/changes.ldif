@@ -31,3 +31,14 @@ attr2: newvalue2for2
 dn:: OmNuPWVuZHNwYWNlLGRjPWNubyA=
 changetype: delete
 
+dn: cn=foo,ou=example,dc=cno
+changetype: modrdn
+newrdn: cn=Bar
+deleteoldrdn: 1
+
+dn: cn=footest,ou=example,dc=cno
+changetype: modrdn
+newrdn: cn=foobartest
+deleteoldrdn: 1
+newsuperior: ou=newexample,dc=cno
+

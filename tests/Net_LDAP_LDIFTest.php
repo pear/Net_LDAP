@@ -366,6 +366,9 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
      */
     public function testWrite_entryChanges() {
         $testentries = $this->testentries;
+        $testentries[] = Net_LDAP_Entry::createFresh('cn=foo,ou=example,dc=cno', array('cn' => 'foo'));
+        $testentries[] = Net_LDAP_Entry::createFresh('cn=footest,ou=example,dc=cno', array('cn' => 'foo'));
+
         $testconf = $this->defaultConfig;
         $testconf['change'] = 1;
 
@@ -395,6 +398,10 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
 
         // delete whole entry
         $testentries[3]->delete();
+
+        // rename and move
+        $testentries[4]->dn('cn=Bar,ou=example,dc=cno');
+        $testentries[5]->dn('cn=foobartest,ou=newexample,dc=cno');
 
         // carry out write
         $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $testconf);

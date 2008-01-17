@@ -190,8 +190,11 @@ class Net_LDAP_Entry extends PEAR
     * If you provide an DN, this entry is moved to the new location specified if a DN existed.
     * If the DN was not set, the DN gets initialized. Call {@link update()} to actually create
     * the new Entry in the directory.
+    * To fetch the current active DN after setting a new DN but before an update(), you can use
+    * {@link currentDN()} to retrieve the DN that is currently active.
     *
     * Please note that special characters (eg german umlauts) should be encoded using utf8_encode().
+    * You may use {@link Net_LDAP_Util::canonical_dn()} for properly encoding of the DN.
     *
     * @param string $dn New distinguished name
     *
@@ -206,10 +209,21 @@ class Net_LDAP_Entry extends PEAR
             } else {
                 $this->_newdn = $dn;
             }
-            $return = true;
-            return $return;
+            return true;
         }
-        return (isset($this->_newdn) ? $this->_newdn : $this->_dn);
+        return (isset($this->_newdn) ? $this->_newdn : $this->currentDN());
+    }
+
+    /**
+    * Renames or moves the entry
+    *
+    * This is just a convinience alias to {@link dn()}
+    * to make your code more meaningful.
+    *
+    * @param string $newdn The new DN
+    */
+    function move($dn) {
+        return $this->dn($dn);
     }
 
     /**
@@ -816,9 +830,33 @@ class Net_LDAP_Entry extends PEAR
 
     /**
     * Is this entry going to be deleted once update() is called?
+    *
+    * @return boolean
     */
     function willBeDeleted() {
         return $this->_delete;
+    }
+
+    /**
+    * Is this entry going to be moved once update() is called?
+    *
+    * @reutrn boolean
+    */
+    function willBeMoved() {
+        return ($this->dn() !== $this->currentDN());
+    }
+
+    /**
+    * Returns always the original DN
+    *
+    * If an entry will be moved but {@link update()} was not called,
+    * {@link dn()} will return the new DN. This method however, returns
+    * always the current active DN.
+    *
+    * @return string
+    */
+    function currentDN() {
+        return $this->_dn;
     }
 
     /**
