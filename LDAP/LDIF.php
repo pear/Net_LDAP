@@ -47,7 +47,7 @@ require_once 'Net/LDAP/Util.php';
 * @see      http://www.ietf.org/rfc/rfc2849.txt
 * @todo     Error handling should be PEARified
 * @todo     LDAPv3 controls are not implemented yet
-* @todo     LDIF change parsing is not implemented. Currently only data-ldifs are supported
+* @todo     LDIF change parsing is not fully implemented.
 */
 class Net_LDAP_LDIF extends PEAR
 {
@@ -300,7 +300,6 @@ class Net_LDAP_LDIF extends PEAR
     * in append mode ("a"), otherwise you will always get the last entry only.
     *
     * @param Net_LDAP_Entry|array Entry or array of entries
-    * @todo impement the options 'raw' with auto-schema check
     * @todo implement operations on whole entries (adding and moving a whole entry)
     */
     function write_entry($entries) {
