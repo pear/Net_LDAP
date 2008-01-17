@@ -201,6 +201,8 @@ class Net_LDAP_LDIF extends PEAR
     *         Example: raw => "/(?i:^jpegPhoto|;binary)/i"
     *         Note: if the entry has a valid LDAP connection, then binary checks
     *               are also done through the schema.
+    *       [IMPLEMENTATION NOTE] This means that those values are fetched "raw", ie no base64_encoding
+    *         Maybe there must be converted somehow; values are in ASN.1
     *
     * @param string|ressource $file    Filename or filehandle
     * @param string           $mode    Mode to open filename

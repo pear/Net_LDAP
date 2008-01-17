@@ -158,6 +158,9 @@ class Net_LDAP extends PEAR
 
         @$obj = & new Net_LDAP($config);
 
+        // todo? better errorhandling for setConfig()?
+
+        // connect and bind with credentials in config
         $err = $obj->bind();
         if (Net_LDAP::isError($err)) {
             return $err;
@@ -248,11 +251,15 @@ class Net_LDAP extends PEAR
     }
 
     /**
-    * Bind to the ldap-server
+    * Bind or rebind to the ldap-server
     *
     * This function binds with the given dn and password to the server. In case
     * no connection has been made yet, it will be startet and startTLS issued
     * if appropiate.
+    *
+    * The internal bind configuration is not being updated, so if you call
+    * bind() without parameters, you can rebind with the credentials
+    * provided at first connecting to the server.
     *
     * @param string $dn       Distinguished name for binding
     * @param string $password Password for binding
@@ -262,25 +269,51 @@ class Net_LDAP extends PEAR
     */
     function bind($dn = null, $password = null)
     {
-        $msg = $this->_connect();
-        if (Net_LDAP::isError($msg)) {
-            return $msg;
-        }
+        // fetch current bind credentials
         if (is_null($dn)) {
             $dn = $this->_config["binddn"];
         }
         if (is_null($password)) {
             $password = $this->_config["bindpw"];
         }
-        if (is_null($dn)) {
-            $msg = @ldap_bind($this->_link);
+
+        // Connect first, if we haven't so far.
+        // This will also bind us to the server.
+        if ($this->_link === false) {
+            // store old credentials so we can revert them later
+            // then overwrite config with new bind credentials
+            $olddn = $this->_config["binddn"];
+            $oldpw = $this->_config["bindpw"];
+
+            // overwrite bind credentials in config
+            // so _connect() knows about them
+            $this->_config["binddn"] = $dn;
+            $this->_config["bindpw"] = $password;
+
+            // try to connect with provided credentials
+            $msg = $this->_connect();
+
+            // reset to previous config
+            $this->_config["binddn"] = $olddn;
+            $this->_config["bindpw"] = $oldpw;
+
+            // see if bind worked
+            if (Net_LDAP::isError($msg)) {
+                return $msg;
+            }
         } else {
-            $msg = @ldap_bind($this->_link, $dn, $password);
-        }
-        if (false === $msg) {
-            return PEAR::raiseError("Bind failed: " .
-                                    @ldap_error($this->_link),
-                                    @ldap_errno($this->_link));
+            // do the requested bind as we are
+            // asked to bind manually
+            if (is_null($dn)) {
+                $msg = @ldap_bind($this->_link); // anonymous bind
+            } else {
+                $msg = @ldap_bind($this->_link, $dn, $password); // privilegued bind
+            }
+            if (false === $msg) {
+                return PEAR::raiseError("Bind failed: " .
+                                        @ldap_error($this->_link),
+                                        @ldap_errno($this->_link));
+            }
         }
         return true;
     }
@@ -372,37 +405,17 @@ class Net_LDAP extends PEAR
             }
 
             //
-            // Attempt an anonymous bind to see if we can bind to the server
-            // If it fails, we try a privilegued bind since some servers don't
-            // allow anonymous connections at all
+            // Attempt to bind to the server. If we have credentials configured,
+            // we try to use them, otherwiese its an anonymous bind.
             //
-            if (! @ldap_bind($this->_link)) {
-                // Anonymous bind failed, try privilegued bind if we have credentials
-                if ($this->_config['binddn']) {
-                    $msg = $this->bind($this->_config['binddn'], $this->_config['bindpw']);
-                    if (Net_LDAP::isError($msg)) {
-                        // The privilegued bind failed too, discard link and save error msg
-                        $this->_link   = false;
-                        $current_error = $msg;
-                    }
-                } else {
-                    // Failed, so discard the link
-                    // DO NOT attempt to call ldap_close on this connection ID,
-                    // even attempting to do so can be fatal.  Just discard the
-                    // link ID!
-                    $this->_link   = false;
-                    $current_error = PEAR::raiseError("Bind failed: " .
-                                        @ldap_error($this->_link),
-                                        @ldap_errno($this->_link));
-                }
-
-                // Record the host as down and try next host
-                // if the privelegued bind failed or we don't
-                // had credentials and the anonymous bind failed
-                if ($this->_link == false) {
-                    $this->_down_host_list[] = $host;
-                    continue;
-                }
+            $msg = $this->bind();
+            if (Net_LDAP::isError($msg)) {
+                // The bind failed, discard link and save error msg.
+                // Then record the host as down and try next one
+                $this->_link   = false;
+                $current_error = $msg;
+                $this->_down_host_list[] = $host;
+                continue;
             }
 
             //
