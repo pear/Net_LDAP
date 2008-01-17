@@ -298,6 +298,29 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
 
 
         /*
+        * Test raw option
+        */
+        $testconf['wrap'] = 50;
+        $testconf['sort'] = 1;
+        $testconf['raw']  = '/attr6/';
+        $expected = file(dirname(__FILE__).'/ldif_data/sorted_w50.ldif');
+        // strip 4 starting lines because of comments in the file header:
+        array_shift($expected);array_shift($expected);
+        array_shift($expected);array_shift($expected);
+
+        // Write LDIF
+        $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $testconf);
+        $this->assertTrue(is_resource($ldif->handle()));
+        $ldif->write_entry($this->testentries);
+        $this->assertFalse((boolean)$ldif->error(), 'Failed writing entry to '.$this->outfile.': '.$ldif->error(true));
+        $ldif->done();
+
+        // Compare files, with expected attr adjusted
+        $expected[33] = preg_replace('/attr6:: OmJhZGluaXRjaGFy/', 'attr6: :badinitchar', $expected[33]);
+        $this->assertEquals($expected, file($this->outfile));
+
+
+        /*
         * Test writing with non entry as parameter
         */
         $ldif = new Net_LDAP_LDIF($this->outfile, 'w');

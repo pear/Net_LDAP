@@ -197,12 +197,8 @@ class Net_LDAP_LDIF extends PEAR
     *
     *       [NOT IMPLEMENTED] raw => REGEX
     *         Use REGEX to denote the names of attributes that are to be
-    *         considered binary in search results.
+    *         considered binary in search results if writing entries.
     *         Example: raw => "/(?i:^jpegPhoto|;binary)/i"
-    *         Note: if the entry has a valid LDAP connection, then binary checks
-    *               are also done through the schema.
-    *       [IMPLEMENTATION NOTE] This means that those values are fetched "raw", ie no base64_encoding
-    *         Maybe there must be converted somehow; values are in ASN.1
     *
     * @param string|ressource $file    Filename or filehandle
     * @param string           $mode    Mode to open filename
@@ -701,16 +697,16 @@ class Net_LDAP_LDIF extends PEAR
                 $base64 = true;
             }
 
-            // if converting is needed, do it
-            if ($base64) {
+            // If converting is needed, do it
+            if ($base64 && !($this->_options['raw'] && preg_match($this->_options['raw'], $attr_name))) {
                 $attr_name .= ':';
                 $attr_value = base64_encode($attr_value);
             }
 
-            // lowercase attr names if requested
+            // Lowercase attr names if requested
             if ($this->_options['lowercase']) $attr_name = strtolower($attr_name);
 
-            // handle line wrapping
+            // Handle line wrapping
             if ($this->_options['wrap'] > 40 && strlen($attr_value) > $this->_options['wrap']) {
                 $attr_value = wordwrap($attr_value, $this->_options['wrap'], PHP_EOL." ", true);
             }
