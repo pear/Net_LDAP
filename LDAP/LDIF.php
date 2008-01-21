@@ -529,11 +529,11 @@ class Net_LDAP_LDIF extends PEAR
     }
 
     /**
-    * Parse LDIF lines into an Net_LDAP_Entry object
+    * Parse LDIF lines of one entry into an Net_LDAP_Entry object
     *
-    * @param array $lines LDIF lines
+    * @param array $lines LDIF lines for one entry
     *
-    * @return Net_LDAP_Entry|false
+    * @return Net_LDAP_Entry|false Net_LDAP_Entry object for those lines
     * @todo what about file inclusions and urls? "jpegphoto:< file:///usr/local/directory/photos/fiona.jpg"
     */
     function parseLines($lines)
@@ -542,31 +542,40 @@ class Net_LDAP_LDIF extends PEAR
         $attributes = array();
         $dn = false;
         foreach ($lines as $line) {
-            preg_match('/^(\w+)(:|::|:<)\s(.+)$/', $line, $matches);
-            $attr  =& $matches[1];
-            $delim =& $matches[2];
-            $data  =& $matches[3];
+            if (preg_match('/^(\w+)(:|::|:<)\s(.+)$/', $line, $matches)) {
+                $attr  =& $matches[1];
+                $delim =& $matches[2];
+                $data  =& $matches[3];
 
-            if ($delim == ':') {
-                // normal data
-                $attributes[$attr][] = $data;
-            } elseif ($delim == '::') {
-                // base64 data
-                $attributes[$attr][] = base64_decode($data);
-            } elseif ($delim == ':<') {
-                // file inclusion
-                // TODO: Is this the job of the LDAP-client or the server?
-                $this->_dropError('File inclusions are currently not supported');
-                //$attributes[$attr][] = ...;
+                if ($delim == ':') {
+                    // normal data
+                    $attributes[$attr][] = $data;
+                } elseif ($delim == '::') {
+                    // base64 data
+                    $attributes[$attr][] = base64_decode($data);
+                } elseif ($delim == ':<') {
+                    // file inclusion
+                    // TODO: Is this the job of the LDAP-client or the server?
+                    $this->_dropError('File inclusions are currently not supported');
+                    //$attributes[$attr][] = ...;
+                } else {
+                    // since the pattern above, the delimeter cannot be something else.
+                    $this->_dropError('Net_LDAP_LDIF parsing error: invalid syntax at parsing entry line: '.$line);
+                    continue;
+                }
+
+                if (strtolower($attr) == 'dn') {
+                    // DN line detected
+                    $dn = $attributes[$attr][0];  // save possibly decoded DN
+                    unset($attributes[$attr]);    // remove wrongly added "dn: " attribute
+                }
             } else {
-                $this->_dropError('Net_LDAP_LDIF parsing error: invalid syntax at parsing entry line: '.$line);
-                continue;
-            }
-
-            if (strtolower($attr) == 'dn') {
-                // DN line detected
-                $dn = $attributes[$attr][0];  // save possibly decoded DN
-                unset($attributes[$attr]); // remove wrongly added "dn: " attribute
+                // line not in "attr: value" format -> ignore
+                // maybe we should rise an error here, but this should be covered by
+                // next_lines() already. A problem arises, if users try to feed data of
+                // several entries to this method - the resulting entry will
+                // get wrong attributes. However, this is already mentioned in the
+                // methods documentation above.
             }
         }
 
