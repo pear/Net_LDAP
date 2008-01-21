@@ -37,7 +37,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date></date>
+    <date>2008-01-21</date>
     <version>
         <release>1.1.0a2</release>
         <api>1.1.0a2</api>
@@ -49,6 +49,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <license>LGPL License</license>
     <notes>
          * Added parseLines() to Net_LDAP_LDIF for more convinience
+         * Added some handy methods to Net_LDAP_Entry
+         * Enhanced tests
     </notes>
 
     <contents>
