@@ -412,8 +412,8 @@ class Net_LDAP extends PEAR
             if (Net_LDAP::isError($msg)) {
                 // The bind failed, discard link and save error msg.
                 // Then record the host as down and try next one
-                $this->_link   = false;
-                $current_error = $msg;
+                $this->_link             = false;
+                $current_error           = $msg;
                 $this->_down_host_list[] = $host;
                 continue;
             }
@@ -1147,6 +1147,7 @@ class Net_LDAP extends PEAR
     *
     * @access public
     * @see rootDse()
+    * @return Net_LDAP_Error|Net_LDAP_RootDSE
     */
     function &root_dse()
     {

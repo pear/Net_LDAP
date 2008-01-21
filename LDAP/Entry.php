@@ -221,9 +221,11 @@ class Net_LDAP_Entry extends PEAR
     * to make your code more meaningful.
     *
     * @param string $newdn The new DN
+    * @return true
     */
-    function move($dn) {
-        return $this->dn($dn);
+    function move($newdn)
+    {
+        return $this->dn($newdn);
     }
 
     /**
@@ -363,6 +365,7 @@ class Net_LDAP_Entry extends PEAR
     * Alias function of getValue for perl-ldap interface
     *
     * @see getValue()
+    * @return string|array|PEAR_Error
     */
     function get_value()
     {
@@ -833,7 +836,8 @@ class Net_LDAP_Entry extends PEAR
     *
     * @return boolean
     */
-    function willBeDeleted() {
+    function willBeDeleted()
+    {
         return $this->_delete;
     }
 
@@ -842,7 +846,8 @@ class Net_LDAP_Entry extends PEAR
     *
     * @reutrn boolean
     */
-    function willBeMoved() {
+    function willBeMoved()
+    {
         return ($this->dn() !== $this->currentDN());
     }
 
@@ -855,7 +860,8 @@ class Net_LDAP_Entry extends PEAR
     *
     * @return string
     */
-    function currentDN() {
+    function currentDN()
+    {
         return $this->_dn;
     }
 
@@ -864,7 +870,8 @@ class Net_LDAP_Entry extends PEAR
     *
     * @return array
     */
-    function getChanges() {
+    function getChanges()
+    {
         return $this->_changes;
     }
 }

@@ -204,7 +204,8 @@ class Net_LDAP_LDIF extends PEAR
     * @param string           $mode    Mode to open filename
     * @param array            $options Options like described above
     */
-    function Net_LDAP_LDIF($file, $mode = 'r', $options = array()) {
+    function Net_LDAP_LDIF($file, $mode = 'r', $options = array())
+    {
         $this->PEAR('Net_LDAP_Error'); // default error class
 
         // First, parse options
@@ -276,7 +277,8 @@ class Net_LDAP_LDIF extends PEAR
     *
     * @return Net_LDAP_Entry
     */
-    function read_entry() {
+    function read_entry()
+    {
         // read fresh lines, set them as current lines and create the entry
         $attrs = $this->next_lines(true);
         if (count($attrs) > 0) {
@@ -287,8 +289,11 @@ class Net_LDAP_LDIF extends PEAR
 
     /**
     * Returns true when the end of the file is reached.
+    *
+    * @return boolean
     */
-    function eof() {
+    function eof()
+    {
         return feof($this->_FH);
     }
 
@@ -299,10 +304,13 @@ class Net_LDAP_LDIF extends PEAR
     * you want to call write_entry() several times, you must open the filehandle
     * in append mode ("a"), otherwise you will always get the last entry only.
     *
-    * @param Net_LDAP_Entry|array Entry or array of entries
+    * @param Net_LDAP_Entry|array $entries Entry or array of entries
+    *
+    * @return void
     * @todo implement operations on whole entries (adding and moving a whole entry)
     */
-    function write_entry($entries) {
+    function write_entry($entries)
+    {
         if (!is_array($entries)) {
             $entries = array($entries);
         }
@@ -337,12 +345,12 @@ class Net_LDAP_LDIF extends PEAR
                         $this->_writeLine("changetype: delete".PHP_EOL);
                     } elseif ($entry->willBeMoved()) {
                         $this->_writeLine("changetype: modrdn".PHP_EOL);
-                        $olddn  = Net_LDAP_Util::ldap_explode_dn($entry->currentDN(), array('casefold' => 'none')); // maybe gives a bug if using multivalued RDNs
-                        $oldrdn = array_shift($olddn);
+                        $olddn     = Net_LDAP_Util::ldap_explode_dn($entry->currentDN(), array('casefold' => 'none')); // maybe gives a bug if using multivalued RDNs
+                        $oldrdn    = array_shift($olddn);
                         $oldparent = implode(',', $olddn);
-                        $newdn  = Net_LDAP_Util::ldap_explode_dn($entry->dn(), array('casefold' => 'none')); // maybe gives a bug if using multivalued RDNs
-                        $rdn    = array_shift($newdn);
-                        $parent = implode(',', $newdn);
+                        $newdn     = Net_LDAP_Util::ldap_explode_dn($entry->dn(), array('casefold' => 'none')); // maybe gives a bug if using multivalued RDNs
+                        $rdn       = array_shift($newdn);
+                        $parent    = implode(',', $newdn);
                         $this->_writeLine("newrdn: ".$rdn.PHP_EOL);
                         $this->_writeLine("deleteoldrdn: 1".PHP_EOL);
                         if ($parent !== $oldparent) {
@@ -401,8 +409,11 @@ class Net_LDAP_LDIF extends PEAR
     *
     * If the object's version is defined, this method allows to explicitely write the version before an entry is written.
     * If not called explicitely, it gets called automatically when writing the first entry.
+    *
+    * @return void
     */
-    function write_version() {
+    function write_version()
+    {
         $this->_version_written = true;
         return $this->_writeLine('version: '.$this->version().PHP_EOL, 'Net_LDAP_LDIF error: unable to write version');
     }
@@ -414,10 +425,12 @@ class Net_LDAP_LDIF extends PEAR
     * If called with an argument it sets the LDIF version to VERSION.
     * According to RFC 2849 currently the only legal value for VERSION is 1.
     *
-    * @param int $version
+    * @param int $version (optional) LDIF version to set
+    *
     * @return int
     */
-    function version($version = null) {
+    function version($version = null)
+    {
         if ($version !== null) {
             if ($version != 1) {
                 $this->_dropError('Net_LDAP_LDIF error: illegal LDIF version set');
@@ -435,7 +448,8 @@ class Net_LDAP_LDIF extends PEAR
     *
     * @return null|resource
     */
-    function &handle() {
+    function &handle()
+    {
         if (!is_resource($this->_FH)) {
             $this->_dropError('Net_LDAP_LDIF error: invalid file resource');
             $null = null;
@@ -451,8 +465,11 @@ class Net_LDAP_LDIF extends PEAR
     * This method signals that the LDIF object is no longer needed.
     * You can use this to free up some memory and close the file handle.
     * The file handle is only closed, if it was opened from Net_LDAP_LDIF.
+    *
+    * @return void
     */
-    function done() {
+    function done()
+    {
         // close FH if we opened it
         if ($this->_FH_opened) {
             fclose($this->handle());
@@ -476,9 +493,11 @@ class Net_LDAP_LDIF extends PEAR
     * </code>
     *
     * @param boolean $as_string If set to true, only the message is returned
+    *
     * @return false|Net_LDAP_Error
     */
-    function error($as_string = false) {
+    function error($as_string = false)
+    {
         if (Net_LDAP::isError($this->_error['error'])) {
             return ($as_string)? $this->_error['error']->getMessage() : $this->_error['error'];
         } else {
@@ -494,7 +513,8 @@ class Net_LDAP_LDIF extends PEAR
     *
     * @return int
     */
-    function error_lines() {
+    function error_lines()
+    {
         return $this->_error['line'];
     }
 
@@ -503,7 +523,8 @@ class Net_LDAP_LDIF extends PEAR
     *
     * @return Net_LDAP_Entry|false
     */
-    function current_entry() {
+    function current_entry()
+    {
         return $this->parseLines($this->current_lines());
     }
 
@@ -511,10 +532,12 @@ class Net_LDAP_LDIF extends PEAR
     * Parse LDIF lines into an Net_LDAP_Entry object
     *
     * @param array $lines LDIF lines
+    *
     * @return Net_LDAP_Entry|false
     * @todo what about file inclusions and urls? "jpegphoto:< file:///usr/local/directory/photos/fiona.jpg"
     */
-    function parseLines($lines) {
+    function parseLines($lines)
+    {
         // parse lines into an array of attributes and build the entry
         $attributes = array();
         $dn = false;
@@ -527,10 +550,10 @@ class Net_LDAP_LDIF extends PEAR
             if ($delim == ':') {
                 // normal data
                 $attributes[$attr][] = $data;
-            } elseif($delim == '::') {
+            } elseif ($delim == '::') {
                 // base64 data
                 $attributes[$attr][] = base64_decode($data);
-            } elseif($delim == ':<') {
+            } elseif ($delim == ':<') {
                 // file inclusion
                 // TODO: Is this the job of the LDAP-client or the server?
                 $this->_dropError('File inclusions are currently not supported');
@@ -563,7 +586,8 @@ class Net_LDAP_LDIF extends PEAR
     *
     * @return array Array of lines
     */
-    function current_lines() {
+    function current_lines()
+    {
         return $this->_lines_cur;
     }
 
@@ -577,24 +601,26 @@ class Net_LDAP_LDIF extends PEAR
     * Wrapped lines will be unwrapped. Comments are stripped.
     *
     * @param boolean $force Set this to true if you want to iterate over the lines manually
+    *
     * @return array
-    * @bug Problem with DOS line endings. If the file is a unix one, comment mode works correctly
+    * @todo [BUG] Problem with DOS line endings. If the file is a unix one, comment mode works correctly
     */
-    function next_lines($force = false) {
+    function next_lines($force = false)
+    {
         // if we already have those lines, just return them, otherwise read
         if (count($this->_lines_next) == 0 || $force) {
             $this->_lines_next = array(); // empty in case something was left (if used $force)
-            $entry_done = false;
-            $fh =& $this->handle();
-            $commentmode = false; // if we are in an comment, for wrapping purposes
-            $datalines_read = 0;  // how many lines with data we have read
+            $entry_done        = false;
+            $fh                = &$this->handle();
+            $commentmode       = false; // if we are in an comment, for wrapping purposes
+            $datalines_read    = 0;     // how many lines with data we have read
 
             while (!$entry_done && !$this->eof()) {
                 $this->_input_line++;
                 $data = fgets($fh);
                 if ($data === false) {
                     // error only, if EOF not reached after fgets() call
-                    if  (!$this->eof()) {
+                    if (!$this->eof()) {
                         $this->_dropError('Net_LDAP_LDIF error: error reading from file at input line '.$this->_input_line, $this->_input_line);
                     }
                     break;
@@ -644,8 +670,8 @@ class Net_LDAP_LDIF extends PEAR
                                     // first line of entry: wrapped data is illegal
                                     $this->_dropError('Net_LDAP_LDIF error: illegal wrapping at input line '.$this->_input_line, $this->_input_line);
                                 } else {
-                                    $last = array_pop($this->_lines_next);
-                                    $last = $last.trim($matches[1]);
+                                    $last                = array_pop($this->_lines_next);
+                                    $last                = $last.trim($matches[1]);
                                     $this->_lines_next[] = $last;
                                     $datalines_read++;
                                 }
@@ -676,12 +702,14 @@ class Net_LDAP_LDIF extends PEAR
     * Line wrapping will occur at the configured maximum but only if
     * the value is greater than 40 chars.
     *
-    * @access private
     * @param string $attr_name  Name of the attribute
     * @param string $attr_value Value of the attribute
+    *
+    * @access private
     * @return string LDIF string for that attribute and value
     */
-    function _convertAttribute($attr_name, $attr_value) {
+    function _convertAttribute($attr_name, $attr_value)
+    {
         // Handle empty attribute or process
         if (strlen($attr_value) == 0) {
             $attr_value = " ";
@@ -735,12 +763,14 @@ class Net_LDAP_LDIF extends PEAR
     *
     * It honors correct encoding of values according to RFC 2849.
     *
+    * @param string $dn UTF8-Encoded DN
+    *
     * @access private
-    * @param string $dn  UTF8-Encoded DN
     * @return string LDIF string for that DN
     * @todo I am not sure, if the UTF8 stuff is correctly handled right now
     */
-    function _convertDN($dn) {
+    function _convertDN($dn)
+    {
         $base64 = false;
         // ASCII-chars that are NOT safe for the
         // start and for being inside the dn.
@@ -774,11 +804,14 @@ class Net_LDAP_LDIF extends PEAR
     /**
     * Writes an attribute to the filehandle
     *
-    * @access private
-    * @param string $attr_name
+    * @param string       $attr_name   Name of the attribute
     * @param string|array $attr_values Single attribute value or array with attribute values
+    *
+    * @access private
+    * @return void
     */
-    function _writeAttribute($attr_name, $attr_values) {
+    function _writeAttribute($attr_name, $attr_values)
+    {
         // write out attribute content
         if (!is_array($attr_values)) {
             $attr_values = array($attr_values);
@@ -792,17 +825,18 @@ class Net_LDAP_LDIF extends PEAR
     /**
     * Writes a DN to the filehandle
     *
-    * Depending on
+    * @param string $dn DN to write
     *
     * @access private
-    * @param string $dn
+    * @return void
     */
-    function _writeDN($dn) {
+    function _writeDN($dn)
+    {
         // prepare DN
         if ($this->_options['encode'] == 'base64') {
             $dn = $this->_convertDN($dn).PHP_EOL;
         } elseif ($this->_options['encode'] == 'canonical') {
-            $dn = Net_LDAP_Util::canonical_dn($dn, array('casefold' => 'none') ).PHP_EOL;
+            $dn = Net_LDAP_Util::canonical_dn($dn, array('casefold' => 'none')).PHP_EOL;
         } else {
             $dn = $dn.PHP_EOL;
         }
@@ -813,20 +847,24 @@ class Net_LDAP_LDIF extends PEAR
     * Finishes an LDIF entry
     *
     * @access private
+    * @return void
     */
-    function _finishEntry() {
+    function _finishEntry()
+    {
         $this->_writeLine(PHP_EOL, 'Net_LDAP_LDIF error: unable to close entry '.$this->_entrynum);
     }
 
     /**
     * Just write an arbitary line to the filehandle
     *
-    * @access private
     * @param string $line  Content to write
     * @param string $error If error occurs, drop this message
+    *
+    * @access private
     * @return true|false
     */
-    function _writeLine($line, $error = 'Net_LDAP_LDIF error: unable to write to filehandle') {
+    function _writeLine($line, $error = 'Net_LDAP_LDIF error: unable to write to filehandle')
+    {
         if (is_resource($this->handle()) && fwrite($this->handle(), $line, strlen($line)) === false) {
             $this->_dropError($error);
             return false;
@@ -838,11 +876,14 @@ class Net_LDAP_LDIF extends PEAR
     /**
     * Optionally raises an error and pushes the error on the error cache
     *
-    * @access private
     * @param string $msg  Errortext
     * @param int    $line Line in the LDIF that caused the error
+    *
+    * @access private
+    * @return void
     */
-    function _dropError($msg, $line = null) {
+    function _dropError($msg, $line = null)
+    {
         $this->_error['error'] = new Net_LDAP_Error($msg);
         if ($line !== null) $this->_error['line'] = $line;
 
