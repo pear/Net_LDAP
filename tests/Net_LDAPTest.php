@@ -226,9 +226,13 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
+            $ldap   = &$this->connect();
+            // some parameter checks
+            $this->assertType('Net_LDAP_Error', $ldap->delete(1234));
+            $this->assertType('Net_LDAP_Error', $ldap->delete($ldap));
+
             // in order to test subtree deletion, we need some little tree
             // which we need to establish first
-            $ldap   = &$this->connect();
             $base   = $this->ldapcfg['global']['server_base_dn'];
             $testdn = 'ou=Net_LDAP_Test_subdelete,'.$base;
 
