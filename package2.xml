@@ -47,7 +47,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
         <api>beta</api>
     </stability>
     <license>LGPL License</license>
-    <notes>
+    <notes>* Fixed a little bug at cross directory move
+    * Added Net_LDAP tests
     </notes>
 
     <contents>
@@ -84,6 +85,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
                 <file baseinstalldir="Net" name="Net_LDAPTest.php" role="test" />
                 <file baseinstalldir="Net" name="Net_LDAP_UtilTest.php" role="test" />
                 <file baseinstalldir="Net" name="Net_LDAP_LDIFTest.php" role="test" />
+		<file baseinstalldir="Net" name="ldapconfig.ini.dist" role="test" />
+		<file baseinstalldir="Net" name="ldapldifconfig.ini.dist" role="test" />
                 <file baseinstalldir="Net" name="ldif_data/malformed_encoding.ldif" role="test" />
                 <file baseinstalldir="Net" name="ldif_data/malformed_syntax.ldif" role="test" />
                 <file baseinstalldir="Net" name="ldif_data/malformed_wrapping.ldif" role="test" />

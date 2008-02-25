@@ -865,7 +865,7 @@ class Net_LDAP extends PEAR
     *
     * @param string $dn The DN of the object to test
     *
-    * @return boolean
+    * @return boolean|Net_LDAP_Error
     */
     function dnExists($dn)
     {
@@ -874,15 +874,15 @@ class Net_LDAP extends PEAR
         if (Net_LDAP::isError($base)) {
             return $base;
         }
-        $filter_dn = array_shift($base);
-        // maybe the dn consist of a multivalued RDN, we must build the dn in this case
-        // because the $child-RDN is an array!
-        if (is_array($filter_dn)) {
-            $filter_dn = Net_LDAP_Util::canonical_dn($filter_dn);
+        $entry_rdn = array_shift($base);
+        if (is_array($entry_rdn)) {
+            // maybe the dn consist of a multivalued RDN, we must build the dn in this case
+            // because the $entry_rdn is an array!
+            $filter_dn = Net_LDAP_Util::canonical_dn($entry_rdn);
         }
         $base = Net_LDAP_Util::canonical_dn($base);
 
-        $result = @ldap_list($this->_link, $base, $filter_dn, array(), 1, 1);
+        $result = @ldap_list($this->_link, $base, $entry_rdn, array(), 1, 1);
         if (ldap_errno($this->_link) == 32) {
             return false;
         }
@@ -890,8 +890,7 @@ class Net_LDAP extends PEAR
             PEAR::raiseError(ldap_error($this->_link), ldap_errno($this->_link));
         }
         if (@ldap_count_entries($this->_link, $result)) {
-            $return = true;
-            return $return;
+            return true;
         }
         return false;
     }
@@ -957,17 +956,18 @@ class Net_LDAP extends PEAR
             if ($target_ldap->dnExists($entry->dn())) {
                 return PEAR::raiseError('Unable to perform cross directory move: entry does exist in target directory');
             }
+            $entry->dn($newdn);
             $res = $target_ldap->add($entry);
             if (Net_LDAP::isError($res)) {
                 return PEAR::raiseError('Unable to perform cross directory move: '.$res->getMessage().' in target directory');
             }
-            $res = $this->delete();
+            $res = $this->delete($entry->currentDN());
             if (Net_LDAP::isError($res)) {
-                $res2 = $target_ldap->delete($entry, true); // undo add
+                $res2 = $target_ldap->delete($entry); // undo add
                 if (Net_LDAP::isError($res2)) {
-                    $add_error_string = 'Additionally, the deletion of $entry in target directory failed.';
+                    $add_error_string = 'Additionally, the deletion (undo add) of $entry in target directory failed.';
                 }
-                return PEAR::raiseError('Unable to perform cross directory move: '.$res->getMessage().' in target directory. '.$add_error_string);
+                return PEAR::raiseError('Unable to perform cross directory move: '.$res->getMessage().' in source directory. '.$add_error_string);
             }
             return true;
         } else {

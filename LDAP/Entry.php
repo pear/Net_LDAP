@@ -157,9 +157,13 @@ class Net_LDAP_Entry extends PEAR
     /**
     * Creates a fresh entry that may be added to the directory later on
     *
-    * The method should be called statically: $entry = Net_LDAP_Entry::createFresh();
-    *
     * Use this method, if you want to initialize a fresh entry.
+    *
+    * The method should be called statically: $entry = Net_LDAP_Entry::createFresh();
+    * You should put a 'objectClass' attribute into the $attrs so the directory server
+    * knows which object you want to create. However, you may omit this in case you
+    * don't want to add this entry to a directory server.
+    *
     * The attributes parameter is as following:
     * <code>
     * $attrs = array( 'attribute1' => array('value1', 'value2'),
