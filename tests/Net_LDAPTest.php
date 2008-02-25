@@ -273,9 +273,6 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             $this->assertTrue($ldap->dnExists($ou_3->dn()));
             // Tree established now. We can run some tests now :D
 
-            // Because of Bug #13197, we must establish a fresh connection.
-            $ldap =& $this->connect();
-
             // Try to delete some non existent entry inside that subtree (fails)
             $this->assertType('Net_LDAP_Error', $ldap->delete(
                 'cn=not_existent,ou=test1,'.$testdn));

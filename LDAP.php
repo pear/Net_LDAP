@@ -560,7 +560,7 @@ class Net_LDAP extends PEAR
         }
         // Recursive delete searches for children and calls delete for them
         if ($recursive) {
-            $result = @ldap_list($this->_link, $dn, '(objectClass=*)', array(null));
+            $result = @ldap_list($this->_link, $dn, '(objectClass=*)', array(null), 0, 0);
             if (@ldap_count_entries($this->_link, $result)) {
                 $subentry = @ldap_first_entry($this->_link, $result);
                 $this->delete(@ldap_get_dn($this->_link, $subentry), true);
@@ -682,6 +682,9 @@ class Net_LDAP extends PEAR
     *                locating the base object of the search.
     *        find
     *        always
+    *
+    * Please note, that you cannot override server side limitations to sizelimit
+    * and timelimit: You can always only lower a given limit.
     *
     * @param string                 $base   LDAP searchbase
     * @param string|Net_LDAP_Filter $filter LDAP search filter or a Net_LDAP_Filter object
