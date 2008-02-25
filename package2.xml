@@ -48,6 +48,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </stability>
     <license>LGPL License</license>
     <notes>* Fixed a little bug at cross directory move
+    * Fixed a bug when deleting a subtree containing several subentries that failed if
+      one called dnExists() prior calling delete()
     * Added Net_LDAP tests
     </notes>
 
