@@ -295,19 +295,28 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            // We need some test entry
-            /*
-            $dn = 'ou=Net_LDAP_Test_subdelete,'.$base;
-            $ou = Net_LDAP_Entry::createFresh($dn,
+            $ldap =& $this->connect();
+            // We need a test entry:
+            $entry = Net_LDAP_Entry::createFresh(
+                'ou=Net_LDAP_Test_modify,'.$this->ldapcfg['global']['server_base_dn'],
                 array(
                     'objectClass' => array('top','organizationalUnit'),
-                    'ou'              => 'Net_LDAP_Test_subdelete',
-                    'seeAlso'         => 'test',
+                    'ou'              => 'Net_LDAP_Test_modify',
                     'street'          => 'Beniroad',
-                    'telephoneNumber' => array('1234', '5678')
+                    'telephoneNumber' => array('1234', '5678'),
+                    'postalcode'      => '12345',
+                    'postalAddress'   => 'someAddress',
+                    'facsimileTelephoneNumber' => array('123','456')
                 ));
-            $this->assertTrue($ldap->add($ou));
-            $this->assertTrue($ldap->dnExists($ou->dn()));
+            $this->assertTrue($ldap->add($entry));
+            $this->assertTrue($ldap->dnExists($entry->dn()));
+
+            // Refetch entry from directory for applying changes
+            // (necessary because of Bug #13200)
+            $local_entry = $ldap->getEntry($entry->dn(), array(
+                'postalAddress', 'street', 'telephoneNumber', 'postalcode',
+                'facsimileTelephoneNumber', 'l', 'businessCategory'
+            ));
 
             // Prepare some changes
             $changes = array(
@@ -315,17 +324,52 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
                                 'businessCategory' => array('foocat', 'barcat'),
                                 'description' => 'testval'
                 ),
-                'delete' => array('seeAlso'),
-                'replace' => array('attribute1' => array('val1')),
+                'delete' => array('postalAddress'),
+                'replace' => array('telephoneNumber' => array('345', '567')),
                 'changes' => array(
-                                'add' => ...,
-                                'replace' => ...,
+                                'replace' => array('street' => 'Highway to Hell'),
+                                'add' => array('l' => 'someLocality'),
                                 'delete' => array(
-                                    'attribute1',
-                                    'attribute2' => array('val1'))
+                                    'postalcode',
+                                    'facsimileTelephoneNumber' => array('123'))
                 )
             );
-            */
+
+            // run them
+            $this->assertTrue($ldap->modify($local_entry, $changes));
+
+            // verify correct attribute changes
+            $actual_entry = $ldap->getEntry($entry->dn(), array(
+                'postalAddress', 'street', 'telephoneNumber', 'postalcode',
+                'facsimileTelephoneNumber', 'l', 'businessCategory', 'description'));
+            $this->assertType('Net_LDAP_Entry', $actual_entry);
+            $expected_attributes = array(
+                'street' => 'Highway to Hell',
+                'l'      => 'someLocality',
+                'telephoneNumber' => array('345', '567'),
+                'businessCategory' => array('foocat', 'barcat'),
+                'description' => 'testval',
+                'facsimileTelephoneNumber' => '456'
+            );
+
+            $local_attributes  = $local_entry->getValues();
+            $actual_attributes = $actual_entry->getValues();
+
+            // to enable easy check, we need to sort the
+            // values of the remaining multival attrs
+            sort($expected_attributes['businessCategory']);
+            sort($local_attributes['businessCategory']);
+            sort($actual_attributes['businessCategory']);
+
+            // cleanup directory prior tests
+            $this->assertTrue($ldap->delete($actual_entry),
+                'Cleanup of test entry failed. Please remove manually: '.$entry->dn());
+
+            // The attributes must match the expected values.
+            // Both, the entry inside the directory and our
+            // apps local copy must reflect the same values
+            $this->assertEquals($expected_attributes, $actual_attributes, 'The directory entries attributes are not OK!');
+            $this->assertEquals($expected_attributes, $local_attributes, 'The local entries attributes are not OK!');
         }
     }
 
