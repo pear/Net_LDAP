@@ -226,7 +226,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $ldap   = &$this->connect();
+            $ldap =& $this->connect();
             // some parameter checks
             $this->assertType('Net_LDAP_Error', $ldap->delete(1234));
             $this->assertType('Net_LDAP_Error', $ldap->delete($ldap));
@@ -246,34 +246,42 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
                     'objectClass' => array('top','organizationalUnit'),
                     'ou' => 'test1'
                 ));
-            $ou_1_1 = Net_LDAP_Entry::createFresh('l=subtest,ou=test1,'.$testdn,
+            $ou_1_l1 = Net_LDAP_Entry::createFresh('l=subtest,ou=test1,'.$testdn,
                 array(
                     'objectClass' => array('top','locality'),
-                    'l' => 'subtest'
+                    'l' => 'test1'
                 ));
             $ou_2 = Net_LDAP_Entry::createFresh('ou=test2,'.$testdn,
                 array(
                     'objectClass' => array('top','organizationalUnit'),
                     'ou' => 'test2'
                 ));
+            $ou_3 = Net_LDAP_Entry::createFresh('ou=test3,'.$testdn,
+                array(
+                    'objectClass' => array('top','organizationalUnit'),
+                    'ou' => 'test3'
+                ));
             $this->assertTrue($ldap->add($ou));
             $this->assertTrue($ldap->add($ou_1));
-            $this->assertTrue($ldap->add($ou_1_1));
+            $this->assertTrue($ldap->add($ou_1_l1));
             $this->assertTrue($ldap->add($ou_2));
+            $this->assertTrue($ldap->add($ou_3));
             $this->assertTrue($ldap->dnExists($ou->dn()));
             $this->assertTrue($ldap->dnExists($ou_1->dn()));
-            $this->assertTrue($ldap->dnExists($ou_1_1->dn()));
+            $this->assertTrue($ldap->dnExists($ou_1_l1->dn()));
             $this->assertTrue($ldap->dnExists($ou_2->dn()));
-            // Test tree successfully established. We can run some tests now :D
+            $this->assertTrue($ldap->dnExists($ou_3->dn()));
+            // Tree established now. We can run some tests now :D
+
+            // Because of Bug #13197, we must establish a fresh connection.
+            $ldap =& $this->connect();
 
             // Try to delete some non existent entry inside that subtree (fails)
-            $unknown_dn = 'cn=not_existent,ou=test1,'.$testdn;
-            $this->assertFalse($ldap->dnExists($unknown_dn), 'DN '.$unknown_dn.' was expected to not exist!');
-            $this->assertType('Net_LDAP_Error', $ldap->delete($unknown_dn));
+            $this->assertType('Net_LDAP_Error', $ldap->delete(
+                'cn=not_existent,ou=test1,'.$testdn));
 
             // Try to delete main test ou without recursive set (fails too)
             $this->assertType('Net_LDAP_Error', $ldap->delete($testdn));
-            $this->assertType('Net_LDAP_Error', $ldap->delete($testdn, false));
 
             // Retry with subtree delete, this should work
             $this->assertTrue($ldap->delete($testdn, true));
