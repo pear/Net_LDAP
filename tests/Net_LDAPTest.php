@@ -228,50 +228,95 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
         } else {
             // in order to test subtree deletion, we need some little tree
             // which we need to establish first
-            $ldap =& $this->connect();
-            $base = $this->ldapcfg['global']['server_base_dn'];
+            $ldap   = &$this->connect();
+            $base   = $this->ldapcfg['global']['server_base_dn'];
+            $testdn = 'ou=Net_LDAP_Test_subdelete,'.$base;
 
-            $ou = Net_LDAP_Entry::createFresh('ou=Net_LDAP_Test_subdelete,'.$base,
+            $ou = Net_LDAP_Entry::createFresh($testdn,
                 array(
                     'objectClass' => array('top','organizationalUnit'),
                     'ou' => 'Net_LDAP_Test_subdelete'
                 ));
-            $ou_1 = Net_LDAP_Entry::createFresh('ou=test1,ou=Net_LDAP_Test_subdelete,'.$base,
+            $ou_1 = Net_LDAP_Entry::createFresh('ou=test1,'.$testdn,
                 array(
                     'objectClass' => array('top','organizationalUnit'),
                     'ou' => 'test1'
                 ));
-            $ou_2 = Net_LDAP_Entry::createFresh('ou=test2,ou=Net_LDAP_Test_subdelete,'.$base,
+            $ou_1_1 = Net_LDAP_Entry::createFresh('l=subtest,ou=test1,'.$testdn,
+                array(
+                    'objectClass' => array('top','locality'),
+                    'l' => 'subtest'
+                ));
+            $ou_2 = Net_LDAP_Entry::createFresh('ou=test2,'.$testdn,
                 array(
                     'objectClass' => array('top','organizationalUnit'),
                     'ou' => 'test2'
                 ));
             $this->assertTrue($ldap->add($ou));
             $this->assertTrue($ldap->add($ou_1));
+            $this->assertTrue($ldap->add($ou_1_1));
             $this->assertTrue($ldap->add($ou_2));
-            // Tree established now. We can run some tests now :D
+            $this->assertTrue($ldap->dnExists($ou->dn()));
+            $this->assertTrue($ldap->dnExists($ou_1->dn()));
+            $this->assertTrue($ldap->dnExists($ou_1_1->dn()));
+            $this->assertTrue($ldap->dnExists($ou_2->dn()));
+            // Test tree successfully established. We can run some tests now :D
 
             // Try to delete some non existent entry inside that subtree (fails)
-            $this->assertType('Net_LDAP_Error', $ldap->delete(
-                'cn=not_existent,ou=test1,ou=Net_LDAP_Test_subdelete,'.$base));
+            $unknown_dn = 'cn=not_existent,ou=test1,'.$testdn;
+            $this->assertFalse($ldap->dnExists($unknown_dn), 'DN '.$unknown_dn.' was expected to not exist!');
+            $this->assertType('Net_LDAP_Error', $ldap->delete($unknown_dn));
 
             // Try to delete main test ou without recursive set (fails too)
-            $this->assertType('Net_LDAP_Error', $ldap->delete(
-                'ou=Net_LDAP_Test_subdelete,'.$base));
+            $this->assertType('Net_LDAP_Error', $ldap->delete($testdn));
+            $this->assertType('Net_LDAP_Error', $ldap->delete($testdn, false));
 
             // Retry with subtree delete, this should work
-            $this->assertTrue($ldap->delete('ou=Net_LDAP_Test_subdelete,'.$base, true));
+            $this->assertTrue($ldap->delete($testdn, true));
+
+            // The DN is not allowed to exist anymore
+            $this->assertFalse($ldap->dnExists($testdn));
         }
     }
 
     /**
-     * @todo Implement testModify().
+     * testModify().
      */
     public function testModify() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            // We need some test entry
+            /*
+            $dn = 'ou=Net_LDAP_Test_subdelete,'.$base;
+            $ou = Net_LDAP_Entry::createFresh($dn,
+                array(
+                    'objectClass' => array('top','organizationalUnit'),
+                    'ou'              => 'Net_LDAP_Test_subdelete',
+                    'seeAlso'         => 'test',
+                    'street'          => 'Beniroad',
+                    'telephoneNumber' => array('1234', '5678')
+                ));
+            $this->assertTrue($ldap->add($ou));
+            $this->assertTrue($ldap->dnExists($ou->dn()));
+
+            // Prepare some changes
+            $changes = array(
+                'add' => array(
+                                'businessCategory' => array('foocat', 'barcat'),
+                                'description' => 'testval'
+                ),
+                'delete' => array('seeAlso'),
+                'replace' => array('attribute1' => array('val1')),
+                'changes' => array(
+                                'add' => ...,
+                                'replace' => ...,
+                                'delete' => array(
+                                    'attribute1',
+                                    'attribute2' => array('val1'))
+                )
+            );
+            */
         }
     }
 
