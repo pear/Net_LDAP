@@ -68,10 +68,10 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
         }
         // validate ini
         $v_error = $file.' is probably invalid. Did you quoted values correctly?';
-        $this->assertTrue(array_key_exists('global', $config));
-        $this->assertTrue(array_key_exists('test', $config));
-        $this->assertEquals(7, count($config['global']));
-        $this->assertEquals(8, count($config['test']));
+        $this->assertTrue(array_key_exists('global', $config), $v_error);
+        $this->assertTrue(array_key_exists('test', $config), $v_error);
+        $this->assertEquals(7, count($config['global']), $v_error);
+        $this->assertEquals(8, count($config['test']), $v_error);
 
         // reformat things a bit, for convinience
         $config['global']['server_binddn'] =
@@ -86,6 +86,11 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     * @return Net_LDAP
     */
     public function &connect() {
+        // Check extension
+        if (true !== Net_LDAP::checkLDAPExtension()) {
+            $this->markTestSkipped('PHP LDAP extension not found or not loadable. Skipped Test.');
+        }
+
         // Simple working connect and privilegued bind
         $lcfg = array(
                 'host'   => $this->ldapcfg['global']['server_address'],
@@ -100,6 +105,22 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     }
 
 /* ---------- TESTS ---------- */
+
+    /**
+     * testCheckLDAPExtension().
+     *
+     * @todo can we unload modules at runtime??
+     */
+    public function testCheckLDAPExtension() {
+        if (extension_loaded('ldap')) {
+            // If extension is already loaded, then we must get true.
+            $this->assertTrue(Net_LDAP::checkLDAPExtension());
+        } else {
+            // If not, we should be able to load it - but may fail
+            $this->assertThat(Net_LDAP::checkLDAPExtension(),
+                $this->logicalOr($this->isInstanceOf('Net_LDAP_Error'), $this->equalTo(true)));
+        }
+    }
 
     /**
      * Tests if getVersion() works correctly
@@ -474,35 +495,126 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testDnExists().
+     * testDnExists().
      */
     public function testDnExists() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            $ldap =& $this->connect();
+            $dn   = $this->ldapcfg['test']['existing_entry'].','.$this->ldapcfg['global']['server_base_dn'];
+
+            // Testing existing and not existing DN; neither should produce an error
+            $this->assertTrue($ldap->dnExists($dn));
+            $this->assertFalse($ldap->dnExists('cn=not_existent,'.$dn));
         }
     }
 
     /**
-     * @todo Implement testGetEntry().
+     * testGetEntry().
      */
     public function testGetEntry() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            $ldap =& $this->connect();
+            $dn   = $this->ldapcfg['test']['existing_entry'].','.$this->ldapcfg['global']['server_base_dn'];
+
+            // existing DN
+            $this->assertType('Net_LDAP_Entry', $ldap->getEntry($dn), "$dn was supposed to be found. Please check your ldapconfig.ini!");
+
+            // Not existing DN
+            $this->assertType('Net_LDAP_Error',
+                $ldap->getEntry('cn=notexistent,'.$this->ldapcfg['global']['server_base_dn']));
         }
     }
 
     /**
-     * @todo Implement testMove().
+     * testMove().
      */
     public function testMove() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            $ldap =& $this->connect();
+
+            // For Moving tests, we need some little tree again
+            $base   = $this->ldapcfg['global']['server_base_dn'];
+            $testdn = 'ou=Net_LDAP_Test_moves,'.$base;
+
+            $ou = Net_LDAP_Entry::createFresh($testdn,
+                array(
+                    'objectClass' => array('top','organizationalUnit'),
+                    'ou' => 'Net_LDAP_Test_moves'
+                ));
+            $ou_1 = Net_LDAP_Entry::createFresh('ou=source,'.$testdn,
+                array(
+                    'objectClass' => array('top','organizationalUnit'),
+                    'ou' => 'source'
+                ));
+            $ou_1_l1 = Net_LDAP_Entry::createFresh('l=moveitem,ou=source,'.$testdn,
+                array(
+                    'objectClass' => array('top','locality'),
+                    'l' => 'moveitem'
+                ));
+            $ou_2 = Net_LDAP_Entry::createFresh('ou=target,'.$testdn,
+                array(
+                    'objectClass' => array('top','organizationalUnit'),
+                    'ou' => 'target'
+                ));
+            $ou_3 = Net_LDAP_Entry::createFresh('ou=target_otherdir,'.$testdn,
+                array(
+                    'objectClass' => array('top','organizationalUnit'),
+                    'ou' => 'target_otherdir'
+                ));
+            $this->assertTrue($ldap->add($ou));
+            $this->assertTrue($ldap->add($ou_1));
+            $this->assertTrue($ldap->add($ou_1_l1));
+            $this->assertTrue($ldap->add($ou_2));
+            $this->assertTrue($ldap->add($ou_3));
+            $this->assertTrue($ldap->dnExists($ou->dn()));
+            $this->assertTrue($ldap->dnExists($ou_1->dn()));
+            $this->assertTrue($ldap->dnExists($ou_1_l1->dn()));
+            $this->assertTrue($ldap->dnExists($ou_2->dn()));
+            $this->assertTrue($ldap->dnExists($ou_3->dn()));
+            // Tree established
+
+            // WORKAROUND for Bug #13200
+            // Entry must be refetched to work properly
+            $ou_1_l1 = $ldap->getEntry($ou_1_l1->currentDN());
+
+            // Local rename
+            $olddn = $ou_1_l1->currentDN();
+            $this->assertTrue($ldap->move($ou_1_l1,
+                str_replace('moveitem', 'move_item', $ou_1_l1->dn())));
+            $this->assertTrue($ldap->dnExists($ou_1_l1->dn()));
+            $this->assertFalse($ldap->dnExists($olddn));
+
+            // Local move
+            $olddn = $ou_1_l1->currentDN();
+            $this->assertTrue($ldap->move($ou_1_l1, 'l=move_item,'.$ou_2->dn()));
+            $this->assertTrue($ldap->dnExists($ou_1_l1->dn()));
+            $this->assertFalse($ldap->dnExists($olddn));
+
+            // Local move backward, with rename
+            // Here we use the DN of the object, to test DN conversion.
+            $olddn = $ou_1_l1->currentDN();
+            $this->assertTrue($ldap->move($ou_1_l1, 'l=moveditem,'.$ou_2->dn()));
+            $this->assertTrue($ldap->dnExists($ou_1_l1->dn()));
+            $this->assertFalse($ldap->dnExists($olddn));
+
+            // Fake-cross directory move using two separate
+            // links to the same directory.
+            // This other directory is represented by ou=target_otherdir
+            $ldap2 = $this->connect();
+            $olddn = $ou_1_l1->currentDN();
+            $this->assertTrue($ldap->move($ou_1_l1, 'l=movedcrossdir,'.$ou_3->dn(), $ldap2));
+            $this->assertFalse($ldap->dnExists($olddn));
+            $this->assertTrue($ldap2->dnExists($ou_1_l1->dn()));
+
+
+            // cleanup test tree
+            $this->assertTrue($ldap->delete($testdn, true), "Could not delete $testdn, please cleanup manually");
         }
     }
 
@@ -514,6 +626,10 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
             $this->markTestIncomplete("This test has not been implemented yet.");
+            // Todo: Local cp
+
+            // Todo: Fake-cross directory cp using two separate
+            //       connects to the same directory
         }
     }
 
@@ -551,31 +667,9 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testRoot_dse().
-     */
-    public function testRoot_dse() {
-        if (!$this->ldapcfg) {
-            $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
-        } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
-        }
-    }
-
-    /**
      * @todo Implement testSchema().
      */
     public function testSchema() {
-        if (!$this->ldapcfg) {
-            $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
-        } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
-        }
-    }
-
-    /**
-     * @todo Implement testCheckLDAPExtension().
-     */
-    public function testCheckLDAPExtension() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {

@@ -888,14 +888,14 @@ class Net_LDAP extends PEAR
         $base = Net_LDAP_Util::canonical_dn($base);
 
         $result = @ldap_list($this->_link, $base, $entry_rdn, array(), 1, 1);
+        if (@ldap_count_entries($this->_link, $result)) {
+            return true;
+        }
         if (ldap_errno($this->_link) == 32) {
             return false;
         }
         if (ldap_errno($this->_link) != 0) {
-            PEAR::raiseError(ldap_error($this->_link), ldap_errno($this->_link));
-        }
-        if (@ldap_count_entries($this->_link, $result)) {
-            return true;
+            return PEAR::raiseError(ldap_error($this->_link), ldap_errno($this->_link));
         }
         return false;
     }
@@ -946,7 +946,7 @@ class Net_LDAP extends PEAR
     */
     function move(&$entry, $newdn, $target_ldap = null)
     {
-        if (!is_string($entry)) {
+        if (is_string($entry)) {
             $entry = new Net_LDAP_Entry($this, $entry);
         }
         if (!is_a($entry, 'Net_LDAP_Entry')) {
@@ -958,7 +958,7 @@ class Net_LDAP extends PEAR
 
         if ($target_ldap && $target_ldap !== $this) {
             // cross directory move
-            if ($target_ldap->dnExists($entry->dn())) {
+            if ($target_ldap->dnExists($newdn)) {
                 return PEAR::raiseError('Unable to perform cross directory move: entry does exist in target directory');
             }
             $entry->dn($newdn);
@@ -987,9 +987,9 @@ class Net_LDAP extends PEAR
     * Copy an entry to a new location
     *
     * The entry will be immediately copied.
-    * If you pass an Net_LDAP_Entry object, the source entry is not required
-    * to be existent on this LDAP server, which can be used to
-    * copy between directory servers.
+    * If you pass an Net_LDAP_Entry object instead of just an DN,
+    * the source entry is not required to be existent on this
+    * LDAP server, which can be used to copy between directory servers.
     *
     * @param string|Net_LDAP_Entry &$entry Entry DN or Entry object
     * @param string                $newdn  New location

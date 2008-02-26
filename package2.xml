@@ -50,6 +50,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <notes>* Fixed a little bug at cross directory move
     * Fixed a bug when deleting a subtree containing several subentries that failed if
       one called dnExists() prior calling delete()
+    * Fixed some minor bugs at NeT_LDAP->move() and Net_LDAP->dnExists()
     * Added Net_LDAP tests
     </notes>
 

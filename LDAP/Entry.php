@@ -656,7 +656,7 @@ class Net_LDAP_Entry extends PEAR
             }
             $parent = Net_LDAP_Util::canonical_dn($parent);
 
-            // rename
+            // rename/move
             if (false == @ldap_rename($link, $this->_dn, $child, $parent, true)) {
                 return PEAR::raiseError("Entry not renamed: " .
                                         @ldap_error($link), @ldap_errno($link));
