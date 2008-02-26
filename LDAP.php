@@ -752,7 +752,7 @@ class Net_LDAP extends PEAR
                 // Errorcode 32 = no such object, i.e. a nullresult.
                 return $obj = & new Net_LDAP_Search ($search, $this, $attributes);
             } elseif ($err == 4) {
-                // Errorcode 4 = sizelimit exeeded. TODO
+                // Errorcode 4 = sizelimit exeeded.
                 return $obj = & new Net_LDAP_Search ($search, $this, $attributes);
             } elseif ($err == 87) {
                 // bad search filter

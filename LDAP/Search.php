@@ -472,6 +472,16 @@ class Net_LDAP_Search extends PEAR
     {
         return $this->_searchedAttrs;
     }
+
+    /**
+    * Tells if this search exceeds a sizelimit
+    *
+    * @return boolean
+    */
+    function sizeLimitExceeded()
+    {
+        return ($this->getErrorCode() == 4);
+    }
 }
 
 ?>

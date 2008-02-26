@@ -374,13 +374,58 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testSearch().
+     * testSearch().
+     *
+     * @todo sizelimit hits should be checked. However, this is currently unsupported by Net_LDAP_Search
      */
     public function testSearch() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            $ldap =& $this->connect();
+
+            // Search for configured filter, should at least return one entry
+            $res = $ldap->search(null, $this->ldapcfg['test']['searchfilter'],
+                array('attributes' => '1.1')
+            );
+            $this->assertType('Net_LDAP_Search', $res);
+            $this->assertThat($res->count(), $this->greaterThanOrEqual(1));
+
+            // Search using default filter for base scope
+            // should of course return more than one entry
+            $res = $ldap->search(null, null,
+                array('scope' => 'base', 'attributes' => '1.1')
+            );
+            $this->assertType('Net_LDAP_Search', $res);
+            $this->assertThat($res->count(), $this->greaterThanOrEqual(1));
+
+            // Search using default filter for base scope with sizelimit
+            // should of course return more than one entry,
+            // but not more than sizelimit
+            $res = $ldap->search(null, null,
+                array('scope' => 'one', 'sizelimit' => 2, 'attributes' => '1.1')
+            );
+            $this->assertType('Net_LDAP_Search', $res);
+            $this->assertThat($res->count(), $this->logicalAnd($this->greaterThanOrEqual(1), $this->lessThanOrEqual(2)));
+
+            // Bad filter
+            $res = $ldap->search(null, 'somebadfilter',
+                array('attributes' => '1.1')
+            );
+            $this->assertType('Net_LDAP_Error', $res);
+
+            // Bad base
+            $res = $ldap->search('badbase', null,
+                array('attributes' => '1.1')
+            );
+            $this->assertType('Net_LDAP_Error', $res);
+
+            // Nullresult
+            $res = $ldap->search(null, '(cn=nevermatching_filter)',
+                array('scope' => 'base', 'attributes' => '1.1')
+            );
+            $this->assertType('Net_LDAP_Search', $res);
+            $this->assertEquals(0, $res->count());
         }
     }
 
