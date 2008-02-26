@@ -598,10 +598,14 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
 
             // Local move backward, with rename
             // Here we use the DN of the object, to test DN conversion.
+            // Note that this will outdate the object since it does not
+            // has knowledge about the move.
             $olddn = $ou_1_l1->currentDN();
-            $this->assertTrue($ldap->move($ou_1_l1, 'l=moveditem,'.$ou_2->dn()));
-            $this->assertTrue($ldap->dnExists($ou_1_l1->dn()));
+            $newdn = 'l=moveditem,'.$ou_2->dn();
+            $this->assertTrue($ldap->move($olddn, $newdn));
+            $this->assertTrue($ldap->dnExists($newdn));
             $this->assertFalse($ldap->dnExists($olddn));
+            $ou_1_l1 = $ldap->getEntry($newdn); // Refetch since the objects DN was outdated
 
             // Fake-cross directory move using two separate
             // links to the same directory.
@@ -615,6 +619,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
 
             // cleanup test tree
             $this->assertTrue($ldap->delete($testdn, true), "Could not delete $testdn, please cleanup manually");
+
         }
     }
 
