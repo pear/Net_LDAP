@@ -714,11 +714,13 @@ class Net_LDAP extends PEAR
         (isset($params['attrsonly']))  ? $attrsonly  = $params['attrsonly']  : $attrsonly = 0;
         (isset($params['attributes'])) ? $attributes = $params['attributes'] : $attributes = array();
 
+        // Ensure $attributes to be an array in case only one
+        // attribute name was given as string
         if (!is_array($attributes)) {
-            PEAR::raiseError("The param attributes must be an array!");
+            $attributes = array($attributes);
         }
 
-        // reorganize the attributes array index keys
+        // reorganize the $attributes array index keys
         // sometimes there are problems with not consecutive indexes
         $attributes = array_values($attributes);
 
