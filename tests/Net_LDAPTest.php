@@ -651,46 +651,39 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testErrorMessage().
-     */
-    public function testErrorMessage() {
-        if (!$this->ldapcfg) {
-            $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
-        } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
-        }
-    }
-
-    /**
-     * @todo Implement testIsError().
+     * testIsError().
      */
     public function testIsError() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            $error = PEAR::raiseError('TestError');
+            $this->assertTrue(Net_LDAP::isError($error));
+            $this->assertFalse(Net_LDAP::isError('noerror'));
         }
     }
 
     /**
-     * @todo Implement testRootDse().
+     * checks retrival of RootDSE object
      */
     public function testRootDse() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            $ldap =& $this->connect();
+            $this->assertType('Net_LDAP_RootDSE', $ldap->rootDSE());
         }
     }
 
     /**
-     * @todo Implement testSchema().
+     * Checks retrival of schema through LDAP object
      */
     public function testSchema() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            $ldap =& $this->connect();
+            $this->assertType('Net_LDAP_Schema', $ldap->schema());
         }
     }
 
@@ -717,13 +710,14 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testGetLink().
+     * testGetLink().
      */
     public function testGetLink() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            $ldap =& $this->connect();
+            $this->assertTrue(is_resource($ldap->getLink()));
         }
     }
 }
