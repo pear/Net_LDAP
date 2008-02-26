@@ -924,7 +924,7 @@ class Net_LDAP extends PEAR
         if (Net_LDAP::isError($result)) {
             return $result;
         } elseif ($result->count() == 0) {
-            return PEAR::raiseError('Could not fetch entry: no entry found');
+            return PEAR::raiseError('Could not fetch entry '.$dn.': no entry found');
         }
         $entry = $result->shiftEntry();
         if (false == $entry) {
@@ -941,8 +941,11 @@ class Net_LDAP extends PEAR
     * You can pass an optional Net_LDAP object. In this case, a cross directory
     * move will be performed which deletes the entry in the source (THIS) directory
     * and adds it in the directory $target_ldap.
-    * A Cross directory move will switch the Entrys internal LDAP reference so
+    * A cross directory move will switch the Entrys internal LDAP reference so
     * updates to the entry will go to the new directory.
+    *
+    * Note that if you want to do a cross directory move, you need to
+    * pass an Net_LDAP_Entry object, otherwise the attributes will be empty.
     *
     * @param string|Net_LDAP_Entry &$entry      Entry DN or Entry object
     * @param string                $newdn       New location
@@ -966,6 +969,9 @@ class Net_LDAP extends PEAR
 
         if ($target_ldap && $target_ldap !== $this) {
             // cross directory move
+            if (is_string($entry)) {
+                return PEAR::raiseError('Unable to perform cross directory move: operation requires a Net_LDAP_Entry object');
+            }
             if ($target_ldap->dnExists($newdn)) {
                 return PEAR::raiseError('Unable to perform cross directory move: entry does exist in target directory');
             }
@@ -996,22 +1002,16 @@ class Net_LDAP extends PEAR
     * Copy an entry to a new location
     *
     * The entry will be immediately copied.
-    * If you pass an Net_LDAP_Entry object instead of just an DN,
-    * the source entry is not required to be existent on this
-    * LDAP server, which can be used to copy between directory servers.
     *
-    * @param string|Net_LDAP_Entry &$entry Entry DN or Entry object
-    * @param string                $newdn  New location
+    * @param Net_LDAP_Entry &$entry Entry object
+    * @param string         $newdn  New location
     *
     * @return Net_LDAP_Error|Net_LDAP_Entry Error Message or reference to the copied entry
     */
     function &copy(&$entry, $newdn)
     {
-        if (!is_string($entry)) {
-            $entry = new Net_LDAP_Entry($this, $entry);
-        }
         if (!is_a($entry, 'Net_LDAP_Entry')) {
-            return PEAR::raiseError('Parameter $entry is expected to be a Net_LDAP_Entry object! (If DN was passed, conversion failed)');
+            return PEAR::raiseError('Parameter $entry is expected to be a Net_LDAP_Entry object!');
         }
 
         $newentry = Net_LDAP_Entry::createFresh($newdn, $entry->getValues());

@@ -555,7 +555,8 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             $ou_1_l1 = Net_LDAP_Entry::createFresh('l=moveitem,ou=source,'.$testdn,
                 array(
                     'objectClass' => array('top','locality'),
-                    'l' => 'moveitem'
+                    'l' => 'moveitem',
+                    'description' => 'movetest'
                 ));
             $ou_2 = Net_LDAP_Entry::createFresh('ou=target,'.$testdn,
                 array(
@@ -616,6 +617,20 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             $this->assertFalse($ldap->dnExists($olddn));
             $this->assertTrue($ldap2->dnExists($ou_1_l1->dn()));
 
+            // Try to move over an existing entry
+             $this->assertType('Net_LDAP_Error', $ldap->move($ou_2, $ou_3->dn(), $ldap2));
+
+            // Try cross directory move without providing an valid entry but a DN
+            $this->assertType('Net_LDAP_Error',
+                $ldap->move($ou_1_l1->dn(), 'l=movedcrossdir2,'.$ou_2->dn(), $ldap2));
+
+            // Try passing an invalid entry object
+            $this->assertType('Net_LDAP_Error',
+                $ldap->move($ldap, 'l=move_item,'.$ou_2->dn()));
+
+            // Try passing an invalid ldap object
+            $this->assertType('Net_LDAP_Error',
+                $ldap->move($ou_1_l1, 'l=move_item,'.$ou_2->dn(), $ou_1));
 
             // cleanup test tree
             $this->assertTrue($ldap->delete($testdn, true), "Could not delete $testdn, please cleanup manually");
@@ -632,9 +647,6 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
         } else {
             $this->markTestIncomplete("This test has not been implemented yet.");
             // Todo: Local cp
-
-            // Todo: Fake-cross directory cp using two separate
-            //       connects to the same directory
         }
     }
 
