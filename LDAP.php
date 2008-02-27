@@ -1256,16 +1256,20 @@ class Net_LDAP extends PEAR
     }
 
     /**
-    * Encodes given attributes to UTF8 if needed
+    * Encodes given attributes to UTF8 if needed by schema
     *
     * This function takes attributes in an array and then checks against the schema if they need
     * UTF8 encoding. If that is so, they will be encoded. An encoded array will be returned and
     * can be used for adding or modifying.
     *
+    * $attributes is expected to be an array with keys describing
+    * the attribute names and the values as the value of this attribute:
+    * <code>$attributes = array('cn' => 'foo', 'attr2' => array('mv1', 'mv2'));</code>
+    *
     * @param array $attributes Array of attributes
     *
     * @access public
-    * @return array Array of UTF8 encoded attributes
+    * @return array|Net_LDAP_Error Array of UTF8 encoded attributes or Error
     */
     function utf8Encode($attributes)
     {
@@ -1273,12 +1277,17 @@ class Net_LDAP extends PEAR
     }
 
     /**
-    * Decodes the given attribute values
+    * Decodes the given attribute values if needed by schema
+    *
+    * $attributes is expected to be an array with keys describing
+    * the attribute names and the values as the value of this attribute:
+    * <code>$attributes = array('cn' => 'foo', 'attr2' => array('mv1', 'mv2'));</code>
     *
     * @param array $attributes Array of attributes
     *
     * @access public
-    * @return array Array with decoded attribute values
+    * @see utf8Encode()
+    * @return array|Net_LDAP_Error Array with decoded attribute values or Error
     */
     function utf8Decode($attributes)
     {
@@ -1292,10 +1301,14 @@ class Net_LDAP extends PEAR
     * @param array $function   Function to apply to attribute values
     *
     * @access private
-    * @return array Array of attributes with function applied to values
+    * @return array|Net_LDAP_Error Array of attributes with function applied to values or Error
     */
     function _utf8($attributes, $function)
     {
+        if (!is_array($attributes) || array_key_exists(0, $attributes)) {
+            return PEAR::raiseError('Parameter $attributes is expected to be an associative array');
+        }
+
         if (!$this->_schema) {
             $this->_schema = $this->schema();
         }

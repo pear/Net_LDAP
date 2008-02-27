@@ -40,7 +40,6 @@ server_bindpw        = testpass
 ;   existing_attrsv: Value of this attribute
 ;   existing_attrm:  Name of an existing attribute (multi valued)
 ;   existing_attrmv: Values of this attribute, "|" delimited
-;   searchfilter:    Valid filter returning at least one entry
 ;   utf8_attr:       Name of attribute with UTF8 value
 ;   noutf8_attr:     Name of attribute without UTF8 value
 [test]
@@ -49,6 +48,5 @@ existing_attrs  = attr1
 existing_attrsv = 12345
 existing_attrm  = attr2
 existing_attrmv = "1234|baz"
-searchfilter    = "(cn=test*)"
 utf8_attr       = attr4
 noutf8_attr     = attr1

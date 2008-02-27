@@ -71,7 +71,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue(array_key_exists('global', $config), $v_error);
         $this->assertTrue(array_key_exists('test', $config), $v_error);
         $this->assertEquals(7, count($config['global']), $v_error);
-        $this->assertEquals(8, count($config['test']), $v_error);
+        $this->assertEquals(7, count($config['test']), $v_error);
 
         // reformat things a bit, for convinience
         $config['global']['server_binddn'] =
@@ -98,6 +98,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
                 'basedn' => $this->ldapcfg['global']['server_base_dn'],
                 'binddn' => $this->ldapcfg['global']['server_binddn'],
                 'bindpw' => $this->ldapcfg['global']['server_bindpw'],
+                'filter' => '(ou=*)',
             );
         $ldap = Net_LDAP::connect($lcfg);
         $this->assertType('Net_LDAP', $ldap, 'Connect failed but was supposed to work. Check credentials and host address. If those are correct, file a bug!');
@@ -397,7 +398,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     /**
      * testSearch().
      *
-     * @todo sizelimit hits should be checked. However, this is currently unsupported by Net_LDAP_Search
+     * @todo sizelimit hits should be checked.
      */
     public function testSearch() {
         if (!$this->ldapcfg) {
@@ -405,22 +406,49 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
         } else {
             $ldap =& $this->connect();
 
-            // Search for configured filter, should at least return one entry
-            $res = $ldap->search(null, $this->ldapcfg['test']['searchfilter'],
+            // some testdata, so we can test sizelimit
+            $base = $this->ldapcfg['global']['server_base_dn'];
+            $ou1  = Net_LDAP_Entry::createFresh('ou=Net_LDAP_Test_search1,'.$base,
+                array(
+                    'objectClass' => array('top','organizationalUnit'),
+                    'ou' => 'Net_LDAP_Test_search1'
+                ));
+            $ou2  = Net_LDAP_Entry::createFresh('ou=Net_LDAP_Test_search2,'.$base,
+                array(
+                    'objectClass' => array('top','organizationalUnit'),
+                    'ou' => 'Net_LDAP_Test_search2'
+                ));
+            $this->assertTrue($ldap->add($ou1));
+            $this->assertTrue($ldap->dnExists($ou1->dn()));
+            $this->assertTrue($ldap->add($ou2));
+            $this->assertTrue($ldap->dnExists($ou2->dn()));
+
+
+            // Search for testfilter, should at least return our two test entries
+            $res = $ldap->search(null, '(ou=Net_LDAP*)',
                 array('attributes' => '1.1')
             );
             $this->assertType('Net_LDAP_Search', $res);
-            $this->assertThat($res->count(), $this->greaterThanOrEqual(1));
+            $this->assertThat($res->count(), $this->greaterThanOrEqual(2));
 
-            // Search using default filter for base scope
-            // should of course return more than one entry
-            $res = $ldap->search(null, null,
-                array('scope' => 'base', 'attributes' => '1.1')
+            // Same, but with Net_LDAP_Filter object
+            $filtero = Net_LDAP_Filter::create('ou', 'begins', 'Net_LDAP');
+            $this->assertType('Net_LDAP_Filter', $filtero);
+            $res = $ldap->search(null, $filtero,
+                array('attributes' => '1.1')
             );
             $this->assertType('Net_LDAP_Search', $res);
-            $this->assertThat($res->count(), $this->greaterThanOrEqual(1));
+            $this->assertThat($res->count(), $this->greaterThanOrEqual(2));
 
-            // Search using default filter for base scope with sizelimit
+            // Search using default filter for base-onelevel scope
+            // should at least return our two test entries
+            $res = $ldap->search(null, null,
+                array('scope' => 'one', 'attributes' => '1.1')
+            );
+            $this->assertType('Net_LDAP_Search', $res);
+            $this->assertThat($res->count(), $this->greaterThanOrEqual(2));
+
+            // Search using default filter for base-onelevel scope with sizelimit
             // should of course return more than one entry,
             // but not more than sizelimit
             $res = $ldap->search(null, null,
@@ -428,6 +456,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             );
             $this->assertType('Net_LDAP_Search', $res);
             $this->assertThat($res->count(), $this->logicalAnd($this->greaterThanOrEqual(1), $this->lessThanOrEqual(2)));
+            $this->assertTrue($res->sizeLimitExceeded()); // sizelimit should be exceeded now
 
             // Bad filter
             $res = $ldap->search(null, 'somebadfilter',
@@ -447,6 +476,11 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             );
             $this->assertType('Net_LDAP_Search', $res);
             $this->assertEquals(0, $res->count());
+
+
+            // cleanup
+            $this->assertTrue($ldap->delete($ou1), 'Cleanup failed, please delete manually');
+            $this->assertTrue($ldap->delete($ou2), 'Cleanup failed, please delete manually');
         }
     }
 
@@ -688,24 +722,47 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo testUtf8Encode()
+     * testUtf8Encode()
      */
     public function testUtf8Encode() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            $ldap    =& $this->connect();
+            $utf8    = array('cn' => 'this needs utf8: צהü');
+            $no_utf8 = array('cn' => 'this needs no utf8');
+
+            $this->assertNotEquals($utf8, $ldap->utf8Encode($utf8));
+            $this->assertEquals($no_utf8, $ldap->utf8Encode($no_utf8));
+
+            // wrong parameter
+            $this->assertType('Net_LDAP_Error', $ldap->utf8Encode('foobar'));
+            $this->assertType('Net_LDAP_Error', $ldap->utf8Encode(array('foobar')));
         }
     }
 
     /**
-     * @todo Implement testUtf8Decode().
+     * testUtf8Decode().
      */
     public function testUtf8Decode() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
+            $ldap  =& $this->connect();
+            $entry = $ldap->getEntry($this->ldapcfg['test']['existing_entry'].','.$this->ldapcfg['global']['server_base_dn'],
+                array($this->ldapcfg['test']['utf8_attr'], $this->ldapcfg['test']['noutf8_attr']));
+            $this->assertType('Net_LDAP_Entry', $entry, 'Unable to fetch test entry, check ldapconfig.ini');
+            $raw_utf8 = array($this->ldapcfg['test']['utf8_attr'] => $entry->getValue($this->ldapcfg['test']['utf8_attr'], 'single'));
+            $this->assertTrue(is_string($raw_utf8[$this->ldapcfg['test']['utf8_attr']]));
+            $no_utf8  = array($this->ldapcfg['test']['noutf8_attr'] => $entry->getValue($this->ldapcfg['test']['noutf8_attr'], 'single'));
+            $this->assertTrue(is_string($no_utf8[$this->ldapcfg['test']['noutf8_attr']]));
+
+            $this->assertNotEquals($raw_utf8, $ldap->utf8Decode($raw_utf8));
+            $this->assertEquals($no_utf8, $ldap->utf8Decode($no_utf8));
+
+            // wrong parameter
+            $this->assertType('Net_LDAP_Error', $ldap->utf8Decode('foobar'));
+            $this->assertType('Net_LDAP_Error', $ldap->utf8Decode(array('foobar')));
         }
     }
 
