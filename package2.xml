@@ -37,14 +37,14 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date></date>
+    <date>2008-02-27</date>
     <version>
-        <release>1.1.0a3</release>
-        <api>1.1.0a3</api>
+        <release>1.1.0</release>
+        <api>1.1.0</api>
     </version>
     <stability>
-        <release>beta</release>
-        <api>beta</api>
+        <release>stable</release>
+        <api>stable</api>
     </stability>
     <license>LGPL License</license>
     <notes>* Fixed a little bug at cross directory move
@@ -54,6 +54,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     * Added Net_LDAP tests
     * Changed API of Net_LDAP->copy() to only accept Net_LDAP_Entry objects, because with DNs
       Attribute values will be lost
+    /!\ This is the last release of Net_LDAP supporting PHP4 /!\
     </notes>
 
     <contents>
