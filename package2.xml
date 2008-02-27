@@ -47,7 +47,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
         <api>stable</api>
     </stability>
     <license>LGPL License</license>
-    <notes>* Implemented iterable search results so one can use foreach() with Net_LDAP_Search objects
+    <notes>/!\ This is the first PHP5 only Net_LDAP release /!\
+        * Implemented iterable search results so one can use foreach() with Net_LDAP_Search objects
     </notes>
 
     <contents>
@@ -100,7 +101,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <dependencies>
         <required>
             <php>
-                <min>4.2.0</min> <!-- by PHP_CompatInfo; to run tests, 5.0 is needed! -->
+                <min>5.0</min> <!-- by PHP_CompatInfo -->
             </php>
             <pearinstaller>
                 <min>1.5.0</min>
