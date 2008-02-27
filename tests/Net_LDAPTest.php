@@ -671,14 +671,54 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @todo Implement testCopy().
+     * testCopy().
      */
     public function testCopy() {
         if (!$this->ldapcfg) {
             $this->markTestSkipped('No ldapconfig.ini found. Skipping test!');
         } else {
-            $this->markTestIncomplete("This test has not been implemented yet.");
-            // Todo: Local cp
+            $ldap =& $this->connect();
+
+            // some testdata...
+            $base = $this->ldapcfg['global']['server_base_dn'];
+            $ou1  = Net_LDAP_Entry::createFresh('ou=Net_LDAP_Test_pool,'.$base,
+                array(
+                    'objectClass' => array('top','organizationalUnit'),
+                    'ou' => 'Net_LDAP_Test_copy'
+                ));
+            $ou2  = Net_LDAP_Entry::createFresh('ou=Net_LDAP_Test_tgt,'.$base,
+                array(
+                    'objectClass' => array('top','organizationalUnit'),
+                    'ou' => 'Net_LDAP_Test_copy'
+                ));
+            $this->assertTrue($ldap->add($ou1));
+            $this->assertTrue($ldap->dnExists($ou1->dn()));
+            $this->assertTrue($ldap->add($ou2));
+            $this->assertTrue($ldap->dnExists($ou2->dn()));
+            $entry  = Net_LDAP_Entry::createFresh('l=cptest,'.$ou1->dn(),
+                array(
+                    'objectClass' => array('top','locality'),
+                    'l' => 'cptest'
+                ));
+            $this->assertTrue($ldap->add($entry));
+            $this->assertTrue($ldap->dnExists($entry->dn()));
+
+            // copy over the entry to another tree with rename
+            $entrycp = $ldap->copy($entry, 'l=test_copied,'.$ou2->dn());
+            $this->assertType('Net_LDAP_Entry', $entrycp);
+            $this->assertNotEquals($entry->dn(), $entrycp->dn());
+            $this->assertTrue($ldap->dnExists($entrycp->dn()));
+
+            // copy same again (fails, entry exists)
+            $entrycp_f = $ldap->copy($entry, 'l=test_copied,'.$ou2->dn());
+            $this->assertType('Net_LDAP_Error', $entrycp_f);
+
+            // use only DNs to copy (fails)
+            $entrycp = $ldap->copy($entry->dn(), 'l=test_copied2,'.$ou2->dn());
+
+            //cleanup
+            $this->assertTrue($ldap->delete($ou1, true));
+            $this->assertTrue($ldap->delete($ou2, true));
         }
     }
 

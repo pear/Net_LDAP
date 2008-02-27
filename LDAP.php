@@ -1002,9 +1002,11 @@ class Net_LDAP extends PEAR
     * Copy an entry to a new location
     *
     * The entry will be immediately copied.
+    * Please note that only attributes you have
+    * selected will be copied.
     *
     * @param Net_LDAP_Entry &$entry Entry object
-    * @param string         $newdn  New location
+    * @param string         $newdn  New FQF-DN of the entry
     *
     * @return Net_LDAP_Error|Net_LDAP_Entry Error Message or reference to the copied entry
     */
