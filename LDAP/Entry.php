@@ -743,7 +743,8 @@ class Net_LDAP_Entry extends PEAR
     function &getLDAP()
     {
         if (!is_a($this->_ldap, 'Net_LDAP')) {
-            return PEAR::raiseError("LDAP is not a valid Net_LDAP object");
+            $err = new PEAR_Error('LDAP is not a valid Net_LDAP object');
+            return $err;
         } else {
             return $this->_ldap;
         }
@@ -768,6 +769,21 @@ class Net_LDAP_Entry extends PEAR
             $this->_ldap =& $ldap;
             return true;
         }
+    }
+
+    /**
+    * Marks the entry as new.
+    *
+    * If an Entry is marked as new, it will be added to the directory when
+    * calling {@link update()}. This method is mainly intendet for internal
+    * Net_LDAP package usage, so if you use it, use it with care.
+    *
+    * @access private
+    * @param boolean $mark Value to set, defaults to "true"
+    */
+    function _markAsNew($mark = true)
+    {
+        $this->_new = ($mark)? true : false;
     }
 
     /**
@@ -848,7 +864,7 @@ class Net_LDAP_Entry extends PEAR
     /**
     * Is this entry going to be moved once update() is called?
     *
-    * @reutrn boolean
+    * @return boolean
     */
     function willBeMoved()
     {

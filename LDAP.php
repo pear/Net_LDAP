@@ -526,9 +526,11 @@ class Net_LDAP extends PEAR
         if (@ldap_add($this->_link, $entry->dn(), $entry->getValues())) {
             // entry successfully added, we should update its $ldap reference
             // in case it is not set so far (fresh entry)
-            if (!$entry->_ldap) {
-                $entry->_ldap =& $this;
+            if (!is_a($entry->getLDAP(), 'Net_LDAP')) {
+                $entry->setLDAP($this);
             }
+            // store, that the entry is present inside the directory
+            $entry->_markAsNew(false);
             return true;
         } else {
              return PEAR::raiseError("Could not add entry " . $entry->dn() . " " .

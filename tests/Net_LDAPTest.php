@@ -319,7 +319,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
         } else {
             $ldap =& $this->connect();
             // We need a test entry:
-            $entry = Net_LDAP_Entry::createFresh(
+            $local_entry = Net_LDAP_Entry::createFresh(
                 'ou=Net_LDAP_Test_modify,'.$this->ldapcfg['global']['server_base_dn'],
                 array(
                     'objectClass' => array('top','organizationalUnit'),
@@ -330,15 +330,8 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
                     'postalAddress'   => 'someAddress',
                     'facsimileTelephoneNumber' => array('123','456')
                 ));
-            $this->assertTrue($ldap->add($entry));
-            $this->assertTrue($ldap->dnExists($entry->dn()));
-
-            // Refetch entry from directory for applying changes
-            // (necessary because of Bug #13200)
-            $local_entry = $ldap->getEntry($entry->dn(), array(
-                'postalAddress', 'street', 'telephoneNumber', 'postalcode',
-                'facsimileTelephoneNumber', 'l', 'businessCategory'
-            ));
+            $this->assertTrue($ldap->add($local_entry));
+            $this->assertTrue($ldap->dnExists($local_entry->dn()));
 
             // Prepare some changes
             $changes = array(
@@ -361,11 +354,13 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             $this->assertTrue($ldap->modify($local_entry, $changes));
 
             // verify correct attribute changes
-            $actual_entry = $ldap->getEntry($entry->dn(), array(
-                'postalAddress', 'street', 'telephoneNumber', 'postalcode',
+            $actual_entry = $ldap->getEntry($local_entry->dn(), array(
+                'objectClass', 'ou','postalAddress', 'street', 'telephoneNumber', 'postalcode',
                 'facsimileTelephoneNumber', 'l', 'businessCategory', 'description'));
             $this->assertType('Net_LDAP_Entry', $actual_entry);
             $expected_attributes = array(
+                'objectClass' => array('top', 'organizationalUnit'),
+                'ou' => 'Net_LDAP_Test_modify',
                 'street' => 'Highway to Hell',
                 'l'      => 'someLocality',
                 'telephoneNumber' => array('345', '567'),
@@ -389,7 +384,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
 
             // cleanup directory prior tests
             $this->assertTrue($ldap->delete($actual_entry),
-                'Cleanup of test entry failed. Please remove manually: '.$entry->dn());
+                'Cleanup of test entry failed. Please remove manually: '.$local_entry->dn());
 
             // The attributes must match the expected values.
             // Both, the entry inside the directory and our
@@ -615,10 +610,6 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             $this->assertTrue($ldap->dnExists($ou_2->dn()));
             $this->assertTrue($ldap->dnExists($ou_3->dn()));
             // Tree established
-
-            // WORKAROUND for Bug #13200
-            // Entry must be refetched to work properly
-            $ou_1_l1 = $ldap->getEntry($ou_1_l1->currentDN());
 
             // Local rename
             $olddn = $ou_1_l1->currentDN();
