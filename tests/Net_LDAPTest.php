@@ -397,8 +397,6 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
 
     /**
      * testSearch().
-     *
-     * @todo sizelimit hits should be checked.
      */
     public function testSearch() {
         if (!$this->ldapcfg) {
@@ -452,10 +450,10 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             // should of course return more than one entry,
             // but not more than sizelimit
             $res = $ldap->search(null, null,
-                array('scope' => 'one', 'sizelimit' => 2, 'attributes' => '1.1')
+                array('scope' => 'one', 'sizelimit' => 1, 'attributes' => '1.1')
             );
             $this->assertType('Net_LDAP_Search', $res);
-            $this->assertThat($res->count(), $this->logicalAnd($this->greaterThanOrEqual(1), $this->lessThanOrEqual(2)));
+            $this->assertEquals(1, $res->count());
             $this->assertTrue($res->sizeLimitExceeded()); // sizelimit should be exceeded now
 
             // Bad filter
