@@ -646,7 +646,7 @@ class Net_LDAP extends PEAR
 
         if (isset($parms['changes']) && is_array($parms['changes'])) {
             foreach ($parms['changes'] as $action => $value) {
-                $msg = $this->modify($entry->dn(), array($action => $value));
+                $msg = $this->modify($entry, array($action => $value));
                 if (Net_LDAP::isError($msg)) {
                     return $msg;
                 }
