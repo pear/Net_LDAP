@@ -55,9 +55,8 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
      * This checks if a valid LDAP testconfig is present and loads it.
      *
      * If so, it is loaded and returned as array. If not, false is returned.
-     * Some validation and 
      *
-     * @access protected
+     * @static
      * @return false|array
      */
     public function getTestConfig() {

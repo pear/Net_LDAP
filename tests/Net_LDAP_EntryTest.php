@@ -7,6 +7,9 @@ if (!defined("PHPUnit_MAIN_METHOD")) {
 require_once "PHPUnit/Framework/TestCase.php";
 require_once "PHPUnit/Framework/TestSuite.php";
 
+require_once 'Net_LDAPTest.php'; // for config methods
+
+require_once 'Net/LDAP/Entry.php';
 require_once 'Net/LDAP/Entry.php';
 
 /**
