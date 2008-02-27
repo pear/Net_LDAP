@@ -378,7 +378,11 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             $actual_attributes = $actual_entry->getValues();
 
             // to enable easy check, we need to sort the
-            // values of the remaining multival attrs
+            // values of the remaining multival attrs as
+            // well as the attribute names
+            ksort($expected_attributes);
+            ksort($local_attributes);
+            ksort($actual_attributes);
             sort($expected_attributes['businessCategory']);
             sort($local_attributes['businessCategory']);
             sort($actual_attributes['businessCategory']);
