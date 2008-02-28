@@ -207,7 +207,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
             array_push($entries, $entry);
         } while (!$ldif->eof());
 
-        $this->compareEntries($entries, $this->testentries);
+        $this->compareEntries($this->testentries, $entries);
     }
 
     /**
