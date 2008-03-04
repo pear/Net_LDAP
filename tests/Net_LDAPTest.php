@@ -39,7 +39,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
      * @access protected
      */
     protected function setUp() {
-        $this->ldapcfg = Net_LDAPTest::getTestConfig();
+        $this->ldapcfg = $this->getTestConfig();
     }
 
     /**
@@ -56,7 +56,6 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
      *
      * If so, it is loaded and returned as array. If not, false is returned.
      *
-     * @static
      * @return false|array
      */
     public function getTestConfig() {
@@ -64,6 +63,8 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
         $file = dirname(__FILE__).'/ldapconfig.ini';
         if (file_exists($file) && is_readable($file)) {
             $config = parse_ini_file($file, true);
+        } else {
+            return false;
         }
         // validate ini
         $v_error = $file.' is probably invalid. Did you quoted values correctly?';
@@ -381,7 +382,7 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
             sort($local_attributes['businessCategory']);
             sort($actual_attributes['businessCategory']);
 
-            // cleanup directory prior tests
+            // cleanup directory
             $this->assertTrue($ldap->delete($actual_entry),
                 'Cleanup of test entry failed. Please remove manually: '.$local_entry->dn());
 

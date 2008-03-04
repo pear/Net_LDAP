@@ -3,7 +3,7 @@
 /**
 * File containing the Net_LDAP interface class.
 *
-* PHP version 4, 5
+* PHP version 5
 *
 * @category  Net
 * @package   Net_LDAP
