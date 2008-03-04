@@ -178,7 +178,7 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
             $this->assertType('PEAR_Error', $filter_dmg->printMe($file)); // dmg. filter
             @fclose($file);
         } else {
-            $this->markSkipped("$testfile could not be opened in write mode, skipping write test");
+            $this->markTestSkipped("$testfile could not be opened in write mode, skipping write test");
         }
         // write failure:
         $file = @fopen($testfile, 'r');
@@ -187,7 +187,7 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
             @fclose($file);
             @unlink($testfile);
         } else {
-            $this->markSkipped("$testfile could not be opened in read mode, skipping write test");
+            $this->markTestSkipped("$testfile could not be opened in read mode, skipping write test");
         }
     }
 
