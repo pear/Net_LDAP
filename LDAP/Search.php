@@ -498,17 +498,13 @@ class Net_LDAP_Search extends PEAR implements Iterator
     * objects directly inside a foreach loop!
     */
     /**
-    * Rewind the Iterator to the first element.
+    * SPL Iterator interface: Return the current element.
     *
-    * @return void
-    */
-    function rewind()
-    {
-        reset($this->_iteratorCache);
-    }
-
-    /**
-    * Return the current element.
+    * The SPL Iterator interface allows you to fetch entries inside
+    * a foreach() loop: <code>foreach ($search as $dn => $entry) { ...</code>
+    *
+    * Of course, you may call {@link current()}, {@link key()}, {@link next()},
+    * {@link rewind()} and {@link valid()} yourself.
     *
     * If the search throwed an error, it returns false.
     * False is also returned, if the end is reached
@@ -528,8 +524,9 @@ class Net_LDAP_Search extends PEAR implements Iterator
     }
 
     /**
-    * Return the identifying key (DN) of the current entry.
+    * SPL Iterator interface: Return the identifying key (DN) of the current entry.
     *
+    * @see current()
     * @return string|false DN of the current entry; false in case no entry is returned by current()
     */
     function key()
@@ -539,8 +536,12 @@ class Net_LDAP_Search extends PEAR implements Iterator
     }
 
     /**
-    * Move forward to next entry.
+    * SPL Iterator interface: Move forward to next entry.
     *
+    * After a call to {@link next()}, {@link current()} will return
+    * the next entry in the result set.
+    *
+    * @see current()
     * @return void
     */
     function next()
@@ -548,7 +549,9 @@ class Net_LDAP_Search extends PEAR implements Iterator
         // fetch next entry.
         // if we have no entrys anymore, we add false
         // so current() will complain.
-        $this->_iteratorCache[] = $this->shiftEntry();
+        if (count($this->_iteratorCache) - 1 <= $this->count()) {
+            $this->_iteratorCache[] = $this->shiftEntry();
+        }
 
         // move on array pointer to current element.
         // even if we have added all entries, this will
@@ -557,14 +560,29 @@ class Net_LDAP_Search extends PEAR implements Iterator
     }
 
     /**
-    * Check if there is a current element after calls to rewind() or next().
-    * Used to check if we've iterated to the end of the collection
+    * SPL Iterator interface:  Check if there is a current element after calls to {@link rewind()} or {@link next()}.
     *
+    * Used to check if we've iterated to the end of the collection.
+    *
+    * @see current()
     * @return boolean FALSE if there's nothing more to iterate over
     */
     function valid()
     {
         return ($this->current() instanceof Net_LDAP_Entry);
+    }
+
+    /**
+    * SPL Iterator interface: Rewind the Iterator to the first element.
+    *
+    * After rewinding, {@link current()} will return the first entry in the result set.
+    *
+    * @see current()
+    * @return void
+    */
+    function rewind()
+    {
+        reset($this->_iteratorCache);
     }
 }
 
