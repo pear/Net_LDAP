@@ -547,8 +547,8 @@ class Net_LDAP_Search extends PEAR implements Iterator
     function next()
     {
         // fetch next entry.
-        // if we have no entrys anymore, we add false
-        // so current() will complain.
+        // if we have no entrys anymore, we add false (which is
+        // returned by shiftEntry()) so current() will complain.
         if (count($this->_iteratorCache) - 1 <= $this->count()) {
             $this->_iteratorCache[] = $this->shiftEntry();
         }
