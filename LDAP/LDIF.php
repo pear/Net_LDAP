@@ -611,7 +611,6 @@ class Net_LDAP_LDIF extends PEAR
     * @param boolean $force Set this to true if you want to iterate over the lines manually
     *
     * @return array
-    * @todo [BUG] Problem with DOS line endings. If the file is a unix one, comment mode works correctly
     */
     function next_lines($force = false)
     {
@@ -625,7 +624,9 @@ class Net_LDAP_LDIF extends PEAR
 
             while (!$entry_done && !$this->eof()) {
                 $this->_input_line++;
-                $data = fgets($fh);
+                // Read line. Remove line endings, we want only data;
+                // this is okay since ending spaces should be encoded
+                $data = rtrim(fgets($fh));
                 if ($data === false) {
                     // error only, if EOF not reached after fgets() call
                     if (!$this->eof()) {

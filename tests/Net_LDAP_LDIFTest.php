@@ -223,7 +223,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         */
         $testconf['wrap'] = 50;
         $testconf['sort'] = 0;
-        $expected = file(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif');
+        $expected = array_map('conv_lineend', file(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif'));
         // strip 4 starting lines because of comments in the file header:
         array_shift($expected);array_shift($expected);
         array_shift($expected);array_shift($expected);
@@ -241,7 +241,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
 
         $testconf['wrap'] = 30;
         $testconf['sort'] = 0;
-        $expected = file(dirname(__FILE__).'/ldif_data/unsorted_w30.ldif');
+        $expected = array_map('conv_lineend', file(dirname(__FILE__).'/ldif_data/unsorted_w30.ldif'));
         // strip 4 starting lines because of comments in the file header:
         array_shift($expected);array_shift($expected);
         array_shift($expected);array_shift($expected);
@@ -263,7 +263,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         */
         $testconf['wrap'] = 40;
         $testconf['sort'] = 1;
-        $expected = file(dirname(__FILE__).'/ldif_data/sorted_w40.ldif');
+        $expected = array_map('conv_lineend', file(dirname(__FILE__).'/ldif_data/sorted_w40.ldif'));
         // strip 4 starting lines because of comments in the file header:
         array_shift($expected);array_shift($expected);
         array_shift($expected);array_shift($expected);
@@ -281,7 +281,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
 
         $testconf['wrap'] = 50;
         $testconf['sort'] = 1;
-        $expected = file(dirname(__FILE__).'/ldif_data/sorted_w50.ldif');
+        $expected = array_map('conv_lineend', file(dirname(__FILE__).'/ldif_data/sorted_w50.ldif'));
         // strip 4 starting lines because of comments in the file header:
         array_shift($expected);array_shift($expected);
         array_shift($expected);array_shift($expected);
@@ -303,7 +303,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         $testconf['wrap'] = 50;
         $testconf['sort'] = 1;
         $testconf['raw']  = '/attr6/';
-        $expected = file(dirname(__FILE__).'/ldif_data/sorted_w50.ldif');
+        $expected = array_map('conv_lineend', file(dirname(__FILE__).'/ldif_data/sorted_w50.ldif'));
         // strip 4 starting lines because of comments in the file header:
         array_shift($expected);array_shift($expected);
         array_shift($expected);array_shift($expected);
@@ -354,7 +354,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
          $ldif->done();
 
          // Compare files
-         $expected = file(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif');
+         $expected = array_map('conv_lineend', file(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif'));
          // strip 4 starting lines because of comments in the file header:
          array_shift($expected);array_shift($expected);
          array_shift($expected);array_shift($expected);
@@ -411,7 +411,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         $ldif->done();
 
         //compare results
-        $expected = file(dirname(__FILE__).'/ldif_data/changes.ldif');
+        $expected = array_map('conv_lineend', file(dirname(__FILE__).'/ldif_data/changes.ldif'));
         // strip 4 starting lines because of comments in the file header:
         array_shift($expected);array_shift($expected);
         array_shift($expected);array_shift($expected);
@@ -618,5 +618,17 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
 // Call Net_LDAP_LDIFTest::main() if this source file is executed directly.
 if (PHPUnit_MAIN_METHOD == "Net_LDAP_LDIFTest::main") {
     Net_LDAP_LDIFTest::main();
+}
+
+/**
+* Function transfers line endings to current OS
+*
+* This is neccessary to make write tests platform indendent.
+*
+* @param string $line Line
+* @return string
+*/
+function conv_lineend($line) {
+    return rtrim($line).PHP_EOL;
 }
 ?>
