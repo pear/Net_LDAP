@@ -196,7 +196,26 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
      * Tests if entries from an LDIF file are correctly constructed
      */
     public function testRead_entry() {
+        /*
+        * UNIX line endings
+        */
         $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/unsorted_w50.ldif', 'r', $this->defaultConfig);
+        $this->assertTrue(is_resource($ldif->handle()));
+
+        $entries = array();
+        do {
+            $entry = $ldif->read_entry();
+            $this->assertFalse((boolean)$ldif->error(), 'failed building entry from LDIF: '.$ldif->error(true));
+            $this->assertType('Net_LDAP_Entry', $entry);
+            array_push($entries, $entry);
+        } while (!$ldif->eof());
+
+        $this->compareEntries($this->testentries, $entries);
+
+        /*
+        * Windows line endings
+        */
+        $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/ldif_data/unsorted_w50_WIN.ldif', 'r', $this->defaultConfig);
         $this->assertTrue(is_resource($ldif->handle()));
 
         $entries = array();
