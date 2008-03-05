@@ -1,5 +1,5 @@
 #
-# This is a LDIF file to test reading capabilitys
+# This is a LDIF file to test reading capabilitys with WINDOWS line endings
 # It was created using options: sort=0, wrap=50
 #
 version: 1
