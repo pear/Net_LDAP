@@ -37,7 +37,7 @@ define('NET_LDAP_ERROR', 1000);
 /**
 * Net_LDAP Version
 */
-define('NET_LDAP_VERSION', '1.0.0');
+define('NET_LDAP_VERSION', '1.2.0');
 
 /**
 * Net_LDAP - manipulate LDAP servers the right way!

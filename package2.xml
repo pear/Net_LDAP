@@ -39,8 +39,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <!-- Information for this release -->
     <date></date>
     <version>
-        <release>1.2.0a1</release>
-        <api>1.2.0a1</api>
+        <release>1.2.0</release>
+        <api>1.2.0</api>
     </version>
     <stability>
         <release>stable</release>
@@ -49,6 +49,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <license>LGPL License</license>
     <notes>/!\ This is the first PHP5 only Net_LDAP release /!\
         * Implemented iterable search results so one can use foreach() with Net_LDAP_Search objects
+        * Fixed a problem with Net_LDAP_LDIF and files with DOS line endings
     </notes>
 
     <contents>
