@@ -19,17 +19,17 @@ $entry = $ldap->getEntry('cn=admin,'.$ldap_config['base'], array('gn', 'sn'));
 
 // Error checking is important!
 if (Net_LDAP::isError($entry)) {
-	die('Could not fetch entry: '.$entry->getMessage());
+    die('Could not fetch entry: '.$entry->getMessage());
 }
 
 // Now fetch the data from the entry
 $surename  = $entry->getValue('sn', 'single');
 if (Net_LDAP::isError($surename)) {
-	die('Unable to get surename: '.$surename->getMessage());
+    die('Unable to get surename: '.$surename->getMessage());
 }
 $givenname = $entry->getValue('gn', 'single');
 if (Net_LDAP::isError($givenname)) {
-	die('Unable to get surename: '.$givenname->getMessage());
+    die('Unable to get surename: '.$givenname->getMessage());
 }
 
 // Finally output the data of the entry:

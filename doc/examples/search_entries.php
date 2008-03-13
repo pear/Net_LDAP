@@ -43,33 +43,36 @@ $filter = Net_LDAP_Filter::combine('and', array($filter_sn, $filter_gn, $filter_
 $requested_attributes = array('sn','gn','telephonenumber');
 $search = $ldap->search(null, $filter, array('attributes' => $requested_attributes));
 if (Net_LDAP::isError($search)) {
-	die('LDAP search failed: '.$search->getMessage());
+    die('LDAP search failed: '.$search->getMessage());
 }
 
 // Lets see what entries we got and print the names and telephone numbers:
 if ($search->count() > 0) {
-	echo "Found ".$search->count().' entries:<br>';
-	
-	// Note, this is is only one of several ways to fetch entries!
-	// You can also retrieve all entries in an array with
-	// $entries = $search->entries() or the same thing sorted:
-	// $entries = $search->sorted()
-	while ($entry = $search->shiftEntry()) {
-		$surename = $entry->getValue('sn', 'single');
-		if (Net_LDAP::isError($surename)) {
-			die('Unable to get surename: '.$surename->getMessage());
-		}
-		$givenname = $entry->getValue('gn', 'single');
-		if (Net_LDAP::isError($givenname)) {
-			die('Unable to get givenname: '.$givenname->getMessage());
-		}
-		$phone = $entry->getValue('telephonenumber', 'single');
-		if (Net_LDAP::isError($phone)) {
-			die('Unable to get phone number: '.$phone->getMessage());
-		}
-		echo "<br>$givenname $surename: $phone";
-	}
+    echo "Found ".$search->count().' entries:<br>';
+
+    // Note, this is is only one of several ways to fetch entries!
+    // You can also retrieve all entries in an array with
+    //   $entries = $search->entries()
+    // or the same thing sorted:
+    //   $entries = $search->sorted()
+    // Since Net_LDAP 1.2.0 you can also use a foreach loop:
+    //   foreach ($search as $dn => $entry) {
+    while ($entry = $search->shiftEntry()) {
+        $surename = $entry->getValue('sn', 'single');
+        if (Net_LDAP::isError($surename)) {
+            die('Unable to get surename: '.$surename->getMessage());
+        }
+        $givenname = $entry->getValue('gn', 'single');
+        if (Net_LDAP::isError($givenname)) {
+            die('Unable to get givenname: '.$givenname->getMessage());
+        }
+        $phone = $entry->getValue('telephonenumber', 'single');
+        if (Net_LDAP::isError($phone)) {
+            die('Unable to get phone number: '.$phone->getMessage());
+        }
+        echo "<br>$givenname $surename: $phone";
+    }
 } else {
-	die('Sorry, no entries found!');
+    die('Sorry, no entries found!');
 }
 ?>

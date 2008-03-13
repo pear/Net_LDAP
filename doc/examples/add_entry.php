@@ -21,7 +21,7 @@ $dn = 'cn=Foo Bar,'.$ldap_config['base'];
 // It is a good idea to first look if the entry, that should be added,
 // is already present:
 if ($ldap->dnExists($dn)) {
-	die('Could not add entry! Entry already exists!');
+    die('Could not add entry! Entry already exists!');
 }
 
 // The entry does not exist so far, we can safely add him.
@@ -29,17 +29,17 @@ if ($ldap->dnExists($dn)) {
 // This is, because Net_LDAP was build to make changes only
 // locally (in your script), not directly on the server.
 $attributes = array(
-	'sn'             => 'Foo',
-	'gn'             => 'Bar',
-	'mail'           => array('foo@example.org', 'bar@example2.org'),
-	'employeeNumber' => 123456
+    'sn'             => 'Foo',
+    'gn'             => 'Bar',
+    'mail'           => array('foo@example.org', 'bar@example2.org'),
+    'employeeNumber' => 123456
 );
 $new_entry = Net_LDAP_Entry::createFresh($dn, $attributes);
 
 // Finally add the entry in the server:
 $result = $ldap->add($new_entry);
 if (Net_LDAP::isError($result)) {
-	die('Unable to add entry: '.$result->getMessage());
+    die('Unable to add entry: '.$result->getMessage());
 }
 
 // The entry is now present in the directory server.

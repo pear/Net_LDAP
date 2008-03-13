@@ -37,7 +37,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date></date>
+    <date>2008-03-13</date>
     <version>
         <release>1.2.0</release>
         <api>1.2.0</api>

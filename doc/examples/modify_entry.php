@@ -22,11 +22,11 @@ include_once 'fetch_entry.php';
 // call getValues(), we will only see the values added and NOT all
 // attributes present on the server!
 $result = $entry->add(array(
-	'mail'            => array('foo@example.org', 'test2@example.org'),
-	'telephoneNumber' => '1234567890'
+    'mail'            => array('foo@example.org', 'test2@example.org'),
+    'telephoneNumber' => '1234567890'
 ));
 if (Net_LDAP::isError($result)) {
-	die('Unable to add attribute: '.$result->getMessage());
+    die('Unable to add attribute: '.$result->getMessage());
 }
 
 // Now we modify the first value
@@ -34,7 +34,7 @@ if (Net_LDAP::isError($result)) {
 // will be deleted. We specify the new absolute attribute state
 $result = $entry->replace(array('mail' => array('test1@example.org', 'test2@example.org')));
 if (Net_LDAP::isError($result)) {
-	die('Unable to modify attribute: '.$result->getMessage());
+    die('Unable to modify attribute: '.$result->getMessage());
 }
 
 // And now we delete the second attribute value
@@ -42,13 +42,13 @@ if (Net_LDAP::isError($result)) {
 // which value we want to be deleted
 $result = $entry->delete(array('mail' => 'test2@example.org'));
 if (Net_LDAP::isError($result)) {
-	die('Unable to delete attribute value: '.$result->getMessage());
+    die('Unable to delete attribute value: '.$result->getMessage());
 }
 
 // Finally, we delete the whole attribute 'telephoneNumber':
 $result = $entry->delete('telephoneNumber');
 if (Net_LDAP::isError($result)) {
-	die('Unable to delete attribute: '.$result->getMessage());
+    die('Unable to delete attribute: '.$result->getMessage());
 }
 
 // Now it is time to transfer the changes to the ldap
@@ -58,7 +58,7 @@ if (Net_LDAP::isError($result)) {
 /*
 $result = $entry->update();
 if (Net_LDAP::isError($result)) {
-	die('Unable to update entry: '.$result->getMessage());
+    die('Unable to update entry: '.$result->getMessage());
 }
 */
 ?>

@@ -17,16 +17,16 @@ require_once 'Net/LDAP.php';
 // an anonymous bind.
 // See the documentation for more information on the configuration items!
 $ldap_config = array(
-// 	'host'    => 'ldap.example.org',
-	'host'    => array('ldap1.example.org', 'ldap2.example.org'),
-// 	'binddn'  => 'cn=admin,o=example,dc=org',
-// 	'bindpw'  => 'your-secret-password',
-	'tls'     => false,
-	'base'    => 'o=example,dc=org',
-	'port'    => 389,
-	'version' => 3,
-	'filter'  => '(cn=*)',
-	'scope'   => 'sub'
+// 'host'    => 'ldap.example.org',
+    'host'    => array('ldap1.example.org', 'ldap2.example.org'),
+// 'binddn'  => 'cn=admin,o=example,dc=org',
+// 'bindpw'  => 'your-secret-password',
+    'tls'     => false,
+    'base'    => 'o=example,dc=org',
+    'port'    => 389,
+    'version' => 3,
+    'filter'  => '(cn=*)',
+    'scope'   => 'sub'
 );
 
 // Connect to configured ldap server
@@ -40,5 +40,5 @@ $ldap = Net_LDAP::connect($ldap_config);
 // Here we drop a die with the error message, so the other example
 // files will not be calles unless we have a valid link.
 if (Net_LDAP::isError($ldap)) {
-	die('BIND FAILED: '.$ldap->getMessage());
+    die('BIND FAILED: '.$ldap->getMessage());
 }

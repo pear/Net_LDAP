@@ -18,18 +18,18 @@ include_once 'fetch_entry.php';
 // Note, that the same rules as in the long version discussed in modify_entry.php
 // aplly here too, so for replacing attributes, we must specify the absolute new state.
 $changes = array(
-	'add' => array(
-		'mail' => array('foo@example.org', 'test2@example.org'),
-		'telephoneNumber' => '1234567890'
-	),
-	'replace' => array(
-		'mail' => array('test1@example.org', 'test2@example.org')
-	)
-	
-	'delete' = array(
-		'mail' => 'test2@example.org',
-		'telephoneNumber' => null     // the null value is important here, sincearray
-	)                                 //  mode (indexed, associative) is needed to be homogenous
+    'add' => array(
+        'mail' => array('foo@example.org', 'test2@example.org'),
+        'telephoneNumber' => '1234567890'
+    ),
+    'replace' => array(
+        'mail' => array('test1@example.org', 'test2@example.org')
+    )
+
+    'delete' = array(
+        'mail' => 'test2@example.org',
+        'telephoneNumber' => null     // the null value is important here, sincearray
+    )                                 //  mode (indexed, associative) is needed to be homogenous
 );
 
 // Now it is time to transfer the changes to the ldap
@@ -46,7 +46,7 @@ $changes = array(
 // METHOD 1: ORDER = add->delete->replace
 $result = $ldap->modify($entry, $changes);
 if (Net_LDAP::isError($result)) {
-	die('Unable to update entry: '.$result->getMessage());
+    die('Unable to update entry: '.$result->getMessage());
 }
 */
 
@@ -54,7 +54,7 @@ if (Net_LDAP::isError($result)) {
 // METHOD 2: ORDER = add->replace->delete
 $result = $ldap->modify($entry, array('changes' => $changes));
 if (Net_LDAP::isError($result)) {
-	die('Unable to update entry: '.$result->getMessage());
+    die('Unable to update entry: '.$result->getMessage());
 }
 */
 ?>
