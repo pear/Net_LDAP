@@ -37,19 +37,17 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date>2008-03-13</date>
+    <date></date>
     <version>
-        <release>1.2.0</release>
-        <api>1.2.0</api>
+        <release>1.3.0</release>
+        <api>1.3.0</api>
     </version>
     <stability>
-        <release>stable</release>
-        <api>stable</api>
+        <release>beta</release>
+        <api>beta</api>
     </stability>
     <license>LGPL License</license>
-    <notes>/!\ This is the first PHP5 only Net_LDAP release /!\
-        * Implemented iterable search results so one can use foreach() with Net_LDAP_Search objects
-        * Fixed a problem with Net_LDAP_LDIF and files with DOS line endings
+    <notes>
     </notes>
 
     <contents>
@@ -470,6 +468,22 @@ http://pear.php.net/dtd/package-2.0.xsd">
             * Changed API of Net_LDAP->copy() to only accept Net_LDAP_Entry objects, because with DNs
             Attribute values will be lost
             /!\ This is the last release of Net_LDAP supporting PHP4 /!\
+            </notes>
+        </release>
+        <release>
+            <date>2008-03-13</date>
+            <version>
+                <release>1.2.0</release>
+                <api>1.2.0</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <license>LGPL License</license>
+            <notes>/!\ This is the first PHP5 only Net_LDAP release /!\
+                * Implemented iterable search results so one can use foreach() with Net_LDAP_Search objects
+                * Fixed a problem with Net_LDAP_LDIF and files with DOS line endings
             </notes>
         </release>
     </changelog>
