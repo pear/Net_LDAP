@@ -37,20 +37,17 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date>2008-03-19</date>
+    <date></date>
     <version>
-        <release>1.1.1</release>
-        <api>1.1.1</api>
+        <release>1.1.2</release>
+        <api>1.1.2</api>
     </version>
     <stability>
-        <release>beta</release>
-        <api>beta</api>
+        <release>stable</release>
+        <api>stable</api>
     </stability>
     <license>LGPL License</license>
     <notes>
-            This is just a bugfix release. Net_LDAP is superseeded by Net_LDAP2,
-            please use Net_LDAP2 unless you are forced to use PHP4.
-            * Fixed a problem with Net_LDAP_LDIF and files with DOS line endings
     </notes>
 
     <contents>
@@ -471,6 +468,23 @@ http://pear.php.net/dtd/package-2.0.xsd">
             * Changed API of Net_LDAP->copy() to only accept Net_LDAP_Entry objects, because with DNs
             Attribute values will be lost
             /!\ This is the last release of Net_LDAP supporting PHP4 /!\
+            </notes>
+        </release>
+        <release>
+            <date>2008-03-19</date>
+            <version>
+                <release>1.1.1</release>
+                <api>1.1.1</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <license>LGPL License</license>
+            <notes>
+                    This is just a bugfix release. Net_LDAP is superseeded by Net_LDAP2,
+                    please use Net_LDAP2 unless you are forced to use PHP4.
+                    * Fixed a problem with Net_LDAP_LDIF and files with DOS line endings
             </notes>
         </release>
     </changelog>
