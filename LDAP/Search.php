@@ -14,7 +14,7 @@ require_once 'PEAR.php';
 * @version  CVS $Id$
 * @link     http://pear.php.net/package/Net_LDAP/
 */
-class Net_LDAP_Search extends PEAR implements Iterator
+class Net_LDAP_Search extends PEAR
 {
     /**
     * Search result identifier
@@ -63,14 +63,6 @@ class Net_LDAP_Search extends PEAR implements Iterator
     * @var int
     */
     var $_errorCode = 0; // if not set - sucess!
-
-    /**
-    * Cache for all entries already fetched from iterator interface
-    *
-    * @access private
-    * @var array
-    */
-    var $_iteratorCache = array();
 
     /**
     * What attributes we searched for
@@ -489,100 +481,6 @@ class Net_LDAP_Search extends PEAR implements Iterator
     function sizeLimitExceeded()
     {
         return ($this->getErrorCode() == 4);
-    }
-
-
-    /*
-    * SPL Iterator interface methods.
-    * This interface allows to use Net_LDAP_Search
-    * objects directly inside a foreach loop!
-    */
-    /**
-    * SPL Iterator interface: Return the current element.
-    *
-    * The SPL Iterator interface allows you to fetch entries inside
-    * a foreach() loop: <code>foreach ($search as $dn => $entry) { ...</code>
-    *
-    * Of course, you may call {@link current()}, {@link key()}, {@link next()},
-    * {@link rewind()} and {@link valid()} yourself.
-    *
-    * If the search throwed an error, it returns false.
-    * False is also returned, if the end is reached
-    * In case no call to next() was made, we will issue one,
-    * thus returning the first entry.
-    *
-    * @return Net_LDAP_Entry|false
-    */
-    function current()
-    {
-        if (count($this->_iteratorCache) == 0) {
-            $this->next();
-            reset($this->_iteratorCache);
-        }
-        $entry = current($this->_iteratorCache);
-        return ($entry instanceof Net_LDAP_Entry)? $entry : false;
-    }
-
-    /**
-    * SPL Iterator interface: Return the identifying key (DN) of the current entry.
-    *
-    * @see current()
-    * @return string|false DN of the current entry; false in case no entry is returned by current()
-    */
-    function key()
-    {
-        $entry = $this->current();
-        return ($entry instanceof Net_LDAP_Entry)? $entry->dn() :false;
-    }
-
-    /**
-    * SPL Iterator interface: Move forward to next entry.
-    *
-    * After a call to {@link next()}, {@link current()} will return
-    * the next entry in the result set.
-    *
-    * @see current()
-    * @return void
-    */
-    function next()
-    {
-        // fetch next entry.
-        // if we have no entrys anymore, we add false (which is
-        // returned by shiftEntry()) so current() will complain.
-        if (count($this->_iteratorCache) - 1 <= $this->count()) {
-            $this->_iteratorCache[] = $this->shiftEntry();
-        }
-
-        // move on array pointer to current element.
-        // even if we have added all entries, this will
-        // ensure proper operation in case we rewind()
-        next($this->_iteratorCache);
-    }
-
-    /**
-    * SPL Iterator interface:  Check if there is a current element after calls to {@link rewind()} or {@link next()}.
-    *
-    * Used to check if we've iterated to the end of the collection.
-    *
-    * @see current()
-    * @return boolean FALSE if there's nothing more to iterate over
-    */
-    function valid()
-    {
-        return ($this->current() instanceof Net_LDAP_Entry);
-    }
-
-    /**
-    * SPL Iterator interface: Rewind the Iterator to the first element.
-    *
-    * After rewinding, {@link current()} will return the first entry in the result set.
-    *
-    * @see current()
-    * @return void
-    */
-    function rewind()
-    {
-        reset($this->_iteratorCache);
     }
 }
 

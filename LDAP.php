@@ -3,7 +3,7 @@
 /**
 * File containing the Net_LDAP interface class.
 *
-* PHP version 5
+* PHP version 4, 5
 *
 * @category  Net
 * @package   Net_LDAP
@@ -37,7 +37,7 @@ define('NET_LDAP_ERROR', 1000);
 /**
 * Net_LDAP Version
 */
-define('NET_LDAP_VERSION', '1.2.0');
+define('NET_LDAP_VERSION', '1.1.1');
 
 /**
 * Net_LDAP - manipulate LDAP servers the right way!

@@ -55,8 +55,6 @@ if ($search->count() > 0) {
     //   $entries = $search->entries()
     // or the same thing sorted:
     //   $entries = $search->sorted()
-    // Since Net_LDAP 1.2.0 you can also use a foreach loop:
-    //   foreach ($search as $dn => $entry) {
     while ($entry = $search->shiftEntry()) {
         $surename = $entry->getValue('sn', 'single');
         if (Net_LDAP::isError($surename)) {
