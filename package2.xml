@@ -48,6 +48,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </stability>
     <license>LGPL License</license>
     <notes>
+    	* Backportet a patch from Net_LDAP2. Schema->isBinary() did not checked attribute supertypes
     </notes>
 
     <contents>
