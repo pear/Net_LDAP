@@ -49,6 +49,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <license>LGPL License</license>
     <notes>
     	* Backportet a patch from Net_LDAP2. Schema->isBinary() did not checked attribute supertypes
+	* Backported a patch for Schema->isBinary() bug if unknown attribute type is requested
 	* Bugfix in filter class for approx matching
     </notes>
 
