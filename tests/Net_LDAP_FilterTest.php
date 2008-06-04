@@ -104,7 +104,7 @@ class Net_LDAP_FilterTest extends PHPUnit_Framework_TestCase {
             'less'           => "/\($testattr<$testval\)/",
             'greaterorequal' => "/\($testattr>=$testval\)/",
             'lessorequal'    => "/\($testattr<=$testval\)/",
-            'approx'         => "/\($testattr=~$testval\)/",
+            'approx'         => "/\($testattr~=$testval\)/",
             'any'            => "/\($testattr=\*\)/"
         );
 
