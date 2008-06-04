@@ -1,6 +1,4 @@
 <?php
-//@encoding iso-8859-1
-
 // Call Net_LDAP_LDIFTest::main() if this source file is executed directly.
 if (!defined("PHPUnit_MAIN_METHOD")) {
     define("PHPUnit_MAIN_METHOD", "Net_LDAP_LDIFTest::main");
@@ -641,17 +639,15 @@ if (PHPUnit_MAIN_METHOD == "Net_LDAP_LDIFTest::main") {
     Net_LDAP_LDIFTest::main();
 }
 
-if (!function_exists('conv_lineend')) {
-    /**
-    * Function transfers line endings to current OS
-    *
-    * This is neccessary to make write tests platform indendent.
-    *
-    * @param string $line Line
-    * @return string
-    */
-    function conv_lineend($line) {
-        return rtrim($line).PHP_EOL;
-    }
+/**
+* Function transfers line endings to current OS
+*
+* This is neccessary to make write tests platform indendent.
+*
+* @param string $line Line
+* @return string
+*/
+function conv_lineend($line) {
+    return rtrim($line).PHP_EOL;
 }
 ?>
