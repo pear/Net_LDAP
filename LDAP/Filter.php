@@ -171,7 +171,7 @@ class Net_LDAP_Filter extends PEAR
             $leaf_filter->_filter = '(' . $attr_name . '<=' . $value . ')';
             break;
         case 'approx':
-            $leaf_filter->_filter = '(' . $attr_name . '=~' . $value . ')';
+            $leaf_filter->_filter = '(' . $attr_name . '~=' . $value . ')';
             break;
         case 'any':
             $leaf_filter->_filter = '(' . $attr_name . '=*)';
