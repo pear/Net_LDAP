@@ -37,17 +37,17 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date></date>
+    <date>2008-10-23</date>
     <version>
         <release>1.1.3</release>
-        <api>1.1.3</api>
+        <api>1.1.2</api>
     </version>
     <stability>
         <release>stable</release>
         <api>stable</api>
     </stability>
     <license>LGPL License</license>
-    <notes>
+    <notes>* Fixed a little issue with repetive adding the same attribute value (backported from Net_LDAP2)
     </notes>
 
     <contents>
