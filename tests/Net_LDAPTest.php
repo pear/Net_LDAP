@@ -39,6 +39,9 @@ class Net_LDAPTest extends PHPUnit_Framework_TestCase {
      * @access protected
      */
     protected function setUp() {
+        if (!extension_loaded('ldap')) {
+            $this->markTestSkipped("This test requires the LDAP extension");
+        }
         $this->ldapcfg = $this->getTestConfig();
     }
 
