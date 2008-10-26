@@ -1,6 +1,21 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-
+/**
+* RootDSE.php
+*
+* PHP version 4, 5
+*
+* @category  Net
+* @package   Net_LDAP
+* @author    Tarjej Huse <tarjei@bergfald.no>
+* @author    Jan Wagner <wagner@netsols.de>
+* @author    Del <del@babel.com.au>
+* @author    Benedikt Hallinger <beni@php.net>
+* @copyright 2003-2007 Tarjej Huse, Jan Wagner, Del Elson, Benedikt Hallinger
+* @license   http://www.gnu.org/copyleft/lesser.html LGPL
+* @version   CVS: $Id$
+* @link      http://pear.php.net/package/Net_LDAP/
+*/
 require_once 'PEAR.php';
 
 /**
@@ -10,7 +25,6 @@ require_once 'PEAR.php';
 * @package  Net_LDAP
 * @author   Jan Wagner <wagner@netsols.de>
 * @license  http://www.gnu.org/copyleft/lesser.html LGPL
-* @version  CVS $Id$
 * @link     http://pear.php.net/package/Net_LDAP/
 */
 class Net_LDAP_RootDSE extends PEAR

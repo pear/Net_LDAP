@@ -1,6 +1,21 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-
+/**
+* Search.php
+*
+* PHP version 4, 5
+*
+* @category  Net
+* @package   Net_LDAP
+* @author    Tarjej Huse <tarjei@bergfald.no>
+* @author    Jan Wagner <wagner@netsols.de>
+* @author    Del <del@babel.com.au>
+* @author    Benedikt Hallinger <beni@php.net>
+* @copyright 2003-2007 Tarjej Huse, Jan Wagner, Del Elson, Benedikt Hallinger
+* @license   http://www.gnu.org/copyleft/lesser.html LGPL
+* @version   CVS: $Id$
+* @link      http://pear.php.net/package/Net_LDAP/
+*/
 require_once 'PEAR.php';
 
 /**
@@ -11,7 +26,6 @@ require_once 'PEAR.php';
 * @author   Tarjej Huse <tarjei@bergfald.no>
 * @author   Benedikt Hallinger <beni@php.net>
 * @license  http://www.gnu.org/copyleft/lesser.html LGPL
-* @version  CVS $Id$
 * @link     http://pear.php.net/package/Net_LDAP/
 */
 class Net_LDAP_Search extends PEAR
@@ -167,6 +181,7 @@ class Net_LDAP_Search extends PEAR
     * Alias function of shiftEntry() for perl-ldap interface
     *
     * @see shiftEntry()
+    * @return Net_LDAP_Entry|false  Reference to Net_LDAP_Entry object or false
     */
     function shift_entry()
     {
@@ -197,6 +212,7 @@ class Net_LDAP_Search extends PEAR
     * Alias function of popEntry() for perl-ldap interface
     *
     * @see popEntry()
+    * @return Net_LDAP_Entry|false
     */
     function pop_entry()
     {

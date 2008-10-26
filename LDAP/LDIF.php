@@ -1,5 +1,18 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
+/**
+* LDIF.php
+*
+* PHP version 4, 5
+*
+* @category  Net
+* @package   Net_LDAP
+* @author    Benedikt Hallinger <beni@php.net>
+* @copyright 2003-2007 Tarjej Huse, Jan Wagner, Del Elson, Benedikt Hallinger
+* @license   http://www.gnu.org/copyleft/lesser.html LGPL
+* @version   CVS: $Id$
+* @link      http://pear.php.net/package/Net_LDAP/
+*/
 
 require_once 'PEAR.php';
 require_once 'Net/LDAP.php';
@@ -42,7 +55,6 @@ require_once 'Net/LDAP/Util.php';
 * @package  Net_LDAP
 * @author   Benedikt Hallinger <beni@php.net>
 * @license  http://www.gnu.org/copyleft/lesser.html LGPL
-* @version  CVS: $Id$
 * @link     http://pear.php.net/package/Net_LDAP/
 * @see      http://www.ietf.org/rfc/rfc2849.txt
 * @todo     Error handling should be PEARified
@@ -364,7 +376,9 @@ class Net_LDAP_LDIF extends PEAR
                         foreach ($entry_attrs_changes as $changetype => $entry_attrs) {
                             foreach ($entry_attrs as $attr_name => $attr_values) {
                                 $this->_writeLine("$changetype: $attr_name".PHP_EOL);
-                                if ($attr_values !== null) $this->_writeAttribute($attr_name, $attr_values, $changetype);
+                                if ($attr_values !== null) {
+                                    $this->_writeAttribute($attr_name, $attr_values, $changetype);
+                                }
                                 $this->_writeLine("-".PHP_EOL);
                             }
                         }
@@ -539,6 +553,7 @@ class Net_LDAP_LDIF extends PEAR
     {
         // parse lines into an array of attributes and build the entry
         $attributes = array();
+
         $dn = false;
         foreach ($lines as $line) {
             if (preg_match('/^(\w+)(:|::|:<)\s(.+)$/', $line, $matches)) {
@@ -756,7 +771,9 @@ class Net_LDAP_LDIF extends PEAR
             }
 
             // Lowercase attr names if requested
-            if ($this->_options['lowercase']) $attr_name = strtolower($attr_name);
+            if ($this->_options['lowercase']) {
+                $attr_name = strtolower($attr_name);
+            }
 
             // Handle line wrapping
             if ($this->_options['wrap'] > 40 && strlen($attr_value) > $this->_options['wrap']) {
@@ -894,7 +911,9 @@ class Net_LDAP_LDIF extends PEAR
     function _dropError($msg, $line = null)
     {
         $this->_error['error'] = new Net_LDAP_Error($msg);
-        if ($line !== null) $this->_error['line'] = $line;
+        if ($line !== null) {
+            $this->_error['line'] = $line;
+        }
 
         if ($this->_options['onerror'] == 'die') {
             die($msg.PHP_EOL);

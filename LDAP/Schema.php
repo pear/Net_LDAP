@@ -1,6 +1,21 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-
+/**
+* Schema.php
+*
+* PHP version 4, 5
+*
+* @category  Net
+* @package   Net_LDAP
+* @author    Tarjej Huse <tarjei@bergfald.no>
+* @author    Jan Wagner <wagner@netsols.de>
+* @author    Del <del@babel.com.au>
+* @author    Benedikt Hallinger <beni@php.net>
+* @copyright 2003-2007 Tarjej Huse, Jan Wagner, Del Elson, Benedikt Hallinger
+* @license   http://www.gnu.org/copyleft/lesser.html LGPL
+* @version   CVS: $Id$
+* @link      http://pear.php.net/package/Net_LDAP/
+*/
 require_once 'PEAR.php';
 
 /**
@@ -31,7 +46,6 @@ define('NET_LDAP_SYNTAX_OCTET_STRING',       '1.3.6.1.4.1.1466.115.121.1.40');
 * @author   Jan Wagner <wagner@netsols.de>
 * @author   Benedikt Hallinger <beni@php.net>
 * @license  http://www.gnu.org/copyleft/lesser.html LGPL
-* @version  CVS: $Id$
 * @link     http://pear.php.net/package/Net_LDAP/
 */
 class Net_LDAP_Schema extends PEAR

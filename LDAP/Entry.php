@@ -1,5 +1,19 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
+/**
+* Entry.php
+*
+* PHP version 4, 5
+*
+* @category  Net
+* @package   Net_LDAP
+* @author    Tarjej Huse <tarjei@bergfald.no>
+* @author    Jan Wagner <wagner@netsols.de>
+* @copyright 2003-2007 Tarjej Huse, Jan Wagner, Del Elson, Benedikt Hallinger
+* @license   http://www.gnu.org/copyleft/lesser.html LGPL
+* @version   CVS: $Id$
+* @link      http://pear.php.net/package/Net_LDAP/
+*/
 
 require_once 'PEAR.php';
 require_once 'Util.php';
@@ -15,9 +29,7 @@ require_once 'Util.php';
 * @author   Jan Wagner <wagner@netsols.de>
 * @author   Tarjej Huse <tarjei@bergfald.no>
 * @license  http://www.gnu.org/copyleft/lesser.html LGPL
-* @version  CVS: $Id$
 * @link     http://pear.php.net/package/Net_LDAP/
-
 */
 class Net_LDAP_Entry extends PEAR
 {
