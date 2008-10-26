@@ -50,7 +50,6 @@ define('NET_LDAP_VERSION', '1.1.3');
 * @author    Benedikt Hallinger <beni@php.net>
 * @copyright 2003-2007 Tarjej Huse, Jan Wagner, Del Elson, Benedikt Hallinger
 * @license   http://www.gnu.org/copyleft/lesser.html LGPL
-* @version   CVS: $Id$
 * @link      http://pear.php.net/package/Net_LDAP/
 */
 class Net_LDAP extends PEAR
@@ -58,7 +57,8 @@ class Net_LDAP extends PEAR
     /**
     * Class configuration array
     *
-    * host     = the ldap host to connect to (may be an array of several hosts to try)
+    * host     = the ldap host to connect to (may be an array of several hosts
+    *            to try)
     * port     = the server port
     * version  = ldap version (defaults to v 3)
     * starttls = when set, ldap_start_tls() is run after connecting.
@@ -239,7 +239,8 @@ class Net_LDAP extends PEAR
             if (strlen($this->_config['host']) > 0) {
                 $this->_host_list = array($this->_config['host']);
             } else {
-                $this->_host_list = array(); // this will cause an error in _connect(), so the user is notified
+                // this will cause an error in _connect(), so the user is notified
+                $this->_host_list = array();
             }
         }
 
@@ -346,7 +347,8 @@ class Net_LDAP extends PEAR
         //
 
         //
-        // Default error message in case all connection attempts fail but no message is set
+        // Default error message in case all connection attempts fail but
+        // no message is set
         //
         $current_error =& new PEAR_Error('Unknown connection error');
 
@@ -354,8 +356,9 @@ class Net_LDAP extends PEAR
         // Catch empty $_host_list arrays.
         //
         if (!is_array($this->_host_list) || count($this->_host_list) == 0) {
-            $current_error = PEAR::raiseError('No Servers configured! Please pass in an array of servers to Net_LDAP');
-            return $current_error;
+            $msg = 'No Servers configured! Please pass in an array of servers to Net_LDAP';
+
+            return PEAR::raiseError($msg);
         }
 
         //
@@ -367,7 +370,11 @@ class Net_LDAP extends PEAR
             // Ensure we have a valid string for host name
             //
             if (is_array($host)) {
-                $current_error = PEAR::raiseError('No Servers configured! Please pass in an one dimensional array of servers to Net_LDAP! (multidimensional array detected!)');
+                $msg  = 'No Servers configured! Please pass in an one dimensional';
+                $msg .= ' array of servers to Net_LDAP!';
+                $msg .= ' (multidimensional array detected!)';
+
+                $current_error = PEAR::raiseError($msg);
                 continue;
             }
 
@@ -700,21 +707,25 @@ class Net_LDAP extends PEAR
         if (is_null($base)) {
             $base = $this->_config['basedn'];
         }
+
         if (is_null($filter)) {
             $filter = $this->_config['filter'];
         }
+
         if (is_a($filter, 'Net_LDAP_Filter')) {
             $filter = $filter->asString(); // convert Net_LDAP_Filter to string representation
         }
+
         if (PEAR::isError($filter)) {
             return $filter;
         }
 
         /* setting searchparameters  */
-        (isset($params['sizelimit']))  ? $sizelimit  = $params['sizelimit']  : $sizelimit = 0;
-        (isset($params['timelimit']))  ? $timelimit  = $params['timelimit']  : $timelimit = 0;
-        (isset($params['attrsonly']))  ? $attrsonly  = $params['attrsonly']  : $attrsonly = 0;
-        (isset($params['attributes'])) ? $attributes = $params['attributes'] : $attributes = array();
+        $sizelimit = isset($params['sizelimit'])  ? $params['sizelimit'] : 0;
+        $timelimit = isset($params['timelimit'])  ? $params['timelimit'] : 0;
+        $attrsonly = isset($params['attrsonly'])  ? $params['attrsonly'] : 0;
+
+        $attributes = isset($params['attributes'])? $params['attributes'] : array();
 
         // Ensure $attributes to be an array in case only one
         // attribute name was given as string
@@ -1253,7 +1264,9 @@ class Net_LDAP extends PEAR
     function checkLDAPExtension()
     {
         if (!extension_loaded('ldap') && !@dl('ldap.' . PHP_SHLIB_SUFFIX)) {
-            return PEAR::raiseError("It seems that you do not have the ldap-extension installed. Please install it before using the Net_LDAP package.");
+            $msg  = "It seems that you do not have the ldap-extension installed.";
+            $msg .= "Please install it before using the Net_LDAP package.";
+            return PEAR::raiseError($msg);
         } else {
             return true;
         }
@@ -1262,13 +1275,15 @@ class Net_LDAP extends PEAR
     /**
     * Encodes given attributes to UTF8 if needed by schema
     *
-    * This function takes attributes in an array and then checks against the schema if they need
-    * UTF8 encoding. If that is so, they will be encoded. An encoded array will be returned and
-    * can be used for adding or modifying.
+    * This function takes attributes in an array and then checks against the schema
+    * if they need UTF8 encoding. If that is so, they will be encoded. An encoded 
+    * array will be returned and can be used for adding or modifying.
     *
     * $attributes is expected to be an array with keys describing
     * the attribute names and the values as the value of this attribute:
-    * <code>$attributes = array('cn' => 'foo', 'attr2' => array('mv1', 'mv2'));</code>
+    * <code>
+    * $attributes = array('cn' => 'foo', 'attr2' => array('mv1', 'mv2'));
+    * </code>
     *
     * @param array $attributes Array of attributes
     *
@@ -1285,7 +1300,9 @@ class Net_LDAP extends PEAR
     *
     * $attributes is expected to be an array with keys describing
     * the attribute names and the values as the value of this attribute:
-    * <code>$attributes = array('cn' => 'foo', 'attr2' => array('mv1', 'mv2'));</code>
+    * <code>
+    * $attributes = array('cn' => 'foo', 'attr2' => array('mv1', 'mv2'));
+    * </code>
     *
     * @param array $attributes Array of attributes
     *
@@ -1305,19 +1322,22 @@ class Net_LDAP extends PEAR
     * @param array $function   Function to apply to attribute values
     *
     * @access private
-    * @return array|Net_LDAP_Error Array of attributes with function applied to values or Error
+    * @return array|Net_LDAP_Error Array of attributes with function
+    *         applied to values or Error
     */
     function _utf8($attributes, $function)
     {
         if (!is_array($attributes) || array_key_exists(0, $attributes)) {
-            return PEAR::raiseError('Parameter $attributes is expected to be an associative array');
+            $msg = 'Parameter $attributes is expected to be an associative array';
+            return PEAR::raiseError($msg);
         }
 
         if (!$this->_schema) {
             $this->_schema = $this->schema();
         }
 
-        if (!$this->_link || Net_LDAP::isError($this->_schema) || !function_exists($function)) {
+        if (!$this->_link || Net_LDAP::isError($this->_schema) 
+            || !function_exists($function)) {
             return $attributes;
         }
 
@@ -1332,7 +1352,8 @@ class Net_LDAP extends PEAR
                         continue;
                     }
 
-                    if (false !== strpos($attr['syntax'], '1.3.6.1.4.1.1466.115.121.1.15')) {
+                    $haystack = '1.3.6.1.4.1.1466.115.121.1.15';
+                    if (false !== strpos($attr['syntax'], $haystack)) {
                         $encode = true;
                     } else {
                         $encode = false;
@@ -1387,20 +1408,28 @@ class Net_LDAP_Error extends PEAR_Error
      * @param string  $message   String with error message.
      * @param integer $code      Net_LDAP error code
      * @param integer $mode      what "error mode" to operate in
-     * @param mixed   $level     what error level to use for $mode & PEAR_ERROR_TRIGGER
+     * @param mixed   $level     what error level to use for $mode & 
+     *                           PEAR_ERROR_TRIGGER
      * @param mixed   $debuginfo additional debug info, such as the last query
      *
      * @access public
      * @see PEAR_Error
      */
-    function Net_LDAP_Error($message = 'Net_LDAP_Error', $code = NET_LDAP_ERROR, $mode = PEAR_ERROR_RETURN,
-                            $level = E_USER_NOTICE, $debuginfo = null)
+    function Net_LDAP_Error($message = 'Net_LDAP_Error', $code = NET_LDAP_ERROR,
+                            $mode = PEAR_ERROR_RETURN, $level = E_USER_NOTICE,
+                            $debuginfo = null)
     {
+        $error_code = NET_LDAP_ERROR;
+
+        $msg = "$message: $code";
+
         if (is_int($code)) {
-            $this->PEAR_Error($message . ': ' . Net_LDAP::errorMessage($code), $code, $mode, $level, $debuginfo);
-        } else {
-            $this->PEAR_Error("$message: $code", NET_LDAP_ERROR, $mode, $level, $debuginfo);
+            $msg = $message . ': ' . Net_LDAP::errorMessage($code);
+
+            $error_code = $code;
         }
+
+        $this->PEAR_Error($msg, $error_code, $mode, $level, $debuginfo);
     }
 }
 
