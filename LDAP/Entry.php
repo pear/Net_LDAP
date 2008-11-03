@@ -461,7 +461,7 @@ class Net_LDAP_Entry extends PEAR
             if (empty($this->_changes["add"][$k])) {
                 $this->_changes["add"][$k] = array();
             }
-            $this->_changes["add"][$k] = array_merge($this->_changes["add"][$k], $v);
+            $this->_changes["add"][$k] = array_unique(array_merge($this->_changes["add"][$k], $v));
         }
         $return = true;
         return $return;
@@ -535,7 +535,7 @@ class Net_LDAP_Entry extends PEAR
                             $this->_changes["delete"][$name] = array();
                         }
                         $this->_changes["delete"][$name] =
-                            array_merge($this->_changes["delete"][$name], $values);
+                             array_unique(array_merge($this->_changes["delete"][$name], $values));
                         foreach ($values as $value) {
                             // find the key for the value that should be deleted
                             $key = array_search($value, $this->_attributes[$name]);

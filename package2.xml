@@ -47,7 +47,9 @@ http://pear.php.net/dtd/package-2.0.xsd">
         <api>stable</api>
     </stability>
     <license>LGPL License</license>
-    <notes>* Fixed a little issue with repetive adding the same attribute value (backported from Net_LDAP2)
+    <notes>
+        * Fixed a little issue with repetive adding the same attribute value (backported from Net_LDAP2)
+        * Fixed issue with repetitve adding or deleting values causing Net_LDAP to send the same change multiple times
     </notes>
 
     <contents>

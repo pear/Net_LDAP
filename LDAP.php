@@ -412,6 +412,18 @@ class Net_LDAP extends PEAR
             }
 
             //
+            // Set LDAP parameters, now we know we have a valid connection.
+            //
+            if ($this->_config["starttls"] === true) {
+                if (Net_LDAP::isError($msg = $this->startTLS())) {
+                    $current_error           = $msg;
+                    $this->_link             = false;
+                    $this->_down_host_list[] = $host;
+                    continue;
+                }
+            }
+
+            //
             // Attempt to bind to the server. If we have credentials configured,
             // we try to use them, otherwiese its an anonymous bind.
             //
@@ -425,17 +437,6 @@ class Net_LDAP extends PEAR
                 continue;
             }
 
-            //
-            // Set LDAP parameters, now we know we have a valid connection.
-            //
-            if ($this->_config["starttls"] === true) {
-                if (Net_LDAP::isError($msg = $this->startTLS())) {
-                    $current_error           = $msg;
-                    $this->_link             = false;
-                    $this->_down_host_list[] = $host;
-                    continue;
-                }
-            }
             if (isset($this->_config['options']) &&
                 is_array($this->_config['options']) &&
                 count($this->_config['options'])) {
