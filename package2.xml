@@ -37,9 +37,9 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date>2008-10-23</date>
+    <date>2009-04-23</date>
     <version>
-        <release>1.1.3</release>
+        <release>1.1.4</release>
         <api>1.1.2</api>
     </version>
     <stability>
@@ -48,8 +48,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </stability>
     <license>LGPL License</license>
     <notes>
-        * Fixed a little issue with repetive adding the same attribute value (backported from Net_LDAP2)
-        * Fixed issue with repetitve adding or deleting values causing Net_LDAP to send the same change multiple times
+         * Ported the connect() method from Net_LDAP2 since it fixes some connection issues
     </notes>
 
     <contents>
@@ -505,6 +504,22 @@ http://pear.php.net/dtd/package-2.0.xsd">
             * Backportet a patch from Net_LDAP2. Schema->isBinary() did not checked attribute supertypes
             * Backported a patch for Schema->isBinary() bug if unknown attribute type is requested
             * Bugfix in filter class for approx matching
+            </notes>
+        </release>
+        <release>
+            <date>2008-10-23</date>
+            <version>
+                <release>1.1.3</release>
+                <api>1.1.2</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <license>LGPL License</license>
+            <notes>
+            * Fixed a little issue with repetive adding the same attribute value (backported from Net_LDAP2)
+            * Fixed issue with repetitve adding or deleting values causing Net_LDAP to send the same change multiple times
             </notes>
         </release>
     </changelog>

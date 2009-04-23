@@ -37,7 +37,7 @@ define('NET_LDAP_ERROR', 1000);
 /**
 * Net_LDAP Version
 */
-define('NET_LDAP_VERSION', '1.1.3');
+define('NET_LDAP_VERSION', '1.1.4');
 
 /**
 * Net_LDAP - manipulate LDAP servers the right way!
@@ -347,18 +347,16 @@ class Net_LDAP extends PEAR
         //
 
         //
-        // Default error message in case all connection attempts fail but
-        // no message is set
+        // Default error message in case all connection attempts fail but no message is set
         //
-        $current_error =& new PEAR_Error('Unknown connection error');
+        $current_error = new PEAR_Error('Unknown connection error');
 
         //
         // Catch empty $_host_list arrays.
         //
         if (!is_array($this->_host_list) || count($this->_host_list) == 0) {
-            $msg = 'No Servers configured! Please pass in an array of servers to Net_LDAP';
-
-            return PEAR::raiseError($msg);
+            $current_error = PEAR::raiseError('No Servers configured! Please pass in an array of servers to Net_LDAP2');
+            return $current_error;
         }
 
         //
@@ -370,11 +368,7 @@ class Net_LDAP extends PEAR
             // Ensure we have a valid string for host name
             //
             if (is_array($host)) {
-                $msg  = 'No Servers configured! Please pass in an one dimensional';
-                $msg .= ' array of servers to Net_LDAP!';
-                $msg .= ' (multidimensional array detected!)';
-
-                $current_error = PEAR::raiseError($msg);
+                $current_error = PEAR::raiseError('No Servers configured! Please pass in an one dimensional array of servers to Net_LDAP2! (multidimensional array detected!)');
                 continue;
             }
 
@@ -398,13 +392,14 @@ class Net_LDAP extends PEAR
             if (false === $this->_link) {
                 $current_error = PEAR::raiseError('Could not connect to ' .
                     $host . ':' . $this->_config['port']);
+                $this->_down_host_list[] = $host;
                 continue;
             }
 
             //
             // Set LDAP version before trying to bind.
             //
-            if (Net_LDAP::isError($msg = $this->setLDAPVersion())) {
+            if (self::isError($msg = $this->setLDAPVersion())) {
                 $current_error           = $msg;
                 $this->_link             = false;
                 $this->_down_host_list[] = $host;
@@ -412,10 +407,10 @@ class Net_LDAP extends PEAR
             }
 
             //
-            // Set LDAP parameters, now we know we have a valid connection.
+            // If we're supposed to use TLS, do so before we try to bind.
             //
             if ($this->_config["starttls"] === true) {
-                if (Net_LDAP::isError($msg = $this->startTLS())) {
+                if (self::isError($msg = $this->startTLS())) {
                     $current_error           = $msg;
                     $this->_link             = false;
                     $this->_down_host_list[] = $host;
@@ -425,10 +420,10 @@ class Net_LDAP extends PEAR
 
             //
             // Attempt to bind to the server. If we have credentials configured,
-            // we try to use them, otherwiese its an anonymous bind.
+            // we try to use them, otherwise its an anonymous bind.
             //
             $msg = $this->bind();
-            if (Net_LDAP::isError($msg)) {
+            if (self::isError($msg)) {
                 // The bind failed, discard link and save error msg.
                 // Then record the host as down and try next one
                 $this->_link             = false;
@@ -437,12 +432,15 @@ class Net_LDAP extends PEAR
                 continue;
             }
 
+            //
+            // Set LDAP parameters, now we know we have a valid connection.
+            //
             if (isset($this->_config['options']) &&
                 is_array($this->_config['options']) &&
                 count($this->_config['options'])) {
                 foreach ($this->_config['options'] as $opt => $val) {
                     $err = $this->setOption($opt, $val);
-                    if (Net_LDAP::isError($err)) {
+                    if (self::isError($err)) {
                         $current_error           = $err;
                         $this->_link             = false;
                         $this->_down_host_list[] = $host;
