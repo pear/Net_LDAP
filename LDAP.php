@@ -37,7 +37,7 @@ define('NET_LDAP_ERROR', 1000);
 /**
 * Net_LDAP Version
 */
-define('NET_LDAP_VERSION', '1.1.4');
+define('NET_LDAP_VERSION', '1.1.5');
 
 /**
 * Net_LDAP - manipulate LDAP servers the right way!
@@ -397,16 +397,6 @@ class Net_LDAP extends PEAR
             }
 
             //
-            // Set LDAP version before trying to bind.
-            //
-            if (self::isError($msg = $this->setLDAPVersion())) {
-                $current_error           = $msg;
-                $this->_link             = false;
-                $this->_down_host_list[] = $host;
-                continue;
-            }
-
-            //
             // If we're supposed to use TLS, do so before we try to bind.
             //
             if ($this->_config["starttls"] === true) {
@@ -428,6 +418,16 @@ class Net_LDAP extends PEAR
                 // Then record the host as down and try next one
                 $this->_link             = false;
                 $current_error           = $msg;
+                $this->_down_host_list[] = $host;
+                continue;
+            }
+
+            //
+            // Set LDAP version after we have a bind.
+            //
+            if (self::isError($msg = $this->setLDAPVersion())) {
+                $current_error           = $msg;
+                $this->_link             = false;
                 $this->_down_host_list[] = $host;
                 continue;
             }

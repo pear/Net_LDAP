@@ -37,9 +37,9 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </lead>
 
     <!-- Information for this release -->
-    <date>2009-04-23</date>
+    <date>2009-07-03</date>
     <version>
-        <release>1.1.4</release>
+        <release>1.1.5</release>
         <api>1.1.2</api>
     </version>
     <stability>
@@ -48,7 +48,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     </stability>
     <license>LGPL License</license>
     <notes>
-         * Ported the connect() method from Net_LDAP2 since it fixes some connection issues
+         * Ported the fix (RFC-1777) in connect() from Net_LDAP2 v2.0.3
     </notes>
 
     <contents>
@@ -94,7 +94,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
                 <file baseinstalldir="Net" name="ldif_data/sorted_w50.ldif" role="test" />
                 <file baseinstalldir="Net" name="ldif_data/unsorted_w30.ldif" role="test" />
                 <file baseinstalldir="Net" name="ldif_data/unsorted_w50.ldif" role="test" />
-		<file baseinstalldir="Net" name="ldif_data/unsorted_w50_WIN.ldif" role="test" />
+                <file baseinstalldir="Net" name="ldif_data/unsorted_w50_WIN.ldif" role="test" />
                 <file baseinstalldir="Net" name="ldif_data/changes.ldif" role="test" />
             </dir> <!-- /tests -->
         </dir> <!-- / -->
@@ -520,6 +520,21 @@ http://pear.php.net/dtd/package-2.0.xsd">
             <notes>
             * Fixed a little issue with repetive adding the same attribute value (backported from Net_LDAP2)
             * Fixed issue with repetitve adding or deleting values causing Net_LDAP to send the same change multiple times
+            </notes>
+        </release>
+        <release>
+            <date>2009-04-23</date>
+            <version>
+                <release>1.1.4</release>
+                <api>1.1.2</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <license>LGPL License</license>
+            <notes>
+                * Ported the connect() method from Net_LDAP2 since it fixes some connection issues
             </notes>
         </release>
     </changelog>
