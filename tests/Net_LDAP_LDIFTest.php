@@ -112,7 +112,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         $this->testentries = array();
         foreach ($this->testentries_data as $dn => $attrs) {
             $entry = Net_LDAP_Entry::createfresh($dn, $attrs);
-            $this->assertType('Net_LDAP_Entry', $entry, 'ERROR inittializing test entries');
+            $this->assertInstanceOf('Net_LDAP_Entry', $entry, 'ERROR inittializing test entries');
             array_push($this->testentries, $entry);
         }
 
@@ -156,7 +156,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
 
         // Test illegal option passing
         $ldif = new Net_LDAP_LDIF($this->outfile, $mode, array('somebad' => 'option'));
-        $this->assertType('Net_LDAP_Error', $ldif->error());
+        $this->assertInstanceOf('Net_LDAP_Error', $ldif->error());
 
         // Test passing custom handle
         $handle = fopen($this->outfile, 'r');
@@ -166,12 +166,12 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         // Reading test with invalid file mode
         $ldif = new Net_LDAP_LDIF($this->outfile, 'y', $this->defaultConfig);
         $this->assertNull($ldif->handle());
-        $this->assertType('Net_LDAP_Error', $ldif->error());
+        $this->assertInstanceOf('Net_LDAP_Error', $ldif->error());
 
         // Reading test with nonexistent file
         $ldif = new Net_LDAP_LDIF('some/nonexistent/file_for_net_ldap_ldif', 'r', $this->defaultConfig);
         $this->assertNull($ldif->handle());
-        $this->assertType('Net_LDAP_Error', $ldif->error());
+        $this->assertInstanceOf('Net_LDAP_Error', $ldif->error());
 
         // writing to nonexistent file
         $ldif = new Net_LDAP_LDIF('testfile_for_net_ldap_ldif', 'w', $this->defaultConfig);
@@ -181,14 +181,14 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         // writing to nonexistent path
         $ldif = new Net_LDAP_LDIF('some/nonexistent/file_for_net_ldap_ldif', 'w', $this->defaultConfig);
         $this->assertNull($ldif->handle());
-        $this->assertType('Net_LDAP_Error', $ldif->error());
+        $this->assertInstanceOf('Net_LDAP_Error', $ldif->error());
 
         // writing to existing file but without permission
         // note: chmod should succeed since we do that in setUp()
         if (chmod($this->outfile, 0444)) {
             $ldif = new Net_LDAP_LDIF($this->outfile, 'w', $this->defaultConfig);
             $this->assertNull($ldif->handle());
-            $this->assertType('Net_LDAP_Error', $ldif->error());
+            $this->assertInstanceOf('Net_LDAP_Error', $ldif->error());
         } else {
             $this->markTestSkipped("Could not chmod ".$this->outfile.", write test without permission skipped");
         }
@@ -208,7 +208,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         do {
             $entry = $ldif->read_entry();
             $this->assertFalse((boolean)$ldif->error(), 'failed building entry from LDIF: '.$ldif->error(true));
-            $this->assertType('Net_LDAP_Entry', $entry);
+            $this->assertInstanceOf('Net_LDAP_Entry', $entry);
             array_push($entries, $entry);
         } while (!$ldif->eof());
 
@@ -224,7 +224,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         do {
             $entry = $ldif->read_entry();
             $this->assertFalse((boolean)$ldif->error(), 'failed building entry from LDIF: '.$ldif->error(true));
-            $this->assertType('Net_LDAP_Entry', $entry);
+            $this->assertInstanceOf('Net_LDAP_Entry', $entry);
             array_push($entries, $entry);
         } while (!$ldif->eof());
 
@@ -362,7 +362,7 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         do {
             $entry = $ldif->read_entry();
             $this->assertFalse((boolean)$ldif->error(), 'failed building entry from LDIF: '.$ldif->error(true));
-            $this->assertType('Net_LDAP_Entry', $entry);
+            $this->assertInstanceOf('Net_LDAP_Entry', $entry);
             array_push($entries, $entry);
         } while (!$ldif->eof());
         $ldif->done();
@@ -513,9 +513,9 @@ class Net_LDAP_LDIFTest extends PHPUnit_Framework_TestCase {
         // Error giving error msg and line number:
         $ldif = new Net_LDAP_LDIF(dirname(__FILE__).'/some_not_existing/path/for/net_ldap_ldif', 'r', $this->defaultConfig);
         $this->assertTrue((boolean)$ldif->error());
-        $this->assertType('Net_LDAP_Error', $ldif->error());
-        $this->assertType('string', $ldif->error(true));
-        $this->assertType('int', $ldif->error_lines());
+        $this->assertInstanceOf('Net_LDAP_Error', $ldif->error());
+        $this->assertInternalType('string', $ldif->error(true));
+        $this->assertInternalType('int', $ldif->error_lines());
         $this->assertThat(strlen($ldif->error(true)), $this->greaterThan(0));
 
         // Test for line number reporting

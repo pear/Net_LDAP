@@ -102,7 +102,7 @@ class Net_LDAP_SearchTest extends PHPUnit_Framework_TestCase {
                 'filter' => '(ou=*)',
             );
         $ldap = Net_LDAP::connect($lcfg);
-        $this->assertType('Net_LDAP', $ldap, 'Connect failed but was supposed to work. Check credentials and host address. If those are correct, file a bug!');
+        $this->assertInstanceOf('Net_LDAP', $ldap, 'Connect failed but was supposed to work. Check credentials and host address. If those are correct, file a bug!');
         return $ldap;
     }
 
