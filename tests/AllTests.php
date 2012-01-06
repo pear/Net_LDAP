@@ -4,7 +4,7 @@ if (!defined('PHPUnit_MAIN_METHOD')) {
 }
 
 // PHPUnit inlcudes
-require_once 'PHPUnit/TextUI/TestRunner.php';
+require_once 'PHPUnit/Autoload.php';
 
 // Net_LDAP test suites includes
 chdir(dirname(__FILE__) . '/../');
